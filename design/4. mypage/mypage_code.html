@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>scoor! - My Page</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#f42525",
+              "background-light": "#f8f5f5",
+              "background-dark": "#221010",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .ios-blur { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #f4252533; border-radius: 10px; }
+        body { min-height: max(884px, 100dvh); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-zinc-900 dark:text-zinc-100 min-h-screen flex justify-center items-start">
+<div class="w-full max-w-[430px] min-h-screen bg-white dark:bg-zinc-900 shadow-2xl relative overflow-hidden flex flex-col border-x border-zinc-200/50 dark:border-zinc-800/50">
+<div class="h-12 w-full flex justify-between items-center px-8 pt-4">
+<span class="font-bold text-sm">9:41</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-icons text-[18px]">signal_cellular_alt</span>
+<span class="material-icons text-[18px]">wifi</span>
+<span class="material-icons text-[18px]">battery_full</span>
+</div>
+</div>
+<header class="px-6 pt-4 pb-2 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-primary ring-2 ring-primary/20">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAj8pPpDMym19yU4myFDUC-Q4rNVjbdetJxu9IgwC3GmSw4Z6_Sv6Rvg64qhrj3Po-bZarLzx0dJlJVaoN8UKMGR5aqK9fiqiJYwTH0jwbwwnnwH_ag0ZVcQKBFQSecy_cqMWoRtdqcvqkdpZBwXAtfWkXFLAHoXK7xAHivg3uWi8dthNGKOLnoun4sIaju68CqNgnKOfKkt8ZnxzhHxHC5HCrfLpgnGgpFPVv6YUGvobI3_wRkKY4K5-EH7q0pkT4fBifgZatCGvdG"/>
+</div>
+<div>
+<h1 class="text-xl font-extrabold tracking-tight">scoor!</h1>
+<p class="text-xs font-medium text-zinc-500 dark:text-zinc-400">@sarah_lee</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-primary text-2xl font-black italic">88.4</span>
+<span class="text-[10px] uppercase tracking-widest font-bold text-zinc-400">Monthly Avg</span>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto custom-scrollbar px-4 pb-24">
+<section class="mt-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-5 border border-zinc-100 dark:border-zinc-800">
+<div class="flex justify-between items-center mb-6 px-1">
+<button class="w-8 h-8 rounded-full bg-white dark:bg-zinc-700 shadow-sm flex items-center justify-center">
+<span class="material-icons text-primary text-xl">chevron_left</span>
+</button>
+<h2 class="font-bold text-lg">October 2023</h2>
+<button class="w-8 h-8 rounded-full bg-white dark:bg-zinc-700 shadow-sm flex items-center justify-center">
+<span class="material-icons text-primary text-xl">chevron_right</span>
+</button>
+</div>
+<div class="grid grid-cols-7 gap-y-4 text-center">
+<div class="text-[10px] font-black text-zinc-400 uppercase">S</div>
+<div class="text-[10px] font-black text-zinc-400 uppercase">M</div>
+<div class="text-[10px] font-black text-zinc-400 uppercase">T</div>
+<div class="text-[10px] font-black text-zinc-400 uppercase">W</div>
+<div class="text-[10px] font-black text-zinc-400 uppercase">T</div>
+<div class="text-[10px] font-black text-zinc-400 uppercase">F</div>
+<div class="text-[10px] font-black text-zinc-400 uppercase">S</div>
+<div class="text-zinc-300 text-xs py-2">—</div>
+<div class="text-zinc-300 text-xs py-2">—</div>
+<div class="text-zinc-300 text-xs py-2">—</div>
+<div class="group cursor-pointer">
+<div class="text-[10px] text-zinc-400 mb-1">1</div>
+<div class="text-sm font-bold text-primary/60">72</div>
+</div>
+<div class="group cursor-pointer">
+<div class="text-[10px] text-zinc-400 mb-1">2</div>
+<div class="text-sm font-bold text-primary/80">85</div>
+</div>
+<div class="group cursor-pointer">
+<div class="text-[10px] text-zinc-400 mb-1">3</div>
+<div class="text-sm font-bold text-primary">94</div>
+</div>
+<div class="group cursor-pointer">
+<div class="text-[10px] text-zinc-400 mb-1">4</div>
+<div class="text-sm font-bold text-primary/40">61</div>
+</div>
+<div class="group cursor-pointer">
+<div class="text-[10px] text-zinc-400 mb-1">5</div>
+<div class="text-sm font-bold text-primary/70">78</div>
+</div>
+<div class="group cursor-pointer">
+<div class="text-[10px] text-zinc-400 mb-1">6</div>
+<div class="text-sm font-bold text-primary/90">88</div>
+</div>
+<div class="group cursor-pointer relative">
+<div class="text-[10px] text-zinc-400 mb-1">7</div>
+<div class="text-sm font-bold text-primary">99</div>
+<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div>
+</div>
+<div class="group cursor-pointer">
+<div class="text-[10px] text-zinc-400 mb-1">8</div>
+<div class="text-sm font-bold text-primary/80">82</div>
+</div>
+<div class="group cursor-pointer">
+<div class="text-[10px] text-zinc-400 mb-1">9</div>
+<div class="text-sm font-bold text-primary/60">74</div>
+</div>
+<div class="group cursor-pointer bg-primary rounded-lg py-1 shadow-lg shadow-primary/20">
+<div class="text-[10px] text-white/70 mb-1">10</div>
+<div class="text-sm font-bold text-white">92</div>
+</div>
+<div class="group cursor-pointer">
+<div class="text-[10px] text-zinc-400 mb-1">11</div>
+<div class="text-sm font-bold text-zinc-300">—</div>
+</div>
+<div class="text-zinc-300 text-xs py-2">...</div><div class="text-zinc-300 text-xs py-2">...</div><div class="text-zinc-300 text-xs py-2">...</div><div class="text-zinc-300 text-xs py-2">...</div><div class="text-zinc-300 text-xs py-2">...</div><div class="text-zinc-300 text-xs py-2">...</div><div class="text-zinc-300 text-xs py-2">...</div>
+</div>
+</section>
+<div class="mt-4 grid grid-cols-2 gap-4">
+<div class="bg-white dark:bg-zinc-800 rounded-lg p-4 border border-zinc-100 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
+<div class="flex items-center gap-1.5 mb-1">
+<span class="material-symbols-outlined text-primary text-xl font-bold">local_fire_department</span>
+<span class="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Streak</span>
+</div>
+<p class="text-xl font-extrabold text-zinc-900 dark:text-white">
+<span class="text-primary italic">12</span> Day Streak
+                </p>
+</div>
+<div class="bg-white dark:bg-zinc-800 rounded-lg p-4 border border-zinc-100 dark:border-zinc-800 shadow-sm flex flex-col justify-center">
+<div class="flex items-center gap-1.5 mb-1">
+<span class="material-icons text-primary text-base">emoji_events</span>
+<span class="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Highlight</span>
+</div>
+<p class="text-xs font-bold text-zinc-500 dark:text-zinc-400 leading-tight">
+                    Best Day: <span class="text-primary">Oct 10th</span>
+</p>
+<p class="text-[13px] font-extrabold text-zinc-800 dark:text-zinc-200">Score: 92 pts</p>
+</div>
+</div>
+<section class="mt-8">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="material-icons text-primary">auto_stories</span>
+<h3 class="font-bold text-lg">Guestbook</h3>
+</div>
+<span class="text-xs font-bold text-zinc-400">128 Entries</span>
+</div>
+<div class="mb-6 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center">
+<input class="bg-transparent border-none focus:ring-0 text-sm flex-1 px-4 py-2 font-medium" placeholder="Leave a nice note..." type="text"/>
+<button class="bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors">
+<span class="material-icons text-[20px]">send</span>
+</button>
+</div>
+<div class="space-y-4">
+<div class="p-4 rounded-lg bg-white dark:bg-zinc-800 border-l-4 border-primary shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full overflow-hidden bg-primary/10">
+<img alt="Friend" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANe6nSMacdrO733u11CyFWxhBt509jQfYLXZs2yM0vdyPs5akJ0bA_OWx8N_fD2Jy-Iz5OWlCCkvs4ddUguw8qDHNA6-ogBIfiUutzyyz_M-QcKvt78DWohCTzoE8jncL6Z0FzMRKpCldQ0-J9GibgETIqm8OjqOLTupmXqWSS67Bvx5da3lNsAVoGuoQjpqYjRM2V6vzZT77qr7gUAWIYUjPWicFInHVuUyX1XqvMXB944p4ay9NvrGY9fv2Hdo4Tb3BDTHLzW60-"/>
+</div>
+<span class="text-sm font-bold">Jason Park</span>
+<span class="text-[10px] font-bold px-1.5 py-0.5 bg-primary/10 text-primary rounded-full uppercase tracking-tighter">Bestie</span>
+</div>
+<span class="material-icons text-zinc-300 text-sm">public</span>
+</div>
+<p class="text-sm text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">Loved your 99 score yesterday! You're absolutely crushing it this week. Let's get coffee soon! ☕️</p>
+<div class="mt-3 flex justify-between items-center">
+<span class="text-[10px] font-bold text-zinc-400">2h ago</span>
+<div class="flex gap-3">
+<button class="text-primary text-xs font-bold">Reply</button>
+<button class="text-zinc-400 text-xs font-bold">Delete</button>
+</div>
+</div>
+</div>
+<div class="p-4 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 border-l-4 border-zinc-300 dark:border-zinc-700 opacity-80">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center">
+<span class="material-icons text-xs text-zinc-400">person</span>
+</div>
+<span class="text-sm font-bold text-zinc-500">Secret Friend</span>
+</div>
+<span class="material-icons text-primary text-sm">lock</span>
+</div>
+<p class="text-sm text-zinc-400 dark:text-zinc-500 italic">This message is only visible to you.</p>
+<div class="mt-3 flex justify-between items-center">
+<span class="text-[10px] font-bold text-zinc-400 uppercase">Yesterday</span>
+<button class="text-primary text-xs font-bold">Unlock</button>
+</div>
+</div>
+<div class="p-4 rounded-lg bg-white dark:bg-zinc-800 border-l-4 border-primary shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full overflow-hidden bg-primary/10">
+<img alt="Friend" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRwq_FDfGjOdgY6nDJVOK0LkUZ5-L86zJpNg5-wwhec6JxZ5DLom2sHB58XewdKu5lu6vibbftRvv-RGYxWmhwu1FWJGmFutTCRDS89RlQvIVMG8PbaM3vUz04smK4GypwTUI0b7nloJihvrgIr7TY528649Ua92-qDH1E-IPtfxCXCP8Jd0C1bkh3r5L61EaKqv6nuHlu1XWqdtaLyOe6Dn1h1O2v8wMOqsjpBrpPZSy04deqEGvdrHM__s1XX-2oXVky3QB3Ij6j"/>
+</div>
+<span class="text-sm font-bold">Kim Minji</span>
+</div>
+<span class="material-icons text-zinc-300 text-sm">public</span>
+</div>
+<p class="text-sm text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">scoor! is so much better than journaling. Your 10th was high too!</p>
+<div class="mt-3 flex justify-between items-center">
+<span class="text-[10px] font-bold text-zinc-400 uppercase">2 Days ago</span>
+<div class="flex gap-3">
+<button class="text-primary text-xs font-bold">Reply</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<button class="absolute bottom-28 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-icons text-3xl">add</span>
+</button>
+<nav class="absolute bottom-0 w-full h-20 bg-white/80 dark:bg-zinc-900/80 ios-blur border-t border-zinc-100 dark:border-zinc-800 flex justify-around items-center px-6 pb-4">
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-icons text-zinc-400 group-hover:text-primary transition-colors">home</span>
+<span class="text-[10px] font-bold text-zinc-400">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-icons text-zinc-400 group-hover:text-primary transition-colors">insights</span>
+<span class="text-[10px] font-bold text-zinc-400">Stats</span>
+</button>
+<button class="flex flex-col items-center gap-1">
+<span class="material-icons text-primary">person</span>
+<span class="text-[10px] font-bold text-primary">My Page</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-icons text-zinc-400 group-hover:text-primary transition-colors">settings</span>
+<span class="text-[10px] font-bold text-zinc-400">Settings</span>
+</button>
+</nav>
+<div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute top-1/2 -left-20 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+</div>
+
+</body></html>

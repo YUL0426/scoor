@@ -1,0 +1,27 @@
+# Claude Code (local harness data — not project source)
+.claude/
+
+# macOS
+.DS_Store
+
+# Xcode / Swift
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# Node / admin panel
+admin/node_modules/
+admin/.next/
+admin/out/
+admin/.env*.local
+admin/next-env.d.ts

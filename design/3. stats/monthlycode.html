@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Monthly Pattern Report - scoor!</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f42525",
+                        "background-light": "#ffffff",
+                        "background-dark": "#121212",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply bg-slate-100;
+                min-height: 100dvh;
+            }
+        }
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 6px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display text-slate-900 dark:text-slate-100 flex items-center justify-center p-0 md:p-8">
+<main class="w-full max-w-[400px] h-[850px] bg-white dark:bg-[#000000] rounded-[3rem] shadow-2xl overflow-hidden relative border-[12px] border-slate-900 dark:border-zinc-800 flex flex-col">
+<div class="h-12 w-full flex justify-between items-end px-8 pb-2 shrink-0 relative z-10">
+<span class="text-sm font-bold">9:41</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-icons text-xs">signal_cellular_alt</span>
+<span class="material-icons text-xs">wifi</span>
+<span class="material-icons text-xs">battery_full</span>
+</div>
+</div>
+<header class="px-6 pt-4 pb-4 relative z-10 bg-white dark:bg-[#000000]">
+<div class="flex justify-between items-center mb-6">
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined text-slate-900 dark:text-white">arrow_back_ios_new</button>
+<h1 class="text-2xl font-800 tracking-tight">Monthly Pattern</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center border border-slate-200 dark:border-zinc-700">
+<span class="material-symbols-outlined text-slate-900 dark:text-white">calendar_month</span>
+</div>
+</div>
+<div class="bg-slate-100 dark:bg-zinc-900 p-1.5 rounded-full flex gap-1 max-w-[280px] mx-auto border border-slate-200 dark:border-zinc-800">
+<button class="flex-1 py-1.5 rounded-full text-xs font-bold transition-all text-slate-500">Daily</button>
+<button class="flex-1 py-1.5 rounded-full text-xs font-bold transition-all text-slate-500">Weekly</button>
+<button class="flex-1 py-1.5 rounded-full text-xs font-bold transition-all bg-white dark:bg-primary shadow-sm text-primary dark:text-white border border-slate-100 dark:border-transparent">Monthly</button>
+</div>
+</header>
+<section class="flex-1 overflow-y-auto px-6 pb-32 relative z-10 bg-white dark:bg-[#000000]">
+<div class="bg-white dark:bg-zinc-900 rounded-3xl p-6 mb-6 border-2 border-slate-100 dark:border-zinc-800 shadow-sm">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-[10px] font-900 text-slate-400 uppercase tracking-widest">October 2023 Heatmap</h3>
+<div class="flex items-center gap-1">
+<span class="text-[9px] font-bold text-slate-400">Low</span>
+<div class="flex gap-0.5">
+<div class="w-2 h-2 rounded-full bg-primary/10"></div>
+<div class="w-2 h-2 rounded-full bg-primary/40"></div>
+<div class="w-2 h-2 rounded-full bg-primary/70"></div>
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+</div>
+<span class="text-[9px] font-bold text-slate-400">High</span>
+</div>
+</div>
+<div class="heatmap-grid mb-2">
+<span class="text-[10px] font-bold text-slate-400 text-center">M</span>
+<span class="text-[10px] font-bold text-slate-400 text-center">T</span>
+<span class="text-[10px] font-bold text-slate-400 text-center">W</span>
+<span class="text-[10px] font-bold text-slate-400 text-center">T</span>
+<span class="text-[10px] font-bold text-slate-400 text-center">F</span>
+<span class="text-[10px] font-bold text-slate-400 text-center">S</span>
+<span class="text-[10px] font-bold text-slate-400 text-center text-primary">S</span>
+<div class="heatmap-cell bg-primary/10"></div>
+<div class="heatmap-cell bg-primary/30"></div>
+<div class="heatmap-cell bg-primary/80"></div>
+<div class="heatmap-cell bg-primary/40"></div>
+<div class="heatmap-cell bg-primary/20"></div>
+<div class="heatmap-cell bg-primary/60"></div>
+<div class="heatmap-cell bg-primary/90"></div>
+<div class="heatmap-cell bg-primary/50"></div>
+<div class="heatmap-cell bg-primary/20"></div>
+<div class="heatmap-cell bg-primary/100"></div>
+<div class="heatmap-cell bg-primary/60"></div>
+<div class="heatmap-cell bg-primary/30"></div>
+<div class="heatmap-cell bg-primary/80"></div>
+<div class="heatmap-cell bg-primary/70"></div>
+<div class="heatmap-cell bg-primary/20"></div>
+<div class="heatmap-cell bg-primary/40"></div>
+<div class="heatmap-cell bg-primary/85"></div>
+<div class="heatmap-cell bg-primary/50"></div>
+<div class="heatmap-cell bg-primary/10"></div>
+<div class="heatmap-cell bg-primary/90"></div>
+<div class="heatmap-cell bg-primary/95"></div>
+<div class="heatmap-cell bg-primary/40"></div>
+<div class="heatmap-cell bg-primary/10"></div>
+<div class="heatmap-cell bg-primary/90"></div>
+<div class="heatmap-cell bg-primary/30"></div>
+<div class="heatmap-cell bg-primary/60"></div>
+<div class="heatmap-cell bg-primary/70"></div>
+<div class="heatmap-cell bg-primary/80"></div>
+<div class="heatmap-cell bg-primary/30"></div>
+<div class="heatmap-cell bg-primary/50"></div>
+<div class="heatmap-cell bg-primary/95"></div>
+<div class="heatmap-cell bg-slate-100 dark:bg-zinc-800 border border-dashed border-slate-300 dark:border-zinc-700"></div>
+<div class="heatmap-cell bg-slate-100 dark:bg-zinc-800 border border-dashed border-slate-300 dark:border-zinc-700"></div>
+<div class="heatmap-cell bg-slate-100 dark:bg-zinc-800 border border-dashed border-slate-300 dark:border-zinc-700"></div>
+<div class="heatmap-cell bg-slate-100 dark:bg-zinc-800 border border-dashed border-slate-300 dark:border-zinc-700"></div>
+</div>
+<p class="text-[10px] font-bold text-slate-400 mt-4 text-center">Intensity represents your daily score</p>
+</div>
+<div class="mb-8">
+<h3 class="text-[10px] font-900 text-slate-400 uppercase tracking-widest mb-4">Pattern Summary</h3>
+<div class="bg-white dark:bg-zinc-900 border-2 border-slate-100 dark:border-zinc-800 rounded-3xl p-6 space-y-6">
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 bg-green-50 dark:bg-green-900/30 rounded-xl flex items-center justify-center text-green-600">
+<span class="material-symbols-outlined font-bold">trending_up</span>
+</div>
+<div>
+<h4 class="text-sm font-bold text-slate-900 dark:text-white">Best Day: Wednesday</h4>
+<p class="text-[11px] text-slate-500 font-bold">Highest consistency with an average of 88 pts</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 bg-primary/10 dark:bg-primary/20 rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined font-bold">trending_down</span>
+</div>
+<div>
+<h4 class="text-sm font-bold text-slate-900 dark:text-white">Worst Day: Monday</h4>
+<p class="text-[11px] text-slate-500 font-bold">Start of week slump with an average of 54 pts</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 bg-slate-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined font-bold">balance</span>
+</div>
+<div>
+<h4 class="text-sm font-bold text-slate-900 dark:text-white">Weekend vs Weekday</h4>
+<p class="text-[11px] text-slate-500 font-bold">Weekends are 10pts higher on average</p>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-red-600 text-white font-800 py-4 px-6 rounded-2xl shadow-lg shadow-primary/30 flex items-center justify-center gap-2 transition-all active:scale-95 mb-4">
+<span class="material-symbols-outlined text-xl">share</span>
+<span>Share Report Card</span>
+</button>
+</section>
+<nav class="absolute bottom-0 w-full bg-white dark:bg-black border-t-2 border-slate-100 dark:border-zinc-800 px-10 pt-3 pb-8 flex justify-between items-center shrink-0 z-40">
+<div class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined text-[28px]">home</span>
+<span class="text-[10px] font-bold">Home</span>
+</div>
+<div class="relative -mt-12">
+<div class="w-16 h-16 bg-primary rounded-full shadow-lg shadow-primary/40 flex items-center justify-center text-white ring-4 ring-white dark:ring-black">
+<span class="material-symbols-outlined text-3xl font-bold">add</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[28px] fill-1">bar_chart</span>
+<span class="text-[10px] font-bold">Stats</span>
+</div>
+</nav>
+<div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-slate-200 dark:bg-zinc-800 rounded-full pointer-events-none z-50"></div>
+</main>
+
+</body></html>

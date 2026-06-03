@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Country User Score Feed - scoor!</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f42525",
+                        "primary-light": "#fff1f1",
+                        "background-light": "#ffffff",
+                        "background-dark": "#121212",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-status-bar {
+            height: 44px;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .soft-red-gradient {
+            background: linear-gradient(135deg, #fff1f1 0%, #ffe4e4 100%);
+        }
+        .dark .soft-red-gradient {
+            background: linear-gradient(135deg, #450a0a 0%, #2d0606 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-zinc-900 dark:text-zinc-100 min-h-screen overflow-hidden">
+<div class="ios-status-bar flex justify-between items-center px-8 w-full fixed top-0 z-50 bg-white/80 dark:bg-black/40 backdrop-blur-md">
+<span class="text-sm font-bold">9:41</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-symbols-outlined text-sm">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-sm">wifi</span>
+<span class="material-symbols-outlined text-sm">battery_full</span>
+</div>
+</div>
+<header class="fixed top-11 left-0 right-0 z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md">
+<div class="flex items-center justify-between px-4 py-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full active:bg-zinc-100 dark:active:bg-zinc-800 transition-colors">
+<span class="material-symbols-outlined text-zinc-900 dark:text-zinc-100">arrow_back_ios_new</span>
+</button>
+<h1 class="text-xs font-extrabold tracking-[0.2em] text-zinc-400 dark:text-zinc-500 uppercase">KOREA FEED</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full active:bg-zinc-100 dark:active:bg-zinc-800 transition-colors">
+<span class="material-symbols-outlined text-zinc-900 dark:text-zinc-100">tune</span>
+</button>
+</div>
+</header>
+<div class="fixed top-28 left-0 right-0 z-30 px-6">
+<div class="soft-red-gradient rounded-2xl p-4 shadow-xl shadow-primary/5 border border-primary/5 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-[10px] font-extrabold text-primary/60 tracking-widest uppercase mb-0.5">National average</span>
+<div class="flex items-center gap-2">
+<span class="text-lg font-extrabold text-zinc-900 dark:text-white tracking-tight">KOREA AVG</span>
+</div>
+</div>
+<div class="bg-white dark:bg-primary/20 px-4 py-2 rounded-xl shadow-sm border border-primary/10">
+<span class="text-2xl font-black text-primary italic">8.5</span>
+</div>
+</div>
+</div>
+<main class="mt-[196px] pb-32 h-screen overflow-y-auto hide-scrollbar px-4">
+<div class="space-y-1">
+<div class="flex items-start gap-4 p-4 border-b border-zinc-50 dark:border-zinc-800/50">
+<div class="relative flex-shrink-0">
+<img alt="Profile" class="w-12 h-12 rounded-full border border-zinc-100 dark:border-zinc-800 object-cover bg-zinc-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNhDsr8xM60zY0jrDhEgFdEiT8Bb_LD6pcbFe7WZf-_A3BJbzSGqW2t6TnRndzYYCp4Qln6WBpwrqctz54aW6oolkjcG_8i_yvG71MoJUfO7FSsdcvQR5YQPLbd3ZuJ_gV_QO54TyXmSdETr_NIT2rP8jkQEd8lQKMcm9psFmbuSFPFNW72ps-uwcLFcCsedx6kf4-5qyRCfxPIFpSjTvK83N0Ml0f49jTpA74eKDW_NOEe2-vW_feDngQPGIbMNuAYu2la_0MQOdG"/>
+<div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-zinc-900 rounded-full"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-0.5">
+<h3 class="font-bold text-zinc-900 dark:text-zinc-100 truncate">Kim Min-su</h3>
+<span class="text-[11px] font-medium text-zinc-400">2m ago</span>
+</div>
+<p class="text-sm text-zinc-600 dark:text-zinc-400 leading-snug">Finally finished the marathon!</p>
+<div class="flex items-center gap-5 mt-3">
+<button class="flex items-center gap-1.5 group">
+<span class="material-symbols-outlined text-[20px] text-primary fill-1">favorite</span>
+<span class="text-xs font-bold text-primary">24</span>
+</button>
+<button class="flex items-center gap-1.5 group active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px] text-zinc-400 dark:text-zinc-500 group-active:text-primary">chat_bubble</span>
+</button>
+</div>
+</div>
+<div class="flex-shrink-0 ml-2">
+<span class="text-2xl font-black text-primary italic">9.2</span>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 border-b border-zinc-50 dark:border-zinc-800/50">
+<div class="relative flex-shrink-0">
+<img alt="Profile" class="w-12 h-12 rounded-full border border-zinc-100 dark:border-zinc-800 object-cover bg-zinc-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1ICnFJXNa-E_SAh8ccmRonmBT3qrLe0yFp-obVMoi1xbRJ7xuhPHU5zdKqAYzp1cq6weD8apCfGoKZWzWaocW3yirubZATZh7kV_E64uFIGbo_XDb7OmnG0vsDRXJD7fY_l2rvn5ESfMtTpCkg5Id8QsypPhh5jF2ITFCom2JPwQIOvSuZGivze2GYvMdRrbz-q9M0WIHMmXlhM_XpD32aNKHUYGHqLrHaq3g-yd1NAr5fPRIPnSfEU29LNk0pMT0zIkKIm7Q2UPG"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-0.5">
+<h3 class="font-bold text-zinc-900 dark:text-zinc-100 truncate">Park J.</h3>
+<span class="text-[11px] font-medium text-zinc-400">15m ago</span>
+</div>
+<p class="text-sm text-zinc-600 dark:text-zinc-400 leading-snug">The weather in Seoul is absolutely perfect today.</p>
+<div class="flex items-center gap-5 mt-3">
+<button class="flex items-center gap-1.5 group active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px] text-zinc-400 dark:text-zinc-500 group-active:text-primary group-active:fill-1">favorite</span>
+<span class="text-xs font-bold text-zinc-400 dark:text-zinc-500 group-active:text-primary">12</span>
+</button>
+<button class="flex items-center gap-1.5 group active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px] text-zinc-400 dark:text-zinc-500 group-active:text-primary">chat_bubble</span>
+</button>
+</div>
+</div>
+<div class="flex-shrink-0 ml-2">
+<span class="text-2xl font-black text-primary italic">8.8</span>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 border-b border-zinc-50 dark:border-zinc-800/50">
+<div class="relative flex-shrink-0">
+<img alt="Profile" class="w-12 h-12 rounded-full border border-zinc-100 dark:border-zinc-800 object-cover bg-zinc-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA13YAdG5BMwMla0hYDKUGj_Xsb5YBOsq7iro4v3z5kk4nO1jf3OIHfK1EkwKql6G9rZSQ3Jx8NPPpHEg9vMbEup_eIfXvzaCmbVTr_NKKZtJ-ucN2fDTCVK_zZivdVZAb7vWSQOuNl6uN7V6KpIeuvbSthMJazGoiBdipJnWZNZ6SBs7icpvPEQuwl_Ua0mrLhe6gyC5huK5mUdy1UT-2IBRqZsU-crVO75kuSYgi4ryPxDAhB6k4BwVhqLXYWJBp-xSQX6ittax_u"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-0.5">
+<h3 class="font-bold text-zinc-900 dark:text-zinc-100 truncate">Lee Sang-ho</h3>
+<span class="text-[11px] font-medium text-zinc-400">42m ago</span>
+</div>
+<p class="text-sm text-zinc-600 dark:text-zinc-400 leading-snug">Got a surprise promotion at work! Still in shock.</p>
+<div class="flex items-center gap-5 mt-3">
+<button class="flex items-center gap-1.5 group">
+<span class="material-symbols-outlined text-[20px] text-primary fill-1">favorite</span>
+<span class="text-xs font-bold text-primary">56</span>
+</button>
+<button class="flex items-center gap-1.5 group">
+<span class="material-symbols-outlined text-[20px] text-zinc-400 dark:text-zinc-500 group-active:text-primary">chat_bubble</span>
+</button>
+</div>
+</div>
+<div class="flex-shrink-0 ml-2">
+<span class="text-2xl font-black text-primary italic">9.6</span>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 border-b border-zinc-50 dark:border-zinc-800/50">
+<div class="relative flex-shrink-0">
+<img alt="Profile" class="w-12 h-12 rounded-full border border-zinc-100 dark:border-zinc-800 object-cover bg-zinc-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQhrQ0FaAqePr4VtWTD7BzspqnBnK6aax9003FQRUXB7wOwmafmWvs2t4IyBn0DBwJObGiXgoCXGoTRma0Q8Faick3NZuNqsaK92Xcswcitn7U_kC6OQv4kweGb4B_mZWY4NlUqX-OX8e5HZdYUOS7tWa6AefzUobtxQoYcpmdtw4n_sA0bksCZmOuiygrVnL95V2yJTuY7IbyR92j5GRNnOOzGlQFQorgzK2kF4_nVBecGpl1DwQQ7xjs4OopPt5_6fM3sazX82ZR"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-0.5">
+<h3 class="font-bold text-zinc-900 dark:text-zinc-100 truncate">Ji-won</h3>
+<span class="text-[11px] font-medium text-zinc-400">1h ago</span>
+</div>
+<p class="text-sm text-zinc-600 dark:text-zinc-400 leading-snug">Delicious lunch with my old college roommates.</p>
+<div class="flex items-center gap-5 mt-3">
+<button class="flex items-center gap-1.5 group active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px] text-zinc-400 dark:text-zinc-500 group-active:text-primary group-active:fill-1">favorite</span>
+<span class="text-xs font-bold text-zinc-400 dark:text-zinc-500 group-active:text-primary">8</span>
+</button>
+<button class="flex items-center gap-1.5 group">
+<span class="material-symbols-outlined text-[20px] text-zinc-400 dark:text-zinc-500 group-active:text-primary">chat_bubble</span>
+</button>
+</div>
+</div>
+<div class="flex-shrink-0 ml-2">
+<span class="text-2xl font-black text-primary italic">8.2</span>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-100 dark:border-zinc-800 px-8 py-3 pb-8 flex justify-between items-center z-50">
+<button class="flex flex-col items-center gap-1 text-zinc-400">
+<span class="material-symbols-outlined">map</span>
+<span class="text-[10px] font-bold">Explore</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-zinc-400">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[10px] font-bold">Stats</span>
+</button>
+<div class="relative -top-5">
+<button class="w-14 h-14 bg-primary rounded-2xl shadow-xl shadow-primary/40 flex items-center justify-center text-white ring-8 ring-white dark:ring-zinc-900 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined fill-1">forum</span>
+<span class="text-[10px] font-bold">Social</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-zinc-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold">You</span>
+</button>
+</div>
+
+</body></html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Advanced Score Insights - scoor!</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f42525",
+                        "background-light": "#ffffff",
+                        "background-dark": "#121212",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply bg-slate-100;
+                min-height: 100dvh;
+            }
+        }
+        .chart-container {
+            height: 180px;
+            display: grid;
+            grid-template-columns: 24px 1fr;
+            gap: 12px;
+        }
+        .y-axis {
+            display: flex;
+            flex-direction: column-reverse;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
+            padding-bottom: 24px;
+        }
+        .chart-area {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            position: relative;
+            padding-bottom: 24px;
+            border-left: 2px solid #f1f5f9;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .x-axis {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding-top: 8px;
+        }
+        .bar-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+            padding: 0 6px;
+            position: relative;
+        }
+        .bar {
+            width: 100%;
+            max-width: 32px;
+            background-color: #f42525;
+            border-radius: 4px 4px 0 0;
+        }
+        .tooltip-bubble {
+            position: absolute;
+            bottom: calc(100% + 14px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 60;
+            border: 2px solid #000000;
+        }
+        .tooltip-bubble::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 8px;
+            border-style: solid;
+            border-color: #000000 transparent transparent transparent;
+        }
+        .circular-progress {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: conic-gradient(#f42525 calc(var(--progress) * 1%), #f1f5f9 0);
+            position: relative;
+        }
+        .circular-progress::before {
+            content: "";
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 50%;
+        }
+        .circular-progress span {
+            position: relative;
+            font-size: 8px;
+            font-weight: 800;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display text-slate-900 dark:text-slate-100 flex items-center justify-center p-0 md:p-8">
+<main class="w-full max-w-[400px] h-[850px] bg-white dark:bg-[#000000] rounded-[3rem] shadow-2xl overflow-hidden relative border-[12px] border-slate-900 dark:border-zinc-800 flex flex-col">
+<div class="h-12 w-full flex justify-between items-end px-8 pb-2 shrink-0 relative z-10">
+<span class="text-sm font-bold">9:41</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-icons text-xs">signal_cellular_alt</span>
+<span class="material-icons text-xs">wifi</span>
+<span class="material-icons text-xs">battery_full</span>
+</div>
+</div>
+<header class="px-6 pt-4 pb-4 relative z-10 bg-white dark:bg-[#000000]">
+<div class="flex justify-between items-center mb-6">
+<h1 class="text-2xl font-800 tracking-tight">Advanced Insights</h1>
+<div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center border border-slate-200 dark:border-zinc-700">
+<span class="material-symbols-outlined text-slate-900 dark:text-white">calendar_today</span>
+</div>
+</div>
+<div class="bg-slate-100 dark:bg-zinc-900 p-1.5 rounded-full flex gap-1 max-w-[280px] mx-auto border border-slate-200 dark:border-zinc-800">
+<button class="flex-1 py-1.5 rounded-full text-xs font-bold transition-all text-slate-500 dark:text-slate-400">Daily</button>
+<button class="flex-1 py-1.5 rounded-full text-xs font-bold transition-all bg-white dark:bg-primary shadow-sm text-primary dark:text-white border border-slate-100 dark:border-transparent">Weekly</button>
+<button class="flex-1 py-1.5 rounded-full text-xs font-bold transition-all text-slate-500 dark:text-slate-400">Monthly</button>
+</div>
+</header>
+<section class="flex-1 overflow-y-auto px-6 pb-32 relative z-10 bg-white dark:bg-[#000000]">
+<div class="bg-white dark:bg-zinc-900 rounded-3xl p-6 mb-4 border-2 border-slate-100 dark:border-zinc-800 shadow-sm relative">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Weekly Performance</h3>
+<p class="text-xl font-800 text-slate-900 dark:text-white">Oct 9 - Oct 15</p>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-primary font-bold text-sm">+12%</span>
+</div>
+</div>
+<div class="chart-container">
+<div class="y-axis">
+<span>0</span>
+<span>50</span>
+<span>100</span>
+</div>
+<div class="chart-area">
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-[24px]">
+<div class="w-full border-t border-slate-100 dark:border-zinc-800"></div>
+<div class="w-full border-t border-slate-100 dark:border-zinc-800"></div>
+<div class="w-full border-t border-slate-100 dark:border-zinc-800"></div>
+</div>
+<div class="bar-group"><div class="bar opacity-30" style="height: 65%;"></div></div>
+<div class="bar-group"><div class="bar opacity-30" style="height: 42%;"></div></div>
+<div class="bar-group"><div class="bar opacity-30" style="height: 78%;"></div></div>
+<div class="bar-group">
+<div class="tooltip-bubble dark:bg-zinc-900 dark:border-white">
+<p class="text-[11px] leading-tight font-bold text-slate-900 dark:text-white">"Had a great meeting and finished project!"</p>
+<div class="mt-2 flex items-center justify-between border-t border-slate-100 dark:border-zinc-800 pt-1.5">
+<span class="text-[9px] font-900 text-primary uppercase">Thursday</span>
+<span class="text-[9px] font-bold text-slate-500">92/100</span>
+</div>
+</div>
+<div class="bar relative z-20 border-2 border-white dark:border-zinc-900" style="height: 92%;"></div>
+</div>
+<div class="bar-group"><div class="bar opacity-30" style="height: 55%;"></div></div>
+<div class="bar-group"><div class="bar opacity-30" style="height: 84%;"></div></div>
+<div class="bar-group"><div class="bar opacity-30" style="height: 30%;"></div></div>
+<div class="x-axis text-[10px] font-900 text-slate-400">
+<span class="flex-1 text-center">M</span><span class="flex-1 text-center">T</span><span class="flex-1 text-center">W</span><span class="flex-1 text-center text-primary">T</span><span class="flex-1 text-center">F</span><span class="flex-1 text-center">S</span><span class="flex-1 text-center">S</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex gap-3 mb-6">
+<div class="flex-1 bg-white dark:bg-zinc-900 border-2 border-slate-100 dark:border-zinc-800 rounded-2xl p-3 flex items-center gap-3">
+<div class="circular-progress" style="--progress: 71"><span>5d</span></div>
+<div>
+<p class="text-[9px] font-900 text-slate-400 uppercase tracking-tight leading-none mb-1">Current Streak</p>
+<p class="text-xs font-bold text-slate-900 dark:text-white">5 Days</p>
+</div>
+</div>
+<div class="flex-1 bg-white dark:bg-zinc-900 border-2 border-slate-100 dark:border-zinc-800 rounded-2xl p-3 flex items-center gap-3">
+<div class="circular-progress" style="--progress: 83"><span>83%</span></div>
+<div>
+<p class="text-[9px] font-900 text-slate-400 uppercase tracking-tight leading-none mb-1">Month Completion</p>
+<p class="text-xs font-bold text-slate-900 dark:text-white">83%</p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-white dark:bg-zinc-900 border-2 border-slate-100 dark:border-zinc-800 p-5 rounded-3xl shadow-sm">
+<p class="text-[10px] font-900 text-slate-400 uppercase tracking-widest mb-2">Highest Day</p>
+<div class="flex items-baseline gap-1">
+<span class="text-3xl font-800 text-primary">92</span>
+<span class="text-xs font-bold text-slate-400">/100</span>
+</div>
+<p class="text-[11px] mt-4 font-bold text-slate-900 dark:text-white uppercase">Thursday</p>
+</div>
+<div class="bg-white dark:bg-zinc-900 border-2 border-slate-100 dark:border-zinc-800 p-5 rounded-3xl shadow-sm">
+<p class="text-[10px] font-900 text-slate-400 uppercase tracking-widest mb-2">Lowest Day</p>
+<div class="flex items-baseline gap-1">
+<span class="text-3xl font-800 text-slate-900 dark:text-white">30</span>
+<span class="text-xs font-bold text-slate-400">/100</span>
+</div>
+<p class="text-[11px] mt-4 font-bold text-slate-900 dark:text-white uppercase">Sunday</p>
+</div>
+</div>
+<div class="bg-primary/5 dark:bg-primary/10 border-2 border-primary/20 rounded-3xl p-6 mb-6">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary font-bold text-xl">psychology</span>
+<h3 class="text-[10px] font-900 text-primary uppercase tracking-widest">AI Insight</h3>
+</div>
+<div class="space-y-4">
+<div class="flex gap-3">
+<div class="w-1.5 h-auto bg-primary rounded-full shrink-0"></div>
+<p class="text-sm font-600 leading-relaxed text-slate-800 dark:text-slate-200">
+                        You tend to score <span class="text-primary font-bold">15% higher</span> on Wednesdays than on Mondays.
+                    </p>
+</div>
+<div class="flex gap-3">
+<div class="w-1.5 h-auto bg-primary rounded-full shrink-0"></div>
+<p class="text-sm font-600 leading-relaxed text-slate-800 dark:text-slate-200">
+                        Your <span class="text-primary font-bold">stability index</span> is high this week.
+                    </p>
+</div>
+</div>
+</div>
+</section>
+<nav class="absolute bottom-0 w-full bg-white dark:bg-black border-t-2 border-slate-100 dark:border-zinc-800 px-10 pt-3 pb-8 flex justify-between items-center shrink-0 z-40">
+<div class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined text-[28px]">home</span>
+<span class="text-[10px] font-bold">Home</span>
+</div>
+<div class="relative -mt-12">
+<div class="w-16 h-16 bg-primary rounded-full shadow-lg shadow-primary/40 flex items-center justify-center text-white ring-4 ring-white dark:ring-black">
+<span class="material-symbols-outlined text-3xl font-bold">add</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[28px] fill-1">bar_chart</span>
+<span class="text-[10px] font-bold">Stats</span>
+</div>
+</nav>
+<div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-slate-200 dark:bg-zinc-800 rounded-full pointer-events-none z-50"></div>
+</main>
+
+</body></html>
