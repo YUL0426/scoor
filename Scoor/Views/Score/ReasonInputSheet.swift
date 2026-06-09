@@ -10,10 +10,14 @@ import SwiftUI
 struct ReasonInputSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var reason: String
+    /// Called right after the reason is committed, so the caller can auto-save the
+    /// whole entry without a separate "Scoor!" tap (BUG-011).
+    var onSaved: () -> Void = {}
     @State private var localText: String = ""
 
-    init(reason: Binding<String>) {
+    init(reason: Binding<String>, onSaved: @escaping () -> Void = {}) {
         self._reason = reason
+        self.onSaved = onSaved
     }
 
     var body: some View {
@@ -134,6 +138,8 @@ struct ReasonInputSheet: View {
     private func save() {
         reason = localText.trimmingCharacters(in: .whitespacesAndNewlines)
         dismiss()
+        // Auto-save the entry once the reason is written (BUG-011).
+        onSaved()
     }
 }
 

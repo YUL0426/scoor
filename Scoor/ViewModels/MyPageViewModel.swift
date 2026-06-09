@@ -19,10 +19,17 @@ struct GuestbookMessageDisplay: Identifiable {
 @MainActor
 final class MyPageViewModel: ObservableObject {
     @Published private(set) var currentUser: User?
+    /// Emoji avatar glyph (onboarding) — used when no photo avatar is set.
+    @Published private(set) var avatarEmoji: String?
+    /// Sign-in provider for the account badge on the profile header.
+    @Published private(set) var authProvider: AuthProvider?
     /// Same day-keying as `StatsViewModel` / `ScoreCalendarIndex` (`Calendar.current.startOfDay`).
     @Published private(set) var entriesByDay: [Date: ScoreEntry] = [:]
     @Published var displayedMonth: Date = Date()
     @Published private(set) var monthlyAverage: Int?
+    /// Most frequently recorded emotion in the displayed month (Sprint 2-A).
+    @Published private(set) var monthlyTopMood: Mood?
+    @Published private(set) var monthlyTopMoodCount: Int = 0
     @Published private(set) var guestbookMessages: [GuestbookMessageDisplay] = []
     @Published var guestbookComposeText: String = ""
     @Published private(set) var isPostingGuestbook = false
@@ -54,6 +61,8 @@ final class MyPageViewModel: ObservableObject {
             return
         }
         currentUser = user
+        avatarEmoji = await userService.currentAvatarEmoji()
+        authProvider = UserDefaults.standard.string(forKey: "scoor.authProvider").flatMap(AuthProvider.init(rawValue:))
 
         let history = await scoreService.getScoreHistory(userId: user.id, limit: 365)
         entriesByDay = ScoreCalendarIndex.entriesByDay(from: history, calendar: calendar)
@@ -98,6 +107,16 @@ final class MyPageViewModel: ObservableObject {
                 isPrivate: false
             )
             guestbookComposeText = ""
+            await loadGuestbook()
+        } catch {
+            // Could show error toast
+        }
+    }
+
+    /// Delete a guestbook entry on the current user's page, then reload (BUG-010).
+    func deleteGuestbookMessage(_ message: GuestbookMessageDisplay) async {
+        do {
+            try await guestbookService.deleteMessage(id: message.id)
             await loadGuestbook()
         } catch {
             // Could show error toast
@@ -149,6 +168,19 @@ final class MyPageViewModel: ObservableObject {
         } else {
             let sum = inMonth.values.map(\.score).reduce(0, +)
             monthlyAverage = Int(round(Double(sum) / Double(inMonth.count)))
+        }
+
+        // Dominant emotion of the month (most frequent mood tag).
+        var counts: [Mood: Int] = [:]
+        for entry in inMonth.values {
+            if let mood = entry.mood { counts[mood, default: 0] += 1 }
+        }
+        if let top = counts.max(by: { $0.value < $1.value }) {
+            monthlyTopMood = top.key
+            monthlyTopMoodCount = top.value
+        } else {
+            monthlyTopMood = nil
+            monthlyTopMoodCount = 0
         }
     }
 }

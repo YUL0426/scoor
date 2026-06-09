@@ -100,6 +100,7 @@ struct SignupNicknameView: View {
                 .padding(.bottom, 28)
             }
         }
+        .environment(\.colorScheme, .light) // Light canvas — keep text dark-on-light (BUG-003)
         .onTapGesture { focused = false }
         .onChange(of: name) { _, newValue in
             let cleaned = newValue

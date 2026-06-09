@@ -15,10 +15,18 @@ struct ScoreHomeView: View {
     @State private var showReasonSheet = false
     @State private var scoreScale: CGFloat = 1.0
 
-    init(scoreService: ScoreServiceProtocol, userService: UserServiceProtocol, targetDate: Date = Date()) {
+    init(
+        scoreService: ScoreServiceProtocol,
+        userService: UserServiceProtocol,
+        moodAnalyzer: MoodAnalyzing = DisabledMoodAnalyzer(),
+        notificationService: NotificationServiceProtocol = MockNotificationService(),
+        targetDate: Date = Date()
+    ) {
         _viewModel = StateObject(wrappedValue: ScoreInputViewModel(
             scoreService: scoreService,
             userService: userService,
+            moodAnalyzer: moodAnalyzer,
+            notificationService: notificationService,
             targetDate: targetDate
         ))
     }
@@ -109,8 +117,13 @@ struct ScoreHomeView: View {
         }
         .animation(.easeInOut(duration: 0.22), value: viewModel.feedbackMessage)
         .sheet(isPresented: $showReasonSheet) {
-            ReasonInputSheet(reason: reasonBinding)
-                .preferredColorScheme(.dark)
+            ReasonInputSheet(reason: reasonBinding, onSaved: {
+                // Finishing the reason text auto-saves the entry (no extra "Scoor!"
+                // tap needed) — applies to both today and past-date entries (BUG-011).
+                guard !keypadInput.isEmpty, !viewModel.isSubmitting else { return }
+                Task { await viewModel.submitScore() }
+            })
+            .preferredColorScheme(.dark)
         }
     }
 
@@ -191,6 +204,7 @@ struct ScoreHomeView: View {
             .overlay(Capsule().stroke(ScoorPalette.hairline, lineWidth: 0.5))
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("reason-pill")
     }
 
     // MARK: - Helpers

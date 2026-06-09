@@ -5,7 +5,7 @@
 //  World 피드의 단일 카드 — 토픽에 매긴 개인 반응.
 //  - 한 줄 본문 + 개인 점수 + 토픽 라인(글로벌 점수 ↑/↓)
 //  - 카드 박스 없음. 플랫 row + hairline divider.
-//  - 액션 4종: heart · comment · repost · empathy (Feed와 동일 컴포넌트 재사용)
+//  - 액션 2종: heart · comment (Feed와 동일 컴포넌트 재사용; BUG-005)
 //
 
 import SwiftUI
@@ -14,6 +14,8 @@ struct WorldPostCardView: View {
 
     @Binding var post: WorldPost
     var onTopicTap: () -> Void = {}
+    var onLikeToggle: (Bool) -> Void = { _ in }
+    var onCommentTap: () -> Void = {}
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -27,7 +29,9 @@ struct WorldPostCardView: View {
                     reactions: Binding(
                         get: { post.reactions },
                         set: { post.reactions = $0 }
-                    )
+                    ),
+                    onCommentTap: onCommentTap,
+                    onLikeToggle: onLikeToggle
                 )
                 .padding(.top, 2)
             }

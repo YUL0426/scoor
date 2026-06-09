@@ -5,7 +5,7 @@
 //  Toss Community/Threads 톤의 컴팩트 피드 카드.
 //  - 카드 박스/후광 없음. 플랫 row + 하단 hairline divider.
 //  - 한 줄 본문이 시각적 중심. 점수는 우상단 작은 배지로 항상 보이지만 본문보다 작음.
-//  - 액션 4종: heart · comment · repost · empathy.
+//  - 액션 2종: heart · comment (BUG-005: repost / clap 제거).
 //
 
 import SwiftUI
@@ -13,6 +13,8 @@ import SwiftUI
 struct FeedCardView: View {
 
     @Binding var entry: FeedEntry
+    var onLikeToggle: (Bool) -> Void = { _ in }
+    var onCommentTap: () -> Void = {}
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -27,7 +29,9 @@ struct FeedCardView: View {
                     reactions: Binding(
                         get: { entry.reactions },
                         set: { entry.reactions = $0 }
-                    )
+                    ),
+                    onCommentTap: onCommentTap,
+                    onLikeToggle: onLikeToggle
                 )
                 .padding(.top, 2)
             }
