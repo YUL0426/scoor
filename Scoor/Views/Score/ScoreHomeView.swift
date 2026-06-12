@@ -12,7 +12,7 @@ struct ScoreHomeView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: ScoreInputViewModel
     @State private var keypadInput: String = ""
-    @State private var showReasonSheet = false
+    @FocusState private var reasonFocused: Bool
     @State private var scoreScale: CGFloat = 1.0
 
     init(
@@ -70,8 +70,8 @@ struct ScoreHomeView: View {
                         .transition(.opacity.combined(with: .move(edge: .top)))
                 }
 
-                // Reason pill
-                reasonPill
+                // Inline reason field — tap to type directly (no modal).
+                reasonField
                     .padding(.horizontal, 24)
                     .padding(.top, 12)
 
@@ -81,7 +81,7 @@ struct ScoreHomeView: View {
                 ScoorKeypadView(
                     inputText: $keypadInput,
                     onDone: { Task { await viewModel.submitScore() } },
-                    doneLabel: viewModel.isSubmitting ? "···" : (viewModel.isUpdateMode ? "업데이트" : "Scoor!"),
+                    doneLabel: viewModel.isSubmitting ? "···" : (viewModel.isUpdateMode ? String(localized: "업데이트") : "Scoor!"),
                     isDoneDisabled: viewModel.isSubmitting
                 )
                 .padding(.horizontal, 12)
@@ -116,15 +116,6 @@ struct ScoreHomeView: View {
             }
         }
         .animation(.easeInOut(duration: 0.22), value: viewModel.feedbackMessage)
-        .sheet(isPresented: $showReasonSheet) {
-            ReasonInputSheet(reason: reasonBinding, onSaved: {
-                // Finishing the reason text auto-saves the entry (no extra "Scoor!"
-                // tap needed) — applies to both today and past-date entries (BUG-011).
-                guard !keypadInput.isEmpty, !viewModel.isSubmitting else { return }
-                Task { await viewModel.submitScore() }
-            })
-            .preferredColorScheme(.dark)
-        }
     }
 
     // MARK: - Header
@@ -165,46 +156,64 @@ struct ScoreHomeView: View {
         let currentScore = Int(keypadInput) ?? 0
         let tone = ScoreTone.from(score: currentScore)
 
-        return Text(keypadInput.isEmpty ? "—" : keypadInput)
-            .font(.system(size: 108, weight: .heavy, design: .rounded))
-            .italic()
-            .foregroundStyle(keypadInput.isEmpty
-                             ? ScoorPalette.inkTertiary
-                             : tone.primary)
-            .contentTransition(.numericText(countsDown: false))
-            .scaleEffect(scoreScale)
-            .shadow(color: keypadInput.isEmpty
-                    ? .clear
-                    : tone.primary.opacity(0.35), radius: 24)
-            .animation(.spring(response: 0.3, dampingFraction: 0.75), value: keypadInput)
+        // 점수 100은 숫자 대신 Scoor 로고로(브랜드 규칙).
+        return Group {
+            if currentScore >= 100 {
+                ScoorLogo(size: 78, variant: .white)
+            } else {
+                Text(keypadInput.isEmpty ? "—" : keypadInput)
+                    .font(.system(size: 108, weight: .heavy, design: .rounded))
+                    .italic()
+                    .foregroundStyle(keypadInput.isEmpty
+                                     ? ScoorPalette.inkTertiary
+                                     : tone.primary)
+                    .contentTransition(.numericText(countsDown: false))
+            }
+        }
+        .scaleEffect(scoreScale)
+        .shadow(color: keypadInput.isEmpty
+                ? .clear
+                : tone.primary.opacity(0.35), radius: 24)
+        .animation(.spring(response: 0.3, dampingFraction: 0.75), value: keypadInput)
     }
 
-    // MARK: - Reason pill
+    // MARK: - Inline reason field
 
-    private var reasonPill: some View {
-        Button { showReasonSheet = true } label: {
-            HStack(spacing: 10) {
-                Image(systemName: viewModel.reason.isEmpty ? "pencil" : "checkmark.circle.fill")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(viewModel.reason.isEmpty
-                                     ? ScoorPalette.inkTertiary
-                                     : DesignTokens.primaryColor)
-                Text(viewModel.reason.isEmpty ? "오늘의 감정을 한 줄로..." : viewModel.reason)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(viewModel.reason.isEmpty
-                                     ? ScoorPalette.inkTertiary
-                                     : ScoorPalette.inkPrimary)
-                    .lineLimit(1)
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .background(ScoorPalette.bgRaised)
-            .clipShape(Capsule())
-            .overlay(Capsule().stroke(ScoorPalette.hairline, lineWidth: 0.5))
+    /// 사유 입력은 모달/태그 없이 인라인. 탭하면 즉시 네이티브 키보드가 뜨고
+    /// 바로 한 줄로 타이핑한다. 완료(Done) 시 키보드만 내려가고, 저장은 키패드의
+    /// "Scoor!" 버튼이 담당해 기존 저장/수정 플로우를 그대로 유지한다.
+    private var reasonField: some View {
+        HStack(spacing: 10) {
+            Image(systemName: viewModel.reason.isEmpty ? "pencil" : "checkmark.circle.fill")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(viewModel.reason.isEmpty
+                                 ? ScoorPalette.inkTertiary
+                                 : DesignTokens.primaryColor)
+
+            TextField(
+                "",
+                text: reasonBinding,
+                prompt: Text("오늘의 감정을 한 줄로...")
+                    .foregroundColor(ScoorPalette.inkTertiary)
+            )
+            .focused($reasonFocused)
+            .font(.system(size: 14, weight: .medium))
+            .foregroundStyle(ScoorPalette.inkPrimary)
+            .tint(DesignTokens.primaryColor)
+            .submitLabel(.done)
+            .onSubmit { reasonFocused = false }
+            .accessibilityIdentifier("reason-field")
         }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("reason-pill")
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+        .background(ScoorPalette.bgRaised)
+        .clipShape(Capsule())
+        .overlay(
+            Capsule().stroke(
+                reasonFocused ? DesignTokens.primaryColor.opacity(0.55) : ScoorPalette.hairline,
+                lineWidth: reasonFocused ? 1 : 0.5
+            )
+        )
     }
 
     // MARK: - Helpers

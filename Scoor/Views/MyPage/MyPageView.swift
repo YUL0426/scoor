@@ -286,10 +286,13 @@ struct ProfileHeaderView: View {
 
             if let avg = monthlyAverage {
                 VStack(alignment: .trailing, spacing: DesignTokens.spacingXS) {
-                    Text("\(avg)")
-                        .font(AppTypography.title())
-                        .foregroundStyle(DesignTokens.primaryColor)
-                        .italic()
+                    ScoreValueView(
+                        score: avg,
+                        font: AppTypography.title(),
+                        color: DesignTokens.primaryColor,
+                        italic: true,
+                        logoHeight: 22
+                    )
                     Text("MONTHLY AVG")
                         .font(.system(size: 9, weight: .heavy))
                         .foregroundStyle(DesignTokens.textSecondary)
@@ -553,10 +556,13 @@ struct CalendarDayDetailSheet: View {
             Spacer(minLength: 0)
 
             VStack(spacing: DesignTokens.spacingMD) {
-                Text("\(entry.score)")
-                    .font(.system(size: 96, weight: .heavy, design: .rounded))
-                    .italic()
-                    .foregroundStyle(ScoreTone.from(score: entry.score).primary)
+                ScoreValueView(
+                    score: entry.score,
+                    font: .system(size: 96, weight: .heavy, design: .rounded),
+                    color: ScoreTone.from(score: entry.score).primary,
+                    italic: true,
+                    logoHeight: 70
+                )
                     .shadow(color: ScoreTone.from(score: entry.score).primary.opacity(0.4), radius: 20)
 
                 Text("DAILY SCORE")
@@ -860,10 +866,10 @@ struct StatsSummarySection<Destination: View>: View {
                 GridItem(.flexible(), spacing: 10)
             ]
             LazyVGrid(columns: columns, spacing: 10) {
-                miniCard(label: "오늘",     value: todayScore.map(String.init)     ?? "—", subtitle: "TODAY")
-                miniCard(label: "7일 평균",  value: weeklyAverage.map(String.init)  ?? "—", subtitle: "7-DAY AVG")
-                miniCard(label: "연속",     value: "\(currentStreak)",              subtitle: "STREAK · 일")
-                miniCard(label: "이번 달",   value: monthlyAverage.map(String.init) ?? "—", subtitle: "MONTH AVG")
+                miniCard(label: "오늘",     value: todayScore,     subtitle: "TODAY",      isScore: true)
+                miniCard(label: "7일 평균",  value: weeklyAverage,  subtitle: "7-DAY AVG",  isScore: true)
+                miniCard(label: "연속",     value: currentStreak,  subtitle: "STREAK · 일", isScore: false)
+                miniCard(label: "이번 달",   value: monthlyAverage, subtitle: "MONTH AVG",  isScore: true)
             }
         }
         .padding(DesignTokens.spacingXL)
@@ -877,17 +883,22 @@ struct StatsSummarySection<Destination: View>: View {
     }
 
     @ViewBuilder
-    private func miniCard(label: String, value: String, subtitle: String) -> some View {
+    private func miniCard(label: LocalizedStringKey, value: Int?, subtitle: LocalizedStringKey, isScore: Bool) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label)
                 .font(.system(size: 11, weight: .heavy))
                 .tracking(0.6)
                 .foregroundStyle(DesignTokens.textSecondary)
-            Text(value)
-                .font(.system(size: 28, weight: .heavy, design: .rounded))
-                .foregroundStyle(DesignTokens.primaryColor)
-                .italic()
-                .monospacedDigit()
+            // 점수 카드가 100이면 숫자 대신 로고(연속일 수 카드는 제외).
+            if isScore, let v = value, v >= 100 {
+                ScoorLogo(size: 22, variant: .red)
+            } else {
+                Text(value.map(String.init) ?? "—")
+                    .font(.system(size: 28, weight: .heavy, design: .rounded))
+                    .foregroundStyle(DesignTokens.primaryColor)
+                    .italic()
+                    .monospacedDigit()
+            }
             Text(subtitle)
                 .font(.system(size: 9.5, weight: .bold))
                 .tracking(0.6)
@@ -946,6 +957,50 @@ struct MonthlyMoodSummaryView: View {
         .padding(.horizontal, DesignTokens.spacingXXL)
         .accessibilityIdentifier("monthly-top-mood")
         .accessibilityLabel("이번 달 대표 감정 \(mood.label), \(count)일")
+    }
+}
+
+/// "My Scoors" 한 행 — 토픽 제목 · 사유 · 날짜 + 우측 큰 점수(100이면 로고).
+struct MyScoorRow: View {
+    let entry: MyScoorEntry
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(entry.topicTitle)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(DesignTokens.textPrimary)
+                    .lineLimit(1)
+                if let reason = entry.reason, !reason.isEmpty {
+                    Text(reason)
+                        .font(.system(size: 13))
+                        .foregroundStyle(DesignTokens.textSecondary)
+                        .lineLimit(2)
+                }
+                Text(Self.dateText(entry.createdAt))
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(DesignTokens.textSecondary.opacity(0.7))
+                    .monospacedDigit()
+            }
+            Spacer(minLength: 8)
+            ScoreValueView(
+                score: entry.score,
+                font: .system(size: 30, weight: .heavy, design: .rounded),
+                color: ScoreTone.from(score: entry.score).primary,
+                italic: true,
+                logoHeight: 22
+            )
+        }
+        .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(entry.topicTitle), Scoor 점수 \(entry.score)")
+    }
+
+    private static func dateText(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.locale = Locale.current
+        f.dateFormat = "yyyy.MM.dd"
+        return f.string(from: date)
     }
 }
 

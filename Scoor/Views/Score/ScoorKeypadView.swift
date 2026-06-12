@@ -27,6 +27,7 @@ struct ScoorKeypadView: View {
             digitButton("0")
             doneButton
         }
+        .accessibilityIdentifier("score-keypad")
     }
 
     // MARK: - Digit button
@@ -43,6 +44,8 @@ struct ScoorKeypadView: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(ScoorKeypadCellStyle())
+        .accessibilityLabel(s)
+        .accessibilityIdentifier("score-keypad-digit-\(s)")
     }
 
     // MARK: - Backspace button
@@ -61,6 +64,8 @@ struct ScoorKeypadView: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(ScoorKeypadCellStyle())
+        .accessibilityLabel("delete.left")
+        .accessibilityIdentifier("score-keypad-delete")
     }
 
     // MARK: - Done/Submit button
@@ -89,6 +94,8 @@ struct ScoorKeypadView: View {
         }
         .disabled(!canDone)
         .buttonStyle(.plain)
+        .accessibilityLabel(doneLabel)
+        .accessibilityIdentifier("score-keypad-submit")
     }
 
     // MARK: - Helpers

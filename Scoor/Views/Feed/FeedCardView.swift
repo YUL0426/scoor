@@ -16,6 +16,8 @@ struct FeedCardView: View {
     var onLikeToggle: (Bool) -> Void = { _ in }
     var onCommentTap: () -> Void = {}
 
+    private var tone: ScoreTone { .from(score: entry.score) }
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             avatar
@@ -36,10 +38,30 @@ struct FeedCardView: View {
                 .padding(.top, 2)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Score-first: 점수를 우측에 크게 고정 — 스크롤 중에도 즉시 읽힌다.
+            scoreColumn
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 14)
         .contentShape(Rectangle())
+    }
+
+    // MARK: - Score column (우측 고정 · 카드의 1차 시각 요소)
+
+    private var scoreColumn: some View {
+        ScoreValueView(
+            score: entry.score,
+            font: .system(size: 40, weight: .heavy, design: .rounded),
+            color: tone.primary,
+            italic: true,
+            logoHeight: 28,
+            logoVariant: .white
+        )
+        .shadow(color: tone.primary.opacity(0.28), radius: 10)
+        .frame(minWidth: 54, alignment: .trailing)
+        .padding(.top, 1)
+        .accessibilityLabel("Scoor 점수 \(entry.score)")
     }
 
     // MARK: - Avatar
@@ -102,13 +124,11 @@ struct FeedCardView: View {
                 .monospacedDigit()
 
             Spacer(minLength: 4)
-
-            FeedScoreDisplay(score: entry.score, size: 18)
         }
     }
 
     private var displayName: String {
-        entry.identity.isAnonymous ? "익명" : entry.identity.name
+        entry.identity.isAnonymous ? String(localized: "익명") : entry.identity.name
     }
 
     private var dot: some View {

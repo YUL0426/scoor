@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Scoor Design System
+   Consumer-product aesthetic. Light base, vibrant score gradient.
+   Brand red is the official logo red #CE3B22.
+   ============================================================ */
+
+@theme {
+  /* Brand */
+  --color-brand: #ce3b22;
+  --color-brand-dark: #a82d18;
+  --color-brand-light: #f0573c;
+  --color-brand-tint: #fbeae6;
+
+  /* Score scale 0 → 100 (sentiment) */
+  --color-score-0: #e23a2e; /* very low  */
+  --color-score-25: #f0573c; /* low       */
+  --color-score-50: #f5a623; /* neutral   */
+  --color-score-75: #7ac74f; /* high      */
+  --color-score-100: #1fc77b; /* very high */
+
+  /* Surfaces (light) */
+  --color-ink: #0e0e12;
+  --color-ink-soft: #1a1a22;
+  --color-paper: #ffffff;
+  --color-canvas: #faf7f5;
+  --color-canvas-2: #f4efec;
+
+  /* Text */
+  --color-text: #14141a;
+  --color-text-2: #5b5b6b;
+  --color-text-3: #9a9aac;
+
+  /* Lines */
+  --color-line: rgba(20, 20, 26, 0.08);
+  --color-line-strong: rgba(20, 20, 26, 0.14);
+
+  /* Typography */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+
+  /* Easing + radius */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --radius-card: 28px;
+
+  /* Animations */
+  --animate-marquee: marquee 38s linear infinite;
+  --animate-marquee-rev: marquee-rev 38s linear infinite;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-blob: blob 18s ease-in-out infinite;
+  --animate-shimmer: shimmer 2.4s linear infinite;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes marquee-rev {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(-1.2deg); }
+}
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(4%, -6%) scale(1.08); }
+  66% { transform: translate(-5%, 4%) scale(0.95); }
+}
+@keyframes shimmer {
+  to { background-position: 200% center; }
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-brand);
+  color: #fff;
+}
+
+/* Reusable utilities */
+.text-balance { text-wrap: balance; }
+
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+.score-gradient-text {
+  background: linear-gradient(
+    100deg,
+    var(--color-score-0),
+    var(--color-score-50),
+    var(--color-score-100)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* Hide scrollbars on horizontal carousels */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

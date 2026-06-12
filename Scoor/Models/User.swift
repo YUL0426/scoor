@@ -11,6 +11,8 @@ struct User: Codable, Identifiable, Hashable {
     var email: String
     var avatarURL: URL?
     var bio: String?
+    /// Optional self-described gender (e.g. "여성"/"남성"/"비공개"). Nil = 설정 안 함.
+    var gender: String?
     let createdAt: Date
 
     init(
@@ -19,6 +21,7 @@ struct User: Codable, Identifiable, Hashable {
         email: String,
         avatarURL: URL? = nil,
         bio: String? = nil,
+        gender: String? = nil,
         createdAt: Date = .now
     ) {
         self.id = id
@@ -26,6 +29,7 @@ struct User: Codable, Identifiable, Hashable {
         self.email = email
         self.avatarURL = avatarURL
         self.bio = bio
+        self.gender = gender
         self.createdAt = createdAt
     }
 }

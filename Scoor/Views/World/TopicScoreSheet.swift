@@ -19,7 +19,8 @@ struct TopicScoreSheet: View {
     let topic: WorldTopic
     @Binding var target: ScoorTarget
     let existing: Int?
-    var onSubmit: (Int) -> Void
+    /// 제출 콜백 — (점수 0~100, 한 줄 코멘트?)
+    var onSubmit: (Int, String?) -> Void
 
     @State private var keypadInput: String = ""
 
@@ -52,7 +53,9 @@ struct TopicScoreSheet: View {
                     inputText: $keypadInput,
                     onDone: {
                         haptic(strong: true)
-                        onSubmit(Int(keypadInput) ?? 0)
+                        let value = min(100, max(0, Int(keypadInput) ?? 0))
+                        let trimmed = comment.trimmingCharacters(in: .whitespacesAndNewlines)
+                        onSubmit(value, trimmed.isEmpty ? nil : trimmed)
                         dismiss()
                     },
                     doneLabel: "Submit \(keypadInput.isEmpty ? "—" : keypadInput)",
@@ -288,7 +291,7 @@ private struct PressableScaleCompact: ButtonStyle {
                 topic: MockWorld.topics[0],
                 target: $t,
                 existing: nil
-            ) { _ in }
+            ) { _, _ in }
         }
     }
     return Wrap()

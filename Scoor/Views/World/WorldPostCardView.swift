@@ -17,6 +17,8 @@ struct WorldPostCardView: View {
     var onLikeToggle: (Bool) -> Void = { _ in }
     var onCommentTap: () -> Void = {}
 
+    private var tone: ScoreTone { .from(score: post.myScore) }
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             avatar
@@ -36,10 +38,28 @@ struct WorldPostCardView: View {
                 .padding(.top, 2)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Score-first: 내 점수를 우측에 크게 고정(Feed와 동일 디자인 언어).
+            scoreColumn
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 14)
         .contentShape(Rectangle())
+    }
+
+    private var scoreColumn: some View {
+        ScoreValueView(
+            score: post.myScore,
+            font: .system(size: 40, weight: .heavy, design: .rounded),
+            color: tone.primary,
+            italic: true,
+            logoHeight: 28,
+            logoVariant: .white
+        )
+        .shadow(color: tone.primary.opacity(0.28), radius: 10)
+        .frame(minWidth: 54, alignment: .trailing)
+        .padding(.top, 1)
+        .accessibilityLabel("내 Scoor \(post.myScore)")
     }
 
     // MARK: - Avatar
@@ -94,13 +114,11 @@ struct WorldPostCardView: View {
                 .monospacedDigit()
 
             Spacer(minLength: 4)
-
-            FeedScoreDisplay(score: post.myScore, size: 18)
         }
     }
 
     private var displayName: String {
-        post.identity.isAnonymous ? "익명" : post.identity.name
+        post.identity.isAnonymous ? String(localized: "익명") : post.identity.name
     }
 
     // MARK: - Topic row (카테고리 · 토픽 이름 · 글로벌 ↑)

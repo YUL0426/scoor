@@ -14,6 +14,10 @@ class ScoreModel {
     var userId: UUID
     var value: Int
     var reason: String?
+    /// Raw value of the optional `Mood` emotion tag (Sprint 2-A).
+    /// Stored as an optional String so adding it is a purely additive,
+    /// automatic lightweight migration — existing rows decode to `nil`.
+    var moodRaw: String?
     var date: Date
     var locationId: UUID?
     var createdAt: Date
@@ -23,6 +27,7 @@ class ScoreModel {
         userId: UUID,
         value: Int,
         reason: String? = nil,
+        moodRaw: String? = nil,
         date: Date = .now,
         locationId: UUID? = nil,
         createdAt: Date = .now
@@ -31,6 +36,7 @@ class ScoreModel {
         self.userId = userId
         self.value = value
         self.reason = reason
+        self.moodRaw = moodRaw
         self.date = date
         self.locationId = locationId
         self.createdAt = createdAt
@@ -43,6 +49,7 @@ class ScoreModel {
             userId: score.userId,
             value: score.value,
             reason: score.reason,
+            moodRaw: score.mood?.rawValue,
             date: score.date,
             locationId: score.locationId,
             createdAt: score.createdAt
@@ -53,6 +60,7 @@ class ScoreModel {
     func apply(_ score: Score) {
         value = score.value
         reason = score.reason
+        moodRaw = score.mood?.rawValue
         locationId = score.locationId
     }
 
@@ -63,6 +71,7 @@ class ScoreModel {
             userId: userId,
             value: value,
             reason: reason,
+            mood: moodRaw.flatMap(Mood.init(rawValue:)),
             date: date,
             locationId: locationId,
             createdAt: createdAt

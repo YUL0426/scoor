@@ -139,13 +139,19 @@ struct StatsView: View {
 
             if let entry = viewModel.todayEntry {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text("\(entry.score)")
-                        .font(.system(size: 88, weight: .heavy))
-                        .italic()
-                        .foregroundStyle(DesignTokens.primaryColor)
-                    Text("/100")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(Color(red: 0.55, green: 0.58, blue: 0.62))
+                    ScoreValueView(
+                        score: entry.score,
+                        font: .system(size: 88, weight: .heavy),
+                        color: DesignTokens.primaryColor,
+                        italic: true,
+                        logoHeight: 62
+                    )
+                    // 100이면 로고가 곧 "100" — "/100" 접미사는 숨긴다.
+                    if entry.score < 100 {
+                        Text("/100")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(Color(red: 0.55, green: 0.58, blue: 0.62))
+                    }
                 }
                 if let reason = entry.reason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     Text(reason)

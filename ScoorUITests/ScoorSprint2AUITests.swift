@@ -106,28 +106,31 @@ final class ScoorSprint2AUITests: XCTestCase {
                        "REGRESSION: emotion selector chip still present in score input")
         XCTAssertFalse(app.buttons["mood-chip-calm"].exists,
                        "REGRESSION: emotion selector chip still present in score input")
-        // The two intended inputs remain: keypad (score) + reason pill.
-        XCTAssertTrue(app.buttons["reason-pill"].exists, "Reason pill missing")
-        snap("S2Arev-01 · Score sheet: score + reason only (no emotion selector)")
+        // The two intended inputs remain: keypad (score) + INLINE reason field.
+        // Reason is now typed directly inline — no modal, no tag chips, no
+        // separate "저장하기" step.
+        XCTAssertTrue(app.textFields["reason-field"].exists, "Inline reason field missing")
+        XCTAssertFalse(app.buttons["reason-pill"].exists,
+                       "REGRESSION: old reason modal pill still present")
+        snap("S2Arev-01 · Score sheet: score + inline reason only (no emotion selector)")
 
         sleep(1)
         clearKeypad(3)
         typeDigits("70")
 
-        // Reason (free text) — the only other input.
-        app.buttons["reason-pill"].tap()
-        let editor = app.textViews.firstMatch
-        XCTAssertTrue(editor.waitForExistence(timeout: 6), "Reason editor missing")
-        editor.tap()
-        editor.typeText("QA reason text")
-        snap("S2Arev-02 · Reason entered")
-        app.buttons["저장하기"].tap()
+        // Reason (free text, inline) — one tap focuses the field; type directly.
+        let reasonField = app.textFields["reason-field"]
+        reasonField.tap()
+        reasonField.typeText("QA reason text")
+        snap("S2Arev-02 · Reason entered inline")
 
-        // BUG-011: completing the reason text auto-saves the whole entry — no
-        // separate "Scoor!" tap. The sheet dismisses and Home reflects the score.
+        // Dismiss the keyboard (Done), then save via the keypad's Scoor! button.
+        if app.keyboards.buttons["Done"].exists { app.keyboards.buttons["Done"].tap() }
+        submit()
+
         _ = app.buttons["Add today's score"].waitForExistence(timeout: 8)
         XCTAssertTrue(app.staticTexts["70"].waitForExistence(timeout: 8), "Home should show 70")
-        snap("S2Arev-03 · Home after score + reason (auto-saved)")
+        snap("S2Arev-03 · Home after score + inline reason")
     }
 
     // MARK: - 2. Score+reason record persists; no derived mood shown
