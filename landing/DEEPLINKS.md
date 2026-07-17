@@ -38,15 +38,15 @@ DEEP_LINKS.score(123).web   // "https://scoor.app/score/123"
 `https://scoor.app/.well-known/apple-app-site-association` as `application/json`
 (no extension, no redirect — enforced in `next.config.ts`).
 
-Replace `TEAMID1234.company.must.scoor` with your real
-`<TeamID>.<BundleID>`.
+The `appID` is `<TeamID>.<BundleID>` and matches the Xcode project
+(`DEVELOPMENT_TEAM = G83W9HD6G7`, `PRODUCT_BUNDLE_IDENTIFIER = com.euro.Scoor`):
 
 ```json
 {
   "applinks": {
     "apps": [],
     "details": [{
-      "appID": "TEAMID1234.company.must.scoor",
+      "appID": "G83W9HD6G7.com.euro.Scoor",
       "paths": ["/score/*", "/user/*", "/topic/*", "/profile", "/open", "/open/*"]
     }]
   }
@@ -81,18 +81,19 @@ Replace `TEAMID1234.company.must.scoor` with your real
 
 ## 3. Android — App Links
 
-### a. Web side (already done here)
+### a. Web side (add when an Android app exists)
 
-`public/.well-known/assetlinks.json` is served at
-`https://scoor.app/.well-known/assetlinks.json`. Replace the fingerprint with
-your **Play app-signing** SHA-256 (Play Console → Setup → App integrity):
+> **Status:** there is no Android app yet, so `assetlinks.json` is intentionally
+> not served — a placeholder fingerprint would just fail Google's verification.
+> When the Android app ships, create `public/.well-known/assetlinks.json` with
+> the **Play app-signing** SHA-256 (Play Console → Setup → App integrity):
 
 ```json
 [{
   "relation": ["delegate_permission/common.handle_all_urls"],
   "target": {
     "namespace": "android_app",
-    "package_name": "company.must.scoor",
+    "package_name": "com.euro.scoor",
     "sha256_cert_fingerprints": ["AB:CD:…"]
   }
 }]

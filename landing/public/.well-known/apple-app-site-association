@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAMID1234.company.must.scoor",
+        "appID": "G83W9HD6G7.com.euro.Scoor",
         "paths": [
           "/score/*",
           "/user/*",
@@ -16,6 +16,6 @@
     ]
   },
   "webcredentials": {
-    "apps": ["TEAMID1234.company.must.scoor"]
+    "apps": ["G83W9HD6G7.com.euro.Scoor"]
   }
 }

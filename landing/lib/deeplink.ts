@@ -1,4 +1,4 @@
-import { SITE } from "./site";
+import { SITE, STORE_STATUS, WAITLIST_URL } from "./site";
 
 /** Platform detection (client-only). */
 export function getPlatform(): "ios" | "android" | "web" {
@@ -10,7 +10,12 @@ export function getPlatform(): "ios" | "android" | "web" {
 }
 
 function storeUrl(): string {
-  return getPlatform() === "android" ? SITE.playStoreUrl : SITE.appStoreUrl;
+  // While the store listings aren't live, land on the download section
+  // instead of a 404ing store page.
+  if (getPlatform() === "android") {
+    return STORE_STATUS.playStoreLive ? SITE.playStoreUrl : WAITLIST_URL;
+  }
+  return STORE_STATUS.appStoreLive ? SITE.appStoreUrl : WAITLIST_URL;
 }
 
 /**

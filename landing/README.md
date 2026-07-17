@@ -151,17 +151,16 @@ Quick map:
 
 ---
 
-## Before launch — replace placeholders
+## Before launch — remaining steps
 
-Edit `lib/site.ts` and the `.well-known` files:
+Apple team id (`G83W9HD6G7`) and bundle id (`com.euro.Scoor`) are already
+wired into `lib/site.ts` and the AASA file. Still pending:
 
-| Placeholder | Where | Replace with |
-| ----------- | ----- | ------------ |
-| `appStoreId: "0000000000"` | `lib/site.ts` | real App Store numeric id |
-| `appleTeamId: "TEAMID1234"` | `lib/site.ts` + AASA | your Apple Developer Team ID |
-| `company.must.scoor` | `lib/site.ts` + well-known | confirm bundle / package id |
-| `REPLACE_WITH_YOUR_APP_SIGNING_SHA256_FINGERPRINT` | `assetlinks.json` | Play app-signing SHA-256 |
-| `https://scoor.app` | `lib/site.ts` | production domain |
+| Item | Where | Action |
+| ---- | ----- | ------ |
+| `appStoreId` | `lib/site.ts` | set the numeric id once the app exists in App Store Connect |
+| `STORE_STATUS.appStoreLive` | `lib/site.ts` | flip to `true` when the listing is live (enables badges, smart banner, store fallback) |
+| Android app | `lib/site.ts` + `.well-known/assetlinks.json` | when an Android app ships: flip `playStoreLive`, add `assetlinks.json` (see DEEPLINKS.md) |
 
 ---
 

@@ -7,17 +7,32 @@ export const SITE = {
   tagline: "What score would you give it?",
   description:
     "Scoor is the social scoring app. Score your day, score the world, and see how everyone feels — 0 to 100, with a reason. Build your trends, follow friends, watch public sentiment move in real time.",
-  // Replace with the real App Store id once provisioned.
-  appStoreId: "0000000000",
-  appStoreUrl: "https://apps.apple.com/app/scoor/id0000000000",
-  playStoreUrl: "https://play.google.com/store/apps/details?id=company.must.scoor",
+  // TODO(release): set once the app is provisioned in App Store Connect,
+  // then flip appStoreLive to true.
+  appStoreId: "",
+  appStoreUrl: "https://apps.apple.com/app/scoor",
+  playStoreUrl: "https://play.google.com/store/apps/details?id=com.euro.scoor",
   twitter: "@scoorapp",
   scheme: "scoor",
-  // Apple App Site Association
-  appleTeamId: "TEAMID1234",
-  appleBundleId: "company.must.scoor",
-  androidPackage: "company.must.scoor",
+  // Apple App Site Association — must match the Xcode project
+  // (PRODUCT_BUNDLE_IDENTIFIER = com.euro.Scoor, DEVELOPMENT_TEAM = G83W9HD6G7).
+  appleTeamId: "G83W9HD6G7",
+  appleBundleId: "com.euro.Scoor",
+  androidPackage: "com.euro.scoor",
 } as const;
+
+/**
+ * Store availability. While false, download surfaces render an honest
+ * "Coming soon" state instead of linking to store pages that don't exist,
+ * and the Smart App Banner meta tag is omitted.
+ */
+export const STORE_STATUS = {
+  appStoreLive: false,
+  playStoreLive: false, // no Android app yet
+} as const;
+
+/** Where "download" CTAs land while the store listings aren't live. */
+export const WAITLIST_URL = `${SITE.url}/#download`;
 
 /** Build a scoor:// deep link with an https universal-link fallback path. */
 export function deepLink(path: string): { app: string; web: string } {

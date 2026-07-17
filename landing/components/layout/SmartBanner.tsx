@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { SITE } from "@/lib/site";
+import { SITE, STORE_STATUS } from "@/lib/site";
 import { openInApp } from "@/lib/deeplink";
 
 const DISMISS_KEY = "scoor-smartbanner-dismissed";
@@ -15,6 +15,9 @@ export function SmartBanner() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    // No banner while the store listing isn't live — "Free on the App Store"
+    // would be a dead-end claim.
+    if (!STORE_STATUS.appStoreLive) return;
     const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
     const dismissed = sessionStorage.getItem(DISMISS_KEY);
     if (isMobile && !dismissed) setShow(true);

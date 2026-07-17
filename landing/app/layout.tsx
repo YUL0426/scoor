@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { SITE } from "@/lib/site";
+import { SITE, STORE_STATUS } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -38,10 +38,11 @@ export const metadata: Metadata = {
     title: SITE.name,
     statusBarStyle: "default",
   },
-  // Native iOS Smart App Banner (in addition to our custom one).
-  other: {
-    "apple-itunes-app": `app-id=${SITE.appStoreId}, app-argument=${SITE.url}`,
-  },
+  // Native iOS Smart App Banner (in addition to our custom one) — only once
+  // the App Store listing is live and SITE.appStoreId is set.
+  ...(STORE_STATUS.appStoreLive && SITE.appStoreId
+    ? { other: { "apple-itunes-app": `app-id=${SITE.appStoreId}, app-argument=${SITE.url}` } }
+    : {}),
   openGraph: {
     type: "website",
     siteName: SITE.name,
@@ -83,11 +84,8 @@ const JSON_LD = {
   description: SITE.description,
   url: SITE.url,
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.9",
-    ratingCount: "12840",
-  },
+  // No aggregateRating until real store reviews exist — fabricated review
+  // counts violate structured-data policies.
 };
 
 export default function RootLayout({
