@@ -1,0 +1,10 @@
+// Shared build configuration for the Scoor app target.
+//
+// GID_CLIENT_ID: Google OAuth client id (format: <id>.apps.googleusercontent.com).
+// Empty by default — the app hides Google Sign-In when it is not provisioned.
+// Put the real value in Config/Secrets.xcconfig (git-ignored); see
+// Config/Secrets.xcconfig.example for setup steps.
+
+GID_CLIENT_ID =
+
+#include? "Secrets.xcconfig"

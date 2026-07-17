@@ -34,12 +34,16 @@ struct SignupWelcomeView: View {
                         systemImage: "apple.logo",
                         action: onApple
                     )
-                    OnboardingButton(
-                        title: "Continue with Google",
-                        style: .googlePill,
-                        systemImage: "g.circle.fill",
-                        action: onGoogle
-                    )
+                    // Hidden until a Google OAuth client id is provisioned (BUG-002) —
+                    // a visible button that always errors is worse than no button.
+                    if GoogleSignInController.isConfigured || UITestSupport.wantsCleanState {
+                        OnboardingButton(
+                            title: "Continue with Google",
+                            style: .googlePill,
+                            systemImage: "g.circle.fill",
+                            action: onGoogle
+                        )
+                    }
                     OnboardingButton(
                         title: "Continue with Email",
                         style: .emailPill,

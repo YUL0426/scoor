@@ -9,13 +9,11 @@
 //  CFBundleURLTypes registration is needed. Without a client id, `signIn()` throws
 //  `.notConfigured` and never starts.
 //
-//  Provisioning (BUG-002): the project auto-generates its Info.plist
-//  (GENERATE_INFOPLIST_FILE=YES) and Xcode's `INFOPLIST_KEY_*` mechanism does NOT
-//  support arbitrary custom keys, so `GIDClientID` must be supplied via a managed
-//  Info.plist file (set `INFOPLIST_FILE` to a plist containing the `GIDClientID`
-//  key). Use the Web/iOS OAuth client id from Google Cloud Console
-//  (format: `<id>.apps.googleusercontent.com`) and register the redirect URI
-//  `com.googleusercontent.apps.<id>:/oauth2redirect/google` in that console.
+//  Provisioning (BUG-002, resolved): `GIDClientID` is supplied by Config/Info.plist
+//  (INFOPLIST_FILE, merged on top of the generated Info.plist) and expands
+//  $(GID_CLIENT_ID) from Config/Secrets.xcconfig — see Config/Secrets.xcconfig.example
+//  for setup. When no client id is provisioned, `isConfigured` is false, the UI
+//  hides the Google option, and `signIn()` throws `.notConfigured`.
 //
 
 import Foundation
@@ -38,6 +36,10 @@ final class GoogleSignInController: NSObject, ASWebAuthenticationPresentationCon
             return Config(clientID: clientID, redirectScheme: reversed)
         }
     }
+
+    /// Whether Google Sign-In is provisioned in this build (GIDClientID present).
+    /// UI uses this to hide the Google option instead of surfacing a dead button.
+    static var isConfigured: Bool { Config.fromBundle() != nil }
 
     private let authEndpoint = "https://accounts.google.com/o/oauth2/v2/auth"
     private let tokenEndpoint = "https://oauth2.googleapis.com/token"

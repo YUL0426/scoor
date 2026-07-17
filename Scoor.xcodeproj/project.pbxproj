@@ -27,6 +27,7 @@
 		43395CEB2F5BDEBF00F3C1FB /* Scoor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Scoor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA1000000000000000000002 /* ScoorUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScoorUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB1000000000000000000002 /* ScoorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScoorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC1000000000000000000001 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Shared.xcconfig; path = Config/Shared.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -78,6 +79,7 @@
 				43395CED2F5BDEBF00F3C1FB /* Scoor */,
 				AA1000000000000000000003 /* ScoorUITests */,
 				BB1000000000000000000003 /* ScoorTests */,
+				CC1000000000000000000001 /* Shared.xcconfig */,
 				43395CEC2F5BDEBF00F3C1FB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -398,6 +400,7 @@
 		};
 		43395CF72F5BDEC000F3C1FB /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC1000000000000000000001 /* Shared.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -407,6 +410,7 @@
 				DEVELOPMENT_TEAM = G83W9HD6G7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Scoor saves your recap card to your photo library so you can share it.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -432,6 +436,7 @@
 		};
 		43395CF82F5BDEC000F3C1FB /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC1000000000000000000001 /* Shared.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -441,6 +446,7 @@
 				DEVELOPMENT_TEAM = G83W9HD6G7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Scoor saves your recap card to your photo library so you can share it.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

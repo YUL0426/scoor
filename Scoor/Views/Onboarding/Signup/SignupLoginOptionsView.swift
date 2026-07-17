@@ -123,8 +123,11 @@ struct SignupLoginOptionsView: View {
                         compactSocialButton("Apple", systemImage: "apple.logo") {
                             authenticateSocial(.apple)
                         }
-                        compactSocialButton("Google", systemImage: "g.circle.fill") {
-                            authenticateSocial(.google)
+                        // Hidden until a Google OAuth client id is provisioned (BUG-002).
+                        if GoogleSignInController.isConfigured || UITestSupport.wantsCleanState {
+                            compactSocialButton("Google", systemImage: "g.circle.fill") {
+                                authenticateSocial(.google)
+                            }
                         }
                     }
                 }
