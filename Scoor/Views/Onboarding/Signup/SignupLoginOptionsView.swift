@@ -2,7 +2,9 @@
 //  SignupLoginOptionsView.swift
 //  Scoor
 //
-//  Minimal auth handler. Social auth is mocked; email asks only for email/password.
+//  Minimal auth handler. Email creates/verifies a real device-local account via
+//  AuthService (salted PBKDF2 credential in the Keychain); Apple/Google delegate
+//  to the real provider sign-in upstream.
 //
 
 import SwiftUI
@@ -13,6 +15,8 @@ import UIKit
 
 struct SignupLoginOptionsView: View {
     var onAuthenticated: (AuthProvider, String?) -> Void
+
+    @EnvironmentObject private var authService: AuthService
 
     @State private var email = ""
     @State private var password = ""
@@ -119,8 +123,11 @@ struct SignupLoginOptionsView: View {
                         compactSocialButton("Apple", systemImage: "apple.logo") {
                             authenticateSocial(.apple)
                         }
-                        compactSocialButton("Google", systemImage: "g.circle.fill") {
-                            authenticateSocial(.google)
+                        // Hidden until a Google OAuth client id is provisioned (BUG-002).
+                        if GoogleSignInController.isConfigured || UITestSupport.wantsCleanState {
+                            compactSocialButton("Google", systemImage: "g.circle.fill") {
+                                authenticateSocial(.google)
+                            }
                         }
                     }
                 }
@@ -128,6 +135,7 @@ struct SignupLoginOptionsView: View {
                 .padding(.bottom, 32)
             }
         }
+        .environment(\.colorScheme, .light) // Light canvas — keep text dark-on-light (BUG-003)
         .onTapGesture { focusedField = nil }
     }
 
@@ -204,26 +212,18 @@ struct SignupLoginOptionsView: View {
         guard canContinue else { return }
         errorMessage = nil
         isLoading = true
-        try? await Task.sleep(nanoseconds: 520_000_000)
-
-        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if normalizedEmail == "taken@scoor.app" {
-            errorMessage = "That email is already a Scoorer."
-            isLoading = false
-            return
+        defer { isLoading = false }
+        do {
+            let identity = try await authService.signInWithEmail(email: email, password: password)
+            onAuthenticated(.email, identity.email)
+        } catch {
+            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
-
-        isLoading = false
-        onAuthenticated(.email, normalizedEmail)
     }
 
     private func authenticateSocial(_ provider: AuthProvider) {
         errorMessage = nil
-        isLoading = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.42) {
-            isLoading = false
-            onAuthenticated(provider, nil)
-        }
+        onAuthenticated(provider, nil)
     }
 }
 
@@ -237,4 +237,5 @@ private struct AuthPressStyle: ButtonStyle {
 
 #Preview {
     SignupLoginOptionsView { _, _ in }
+        .environmentObject(AuthService())
 }

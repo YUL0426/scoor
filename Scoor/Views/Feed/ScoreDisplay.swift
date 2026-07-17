@@ -20,20 +20,22 @@ struct FeedScoreDisplay: View {
     private var tone: ScoreTone { .from(score: score) }
 
     var body: some View {
-        Text("\(score)")
-            .font(ScoorType.scoreBadge(size))
-            .monospacedDigit()
-            .foregroundStyle(tone.primary)
-            .padding(.horizontal, withChip ? 10 : 0)
-            .padding(.vertical,   withChip ? 4  : 0)
-            .background(
-                Group {
-                    if withChip {
-                        Capsule().fill(tone.chipBackground)
-                    }
+        // 점수 100 → 로고 치환은 ScoreValueView가 일괄 처리.
+        ScoreValueView(
+            score: score,
+            font: ScoorType.scoreBadge(size),
+            color: tone.primary,
+            logoHeight: size * 0.92
+        )
+        .padding(.horizontal, withChip ? 10 : 0)
+        .padding(.vertical,   withChip ? 4  : 0)
+        .background(
+            Group {
+                if withChip {
+                    Capsule().fill(tone.chipBackground)
                 }
-            )
-            .accessibilityLabel("Scoor 점수 \(score)")
+            }
+        )
     }
 }
 

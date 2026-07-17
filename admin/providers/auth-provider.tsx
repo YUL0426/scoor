@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { getSession, signOut } from "@/lib/auth";
+import { fetchSessionUser, signOut } from "@/lib/auth";
 import type { AdminUser } from "@/types";
 
 interface AuthContextValue {
@@ -30,19 +30,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const session = getSession();
-    setUser(session?.user ?? null);
-    setIsLoading(false);
-
-    if (!session) {
-      router.replace("/login");
-    }
+    let cancelled = false;
+    // proxy.ts already blocks unauthenticated access server-side; this fetch
+    // only hydrates the user object for the UI (avatar, email, role).
+    fetchSessionUser().then((sessionUser) => {
+      if (cancelled) return;
+      setUser(sessionUser);
+      setIsLoading(false);
+      if (!sessionUser) router.replace("/login");
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   const logout = useCallback(() => {
-    signOut();
-    setUser(null);
-    router.replace("/login");
+    signOut().finally(() => {
+      setUser(null);
+      router.replace("/login");
+    });
   }, [router]);
 
   return (

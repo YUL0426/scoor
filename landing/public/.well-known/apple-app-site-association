@@ -1,0 +1,21 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "G83W9HD6G7.com.euro.Scoor",
+        "paths": [
+          "/score/*",
+          "/user/*",
+          "/topic/*",
+          "/profile",
+          "/open",
+          "/open/*"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["G83W9HD6G7.com.euro.Scoor"]
+  }
+}

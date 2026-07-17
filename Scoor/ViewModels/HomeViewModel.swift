@@ -3,8 +3,8 @@
 //  Scoor
 //
 //  Aggregates everything the emotional Home screen needs:
-//  today's entry, AI-style insights, a global "live feeling" feed,
-//  recent emotional history, and a streak / life-flow summary.
+//  today's entry, AI-style insights, a personal-rhythm ticker (derived from
+//  the user's own history), recent emotional history, and a streak summary.
 //
 //  Mood-first: numbers are inputs; the output is *atmosphere*.
 //
@@ -37,6 +37,7 @@ struct HomeRecentRow: Identifiable, Hashable {
     let dayLabel: String
     /// The calendar day this entry belongs to — used to open the edit sheet for that day.
     let date: Date
+    let mood: Mood?
 }
 
 enum EmotionalFlow: String {
@@ -44,6 +45,16 @@ enum EmotionalFlow: String {
     case steady = "You're holding a calm rhythm"
     case dipping = "A softer stretch — be gentle with yourself"
     case starting = "A new chapter is starting"
+
+    /// 현지화된 표시 문자열(rawValue를 카탈로그 키로 사용).
+    var displayText: String {
+        switch self {
+        case .rising:   return String(localized: "Your emotional flow is improving")
+        case .steady:   return String(localized: "You're holding a calm rhythm")
+        case .dipping:  return String(localized: "A softer stretch — be gentle with yourself")
+        case .starting: return String(localized: "A new chapter is starting")
+        }
+    }
 }
 
 // MARK: - View model
@@ -92,7 +103,7 @@ final class HomeViewModel: ObservableObject {
         self.userService = userService
         self.now = now
         self.todayDateLine = Self.dateLine(for: now())
-        self.liveFeed = Self.seedLiveFeed
+        self.liveFeed = Self.freshUserTicker
     }
 
     var todayScore: Int? { todayEntry?.score }
@@ -112,7 +123,7 @@ final class HomeViewModel: ObservableObject {
         var byDay: [Date: ScoreEntry] = [:]
         for s in history {
             let key = cal.startOfDay(for: s.date)
-            byDay[key] = ScoreEntry(calendarDay: key, score: s.value, reason: s.reason)
+            byDay[key] = ScoreEntry(calendarDay: key, score: s.value, reason: s.reason, mood: s.mood)
         }
 
         // Hero — today
@@ -142,8 +153,8 @@ final class HomeViewModel: ObservableObject {
         todayMoodPhrase = MoodCopy.phrase(for: todayEntry?.score)
         todaySubMessage = MoodCopy.subMessage(today: todayEntry?.score, weekAverage: weekAverage)
 
-        // Streak
-        streakDays = Self.computeStreak(byDay: byDay, anchor: today, cal: cal)
+        // Streak — single source of truth (StreakService)
+        streakDays = StreakService.currentStreak(entriesByDay: byDay, today: today, calendar: cal)
 
         // Monthly average
         let monthStart = cal.date(from: cal.dateComponents([.year, .month], from: today)) ?? today
@@ -170,6 +181,17 @@ final class HomeViewModel: ObservableObject {
             cal: cal
         )
 
+        // Personal rhythm ticker — true statements about the user's own data (P0-1)
+        liveFeed = Self.buildPersonalTicker(
+            byDay: byDay,
+            today: today,
+            weekAverage: weekAverage,
+            monthlyAverage: monthlyAverage,
+            streakDays: streakDays,
+            happiestWeekday: happiestWeekday,
+            cal: cal
+        )
+
         // Recent history (last 4, excluding today)
         recent = Self.buildRecent(history: history, excluding: today, cal: cal)
     }
@@ -177,23 +199,11 @@ final class HomeViewModel: ObservableObject {
     // MARK: - Helpers
 
     private static func dateLine(for date: Date) -> String {
+        // 로캘별로 요일/월/일 순서가 자동 조정되는 현지화 날짜.
         let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = "EEEE, MMM d"
-        return f.string(from: date).uppercased()
-    }
-
-    private static func computeStreak(byDay: [Date: ScoreEntry], anchor: Date, cal: Calendar) -> Int {
-        var streak = 0
-        var d = anchor
-        if byDay[d] == nil {
-            d = cal.date(byAdding: .day, value: -1, to: d) ?? d
-        }
-        while byDay[d] != nil {
-            streak += 1
-            d = cal.date(byAdding: .day, value: -1, to: d) ?? d
-        }
-        return streak
+        f.locale = .current
+        f.setLocalizedDateFormatFromTemplate("EEEEMMMd")
+        return f.string(from: date).uppercased(with: .current)
     }
 
     private static func computeHappiestWeekday(byDay: [Date: ScoreEntry], cal: Calendar) -> String {
@@ -245,8 +255,8 @@ final class HomeViewModel: ObservableObject {
             let delta = t - weekAverage
             if abs(delta) >= 3 {
                 let phrase = delta > 0
-                    ? "\(delta) points higher than this week's average"
-                    : "\(abs(delta)) points softer than this week's average"
+                    ? String(localized: "\(delta) points higher than this week's average")
+                    : String(localized: "\(abs(delta)) points softer than this week's average")
                 insights.append(HomeInsight(id: "vs-week", icon: "chart.line.uptrend.xyaxis", text: phrase, tint: .primary))
             }
         }
@@ -264,7 +274,7 @@ final class HomeViewModel: ObservableObject {
             insights.append(HomeInsight(
                 id: "keyword-\(top.0)",
                 icon: "sparkle",
-                text: "\"\(top.0)\" appears often in the last 7 days",
+                text: String(localized: "“\(top.0)” appears often in the last 7 days"),
                 tint: .soft
             ))
         }
@@ -285,7 +295,7 @@ final class HomeViewModel: ObservableObject {
             insights.append(HomeInsight(
                 id: "best-weekday",
                 icon: "calendar.badge.checkmark",
-                text: "\(name)s tend to be your highest-scoring days",
+                text: String(localized: "\(name)s tend to be your highest-scoring days"),
                 tint: .neutral
             ))
         }
@@ -297,7 +307,7 @@ final class HomeViewModel: ObservableObject {
             insights.append(HomeInsight(
                 id: "top-month",
                 icon: "star.circle.fill",
-                text: "Your highest score this month is \(topMonth)",
+                text: String(localized: "Your highest score this month is \(topMonth)"),
                 tint: .primary
             ))
         }
@@ -305,8 +315,8 @@ final class HomeViewModel: ObservableObject {
         // Fallback if a fresh user has no data
         if insights.isEmpty {
             insights = [
-                HomeInsight(id: "fresh-1", icon: "sparkle", text: "Record a few days — your patterns will appear here", tint: .soft),
-                HomeInsight(id: "fresh-2", icon: "leaf", text: "Scoor learns the rhythm of your days quietly", tint: .neutral),
+                HomeInsight(id: "fresh-1", icon: "sparkle", text: String(localized: "Record a few days — your patterns will appear here"), tint: .soft),
+                HomeInsight(id: "fresh-2", icon: "leaf", text: String(localized: "Scoor learns the rhythm of your days quietly"), tint: .neutral),
             ]
         }
 
@@ -320,14 +330,15 @@ final class HomeViewModel: ObservableObject {
             let day = cal.startOfDay(for: s.date)
             if day == today { continue }
             let reason = (s.reason ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-            let display = reason.isEmpty ? "No note for this day" : reason
+            let display = reason.isEmpty ? String(localized: "No note for this day") : reason
             rows.append(HomeRecentRow(
                 id: s.id.uuidString,
                 score: s.value,
                 reason: display,
                 relativeLabel: Self.relative(s.date, now: Date()),
                 dayLabel: Self.shortDay(s.date),
-                date: day
+                date: day,
+                mood: s.mood
             ))
             if rows.count >= 4 { break }
         }
@@ -342,47 +353,83 @@ final class HomeViewModel: ObservableObject {
 
     private static func shortDay(_ date: Date) -> String {
         let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = "EEE"
-        return f.string(from: date).uppercased()
+        f.locale = .current
+        f.setLocalizedDateFormatFromTemplate("EEE")
+        return f.string(from: date).uppercased(with: .current)
     }
 
-    // MARK: - Live feed (mock for v1; backend stream later)
+    // MARK: - Personal rhythm ticker
+    //
+    // Until a backend exists there is no real global stream, so the ticker only
+    // states facts derived from the user's own history — never fabricated
+    // "someone in Tokyo just recorded a 92" claims (P0-1).
 
-    private static let seedLiveFeed: [LiveFeedItem] = [
-        LiveFeedItem(id: "lf-seoul", icon: "wave.3.right", text: "Average Scoor in Seoul right now: 7.4"),
-        LiveFeedItem(id: "lf-tokyo", icon: "sparkles", text: "Someone in Tokyo just recorded a 92"),
-        LiveFeedItem(id: "lf-osaka", icon: "sun.max", text: "Today's happiest city: Osaka"),
-        LiveFeedItem(id: "lf-live", icon: "dot.radiowaves.left.and.right", text: "12 people are recording their day right now"),
-        LiveFeedItem(id: "lf-london", icon: "cloud.moon", text: "London is feeling 6.8 this evening"),
-        LiveFeedItem(id: "lf-asia", icon: "globe.asia.australia", text: "Mood across Asia leans warm tonight"),
-    ]
+    /// Honest fallback shown before history loads / for brand-new users.
+    static var freshUserTicker: [LiveFeedItem] {
+        [
+            LiveFeedItem(id: "pt-fresh-1", icon: "sparkles", text: String(localized: "This space fills with your own rhythm as you record days")),
+            LiveFeedItem(id: "pt-fresh-2", icon: "lock", text: String(localized: "Your scores stay on this device — community feed is coming soon")),
+        ]
+    }
+
+    static func buildPersonalTicker(
+        byDay: [Date: ScoreEntry],
+        today: Date,
+        weekAverage: Int,
+        monthlyAverage: Int,
+        streakDays: Int,
+        happiestWeekday: String,
+        cal: Calendar
+    ) -> [LiveFeedItem] {
+        var items: [LiveFeedItem] = []
+
+        if weekAverage > 0 {
+            items.append(LiveFeedItem(id: "pt-week", icon: "wave.3.right", text: String(localized: "Your average this week: \(weekAverage)")))
+        }
+        if streakDays >= 2 {
+            items.append(LiveFeedItem(id: "pt-streak", icon: "flame", text: String(localized: "\(streakDays) days recorded in a row")))
+        }
+        if monthlyAverage > 0 {
+            items.append(LiveFeedItem(id: "pt-month", icon: "calendar", text: String(localized: "Your average this month: \(monthlyAverage)")))
+        }
+        if let best = byDay.values.map(\.score).max(), best > 0, byDay.count >= 3 {
+            items.append(LiveFeedItem(id: "pt-best", icon: "sun.max", text: String(localized: "Your brightest day so far: \(best)")))
+        }
+        if !happiestWeekday.isEmpty {
+            items.append(LiveFeedItem(id: "pt-weekday", icon: "sparkles", text: String(localized: "\(happiestWeekday) tends to be your happiest day")))
+        }
+        if byDay.count >= 5 {
+            items.append(LiveFeedItem(id: "pt-count", icon: "square.stack.3d.up", text: String(localized: "\(byDay.count) days of your life scored so far")))
+        }
+
+        return items.isEmpty ? freshUserTicker : items
+    }
 }
 
 // MARK: - Mood copy / palette helpers
 
 enum MoodCopy {
     static func phrase(for score: Int?) -> String {
-        guard let score = score else { return "How was today?" }
+        guard let score = score else { return String(localized: "How was today?") }
         switch score {
-        case 90...: return "An incredible day."
-        case 80..<90: return "Today felt better than expected."
-        case 70..<80: return "A bright, steady day."
-        case 60..<70: return "Warm and solid."
-        case 50..<60: return "An ordinary day worth keeping."
-        case 40..<50: return "A heavier afternoon."
-        case 25..<40: return "Soft pace — take it slow."
-        default: return "Be gentle with yourself tonight."
+        case 90...: return String(localized: "An incredible day.")
+        case 80..<90: return String(localized: "Today felt better than expected.")
+        case 70..<80: return String(localized: "A bright, steady day.")
+        case 60..<70: return String(localized: "Warm and solid.")
+        case 50..<60: return String(localized: "An ordinary day worth keeping.")
+        case 40..<50: return String(localized: "A heavier afternoon.")
+        case 25..<40: return String(localized: "Soft pace — take it slow.")
+        default: return String(localized: "Be gentle with yourself tonight.")
         }
     }
 
     static func subMessage(today: Int?, weekAverage: Int) -> String {
-        guard let today = today else { return "Tap + when you're ready to record." }
-        guard weekAverage > 0 else { return "First entry of your week." }
+        guard let today = today else { return String(localized: "Tap + when you're ready to record.") }
+        guard weekAverage > 0 else { return String(localized: "First entry of your week.") }
         let delta = today - weekAverage
-        if delta >= 8 { return "+\(delta) above your week so far" }
-        if delta <= -8 { return "\(delta) softer than your week so far" }
-        return "In rhythm with your week"
+        if delta >= 8 { return String(localized: "+\(delta) above your week so far") }
+        if delta <= -8 { return String(localized: "\(delta) softer than your week so far") }
+        return String(localized: "In rhythm with your week")
     }
 
     static let commonKeywords: [String] = [

@@ -88,7 +88,7 @@ final class StatsViewModel: ObservableObject {
         var byDay: [Date: ScoreEntry] = [:]
         for s in history {
             let day = dayCal.startOfDay(for: s.date)
-            byDay[day] = ScoreEntry(calendarDay: day, score: s.value, reason: s.reason)
+            byDay[day] = ScoreEntry(calendarDay: day, score: s.value, reason: s.reason, mood: s.mood)
         }
         #if DEBUG
         print("[Scoor] StatsViewModel.load userId=\(user.id) historyCount=\(history.count) distinctDays=\(byDay.count)")
@@ -203,7 +203,7 @@ final class StatsViewModel: ObservableObject {
             }
         }
 
-        currentStreakDays = computeStreak(byDay: byDay, dayCal: dayCal)
+        currentStreakDays = StreakService.currentStreak(entriesByDay: byDay, today: now, calendar: dayCal)
         let monthStart = cal.date(from: cal.dateComponents([.year, .month], from: now))!
         let dom = cal.component(.day, from: now)
         let scoredInMonth = byDay.keys.filter { $0 >= monthStart && $0 <= now }.count
@@ -258,18 +258,6 @@ final class StatsViewModel: ObservableObject {
         return Array(lines.prefix(2))
     }
 
-    private func computeStreak(byDay: [Date: ScoreEntry], dayCal: Calendar) -> Int {
-        var streak = 0
-        var d = dayCal.startOfDay(for: Date())
-        if byDay[d] == nil {
-            d = dayCal.date(byAdding: .day, value: -1, to: d)!
-        }
-        while byDay[d] != nil {
-            streak += 1
-            d = dayCal.date(byAdding: .day, value: -1, to: d)!
-        }
-        return streak
-    }
 
     private func rebuildMonthly(from byDay: [Date: ScoreEntry], cal: Calendar, dayCal: Calendar) {
         let now = Date()
@@ -378,7 +366,7 @@ final class StatsViewModel: ObservableObject {
                 shareTopDateLabel = df.string(from: top.key).uppercased()
             }
         }
-        shareStreakDays = computeStreak(byDay: byDay, dayCal: dayCal)
+        shareStreakDays = StreakService.currentStreak(entriesByDay: byDay, today: now, calendar: dayCal)
     }
 }
 

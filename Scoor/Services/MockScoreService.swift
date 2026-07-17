@@ -46,4 +46,9 @@ final class MockScoreService: ScoreServiceProtocol {
         storage.removeAll { $0.id == score.id }
         NotificationCenter.default.post(name: .scoorScoreStoreDidChange, object: nil)
     }
+
+    func deleteAllScores() async throws {
+        storage.removeAll()
+        NotificationCenter.default.post(name: .scoorScoreStoreDidChange, object: nil)
+    }
 }

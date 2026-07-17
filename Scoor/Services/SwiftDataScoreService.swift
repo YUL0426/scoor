@@ -70,6 +70,13 @@ final class SwiftDataScoreService: ScoreServiceProtocol {
         NotificationCenter.default.post(name: .scoorScoreStoreDidChange, object: nil)
     }
 
+    /// Remove every stored score (account deletion, P0-4).
+    func deleteAllScores() async throws {
+        try modelContext.delete(model: ScoreModel.self)
+        try modelContext.save()
+        NotificationCenter.default.post(name: .scoorScoreStoreDidChange, object: nil)
+    }
+
     // MARK: - Read
 
     func getTodaysScore(userId: UUID) async -> Score? {

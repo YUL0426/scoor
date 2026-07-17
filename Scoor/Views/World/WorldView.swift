@@ -2,65 +2,29 @@
 //  WorldView.swift
 //  Scoor
 //
-//  새 World 탭 — “세계가 실시간으로 감정 점수를 매기는 토픽 피드”.
-//
-//  구성(위→아래):
-//    1. 얇은 헤더 (제목 + 지금 활동 통계)
-//    2. WORLD PULSE 티커
-//    3. 정렬 탭 (실시간 / 지금 뜨거움 / 급상승)
-//    4. 카테고리 칩 strip (스포츠 / 정치 / 주식 / 코인 …)
-//    5. “지금 뜨거운 토픽” 가로 스크롤 (토픽 미니카드)
-//    6. 토픽-태깅된 유저 글 스트림 (flat + hairline divider)
+//  새 World 탭 — "세계가 실시간으로 감정 점수를 매기는 토픽 피드".
+//  - 데이터: SocialService 기반(WorldFeedViewModel) — 좋아요/댓글 영속, 페이지네이션, 새로고침
+//  - 구성: 헤더 / WORLD PULSE / 정렬 / 카테고리 필터 / 트렌딩 토픽 / 토픽-태깅 글 스트림
+//  - 로딩/빈/에러 상태 처리
 //
 
 import SwiftUI
 
 struct WorldView: View {
 
-    // MARK: - State
+    @EnvironmentObject private var appServices: AppServices
+    @StateObject private var vm: WorldFeedViewModel
 
-    @State private var sort: WorldSort = .live
-    @State private var category: WorldCategory? = nil
-    @State private var posts: [WorldPost] = MockWorld.posts
-    @State private var topics: [WorldTopic] = MockWorld.topics
+    private let socialService: SocialServiceProtocol
+
     @State private var selectedTopic: WorldTopic? = nil
+    @State private var commentTarget: WorldPost? = nil
+    @State private var myName: String = "나"
+    private let mySeed = 1
 
-    // MARK: - Derived
-
-    private var filteredPosts: [WorldPost] {
-        MockWorld.postsIn(category).filter { p in
-            posts.contains(where: { $0.id == p.id })
-        }
-        // 우리는 posts 배열 자체에서 binding을 줘야 하므로 id로 다시 매핑.
-    }
-
-    private var visiblePosts: [WorldPost] {
-        if let cat = category {
-            return posts.filter { $0.topic.category == cat }
-        }
-        return posts
-    }
-
-    private var trendingTopics: [WorldTopic] {
-        if let cat = category {
-            return topics.filter { $0.category == cat }
-        }
-        // 정렬: heat가 hot/rising 우선, 그 다음 글 수.
-        return topics.sorted { a, b in
-            let ah = heatRank(a.heat), bh = heatRank(b.heat)
-            if ah != bh { return ah < bh }
-            return a.postsCount > b.postsCount
-        }
-    }
-
-    private func heatRank(_ h: TopicHeat) -> Int {
-        switch h {
-        case .hot: return 0
-        case .rising: return 1
-        case .fresh: return 2
-        case .falling: return 3
-        case .calm: return 4
-        }
+    init(socialService: SocialServiceProtocol) {
+        self.socialService = socialService
+        _vm = StateObject(wrappedValue: WorldFeedViewModel(service: socialService))
     }
 
     // MARK: - Body
@@ -71,12 +35,14 @@ struct WorldView: View {
 
             VStack(spacing: 0) {
                 topHeader
+                PreviewContentBanner()
+                    .padding(.top, 4)
                 WorldPulseStrip(pulses: MockWorld.pulses)
                     .padding(.top, 6)
                 sortTabs
                     .padding(.top, 10)
                 Divider().background(ScoorPalette.hairlineSoft)
-                WorldCategoryFilter(selected: $category)
+                WorldCategoryFilter(selected: $vm.category)
                     .padding(.vertical, 10)
                 Divider().background(ScoorPalette.hairline)
 
@@ -84,12 +50,39 @@ struct WorldView: View {
             }
         }
         .environment(\.colorScheme, .dark)
-        .animation(.easeInOut(duration: 0.18), value: category)
-        .animation(.easeInOut(duration: 0.18), value: sort)
+        .animation(.easeInOut(duration: 0.18), value: vm.category)
+        .animation(.easeInOut(duration: 0.18), value: vm.sort)
+        .task {
+            await vm.loadIfNeeded()
+            await refreshMyName()
+        }
+        // Reflect profile edits made in My Page without an app restart (BUG-008).
+        .onReceive(NotificationCenter.default.publisher(for: .scoorUserProfileDidChange)) { _ in
+            Task { await refreshMyName() }
+        }
         .sheet(item: $selectedTopic) { topic in
-            TopicDetailView(topic: topic)
+            TopicDetailView(topic: topic, socialService: socialService)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.hidden)
+        }
+        .sheet(item: $commentTarget) { post in
+            CommentsSheet(
+                postId: post.id,
+                headerPreview: post.message,
+                service: socialService,
+                currentUserName: myName,
+                currentUserSeed: mySeed,
+                onChange: { Task { await vm.reloadOverlays() } }
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+    }
+
+    /// Re-read the current user's display name from the live profile (BUG-008).
+    private func refreshMyName() async {
+        if let user = await appServices.userService.getCurrentUser() {
+            myName = user.username.isEmpty ? "나" : user.username
         }
     }
 
@@ -100,8 +93,8 @@ struct WorldView: View {
             Text("World")
                 .font(.system(size: 22, weight: .heavy))
                 .foregroundStyle(ScoorPalette.inkPrimary)
-            statusDot
-                .padding(.leading, 2)
+                .accessibilityIdentifier("world.header")
+            statusDot.padding(.leading, 2)
 
             Spacer()
 
@@ -113,9 +106,7 @@ struct WorldView: View {
                     .font(.system(size: 12.5, weight: .bold))
                     .foregroundStyle(ScoorPalette.inkPrimary)
                     .monospacedDigit()
-                Text("·")
-                    .font(.system(size: 11))
-                    .foregroundStyle(ScoorPalette.inkTertiary)
+                Text("·").font(.system(size: 11)).foregroundStyle(ScoorPalette.inkTertiary)
                 Text("평균 \(MockWorld.liveAverage)")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(ScoorPalette.accent)
@@ -138,23 +129,20 @@ struct WorldView: View {
 
     private var sortTabs: some View {
         HStack(spacing: 0) {
-            ForEach(WorldSort.allCases) { mode in
-                sortTab(mode)
-            }
+            ForEach(WorldSort.allCases) { mode in sortTab(mode) }
             Spacer()
         }
         .padding(.horizontal, 18)
     }
 
     private func sortTab(_ mode: WorldSort) -> some View {
-        Button { sort = mode } label: {
+        Button { vm.sort = mode } label: {
             VStack(spacing: 6) {
                 Text(mode.rawValue)
-                    .font(.system(size: 14, weight: sort == mode ? .bold : .medium))
-                    .foregroundStyle(sort == mode ? ScoorPalette.inkPrimary
-                                                  : ScoorPalette.inkTertiary)
+                    .font(.system(size: 14, weight: vm.sort == mode ? .bold : .medium))
+                    .foregroundStyle(vm.sort == mode ? ScoorPalette.inkPrimary : ScoorPalette.inkTertiary)
                 Rectangle()
-                    .fill(sort == mode ? ScoorPalette.accent : Color.clear)
+                    .fill(vm.sort == mode ? ScoorPalette.accent : Color.clear)
                     .frame(height: 2)
             }
             .padding(.trailing, 18)
@@ -165,41 +153,61 @@ struct WorldView: View {
 
     // MARK: - Post stream
 
+    @ViewBuilder
     private var postStream: some View {
+        switch vm.phase {
+        case .idle, .loading:
+            VStack { Spacer(); ProgressView().tint(ScoorPalette.inkSecondary); Spacer() }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        case .error(let msg):
+            errorState(msg)
+        case .empty, .loaded:
+            loadedStream
+        }
+    }
+
+    private var loadedStream: some View {
         ScrollView {
             LazyVStack(spacing: 0, pinnedViews: []) {
-                WorldTrendingRow(topics: trendingTopics,
+                WorldTrendingRow(topics: vm.trendingTopics,
                                  onSelect: { selectedTopic = $0 })
                     .padding(.top, 14)
                     .padding(.bottom, 14)
 
                 Divider().background(ScoorPalette.hairline)
 
-                ForEach(visiblePosts.indices, id: \.self) { _ in EmptyView() } // 워밍업
-
-                ForEach(visiblePosts) { post in
-                    WorldPostCardView(
-                        post: binding(for: post.id),
-                        onTopicTap: { selectedTopic = post.topic }
-                    )
-                    Divider().background(ScoorPalette.hairline)
+                ForEach(vm.visiblePosts) { post in
+                    if let binding = vm.binding(for: post.id) {
+                        WorldPostCardView(
+                            post: binding,
+                            onTopicTap: { selectedTopic = post.topic },
+                            onLikeToggle: { liked in vm.persistLike(postId: post.id, nowLiked: liked) },
+                            onCommentTap: { commentTarget = post }
+                        )
+                        .onAppear { Task { await vm.loadMoreIfNeeded(currentItem: post) } }
+                        Divider().background(ScoorPalette.hairline)
+                    }
                 }
 
-                if visiblePosts.isEmpty {
-                    emptyState
-                }
-
+                if vm.visiblePosts.isEmpty { emptyState }
+                if vm.isLoadingMore { ProgressView().tint(ScoorPalette.inkTertiary).padding(.vertical, 18) }
                 bottomSpacer
             }
         }
-        .refreshable { await refresh() }
+        .refreshable { await vm.refresh() }
     }
 
-    private func binding(for id: UUID) -> Binding<WorldPost> {
-        guard let idx = posts.firstIndex(where: { $0.id == id }) else {
-            return .constant(posts[0])
+    private func errorState(_ msg: String) -> some View {
+        VStack(spacing: 10) {
+            Spacer()
+            Image(systemName: "wifi.exclamationmark").font(.system(size: 32)).foregroundStyle(ScoorPalette.inkTertiary)
+            Text("월드 피드를 불러오지 못했어요").font(.system(size: 15, weight: .semibold)).foregroundStyle(ScoorPalette.inkSecondary)
+            Text(msg).font(.system(size: 12)).foregroundStyle(ScoorPalette.inkTertiary)
+            Button("다시 시도") { Task { await vm.load() } }
+                .font(.system(size: 13, weight: .bold)).foregroundStyle(ScoorPalette.accent)
+            Spacer()
         }
-        return $posts[idx]
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var emptyState: some View {
@@ -215,19 +223,10 @@ struct WorldView: View {
         .padding(.vertical, 60)
     }
 
-    private var bottomSpacer: some View {
-        Color.clear.frame(height: 120)
-    }
-
-    // MARK: - Refresh
-
-    @MainActor
-    private func refresh() async {
-        try? await Task.sleep(nanoseconds: 600_000_000)
-        if posts.count >= 2 { posts.swapAt(0, 1) }
-    }
+    private var bottomSpacer: some View { Color.clear.frame(height: 120) }
 }
 
 #Preview {
-    WorldView()
+    WorldView(socialService: MockSocialService())
+        .environmentObject(AppServices())
 }

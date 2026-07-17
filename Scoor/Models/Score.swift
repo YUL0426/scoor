@@ -10,6 +10,7 @@ struct Score: Codable, Identifiable, Hashable {
     let userId: UUID
     var value: Int          // 0–100
     var reason: String?     // max 200 chars
+    var mood: Mood?         // optional structured emotion tag (Sprint 2-A)
     let date: Date          // calendar day (no time)
     var locationId: UUID?
     let createdAt: Date
@@ -19,6 +20,7 @@ struct Score: Codable, Identifiable, Hashable {
         userId: UUID,
         value: Int,
         reason: String? = nil,
+        mood: Mood? = nil,
         date: Date = .now,
         locationId: UUID? = nil,
         createdAt: Date = .now
@@ -31,6 +33,7 @@ struct Score: Codable, Identifiable, Hashable {
         } else {
             self.reason = reason
         }
+        self.mood = mood
         self.date = date
         self.locationId = locationId
         self.createdAt = createdAt
@@ -45,16 +48,18 @@ struct ScoreEntry: Equatable, Hashable {
     let calendarDay: Date
     let score: Int
     let reason: String?
+    let mood: Mood?
 
-    init(calendarDay: Date, score: Int, reason: String?) {
+    init(calendarDay: Date, score: Int, reason: String?, mood: Mood? = nil) {
         self.calendarDay = calendarDay
         self.score = score
         self.reason = reason
+        self.mood = mood
     }
 
     init(from score: Score, calendar: Calendar = .current) {
         let day = calendar.startOfDay(for: score.date)
-        self.init(calendarDay: day, score: score.value, reason: score.reason)
+        self.init(calendarDay: day, score: score.value, reason: score.reason, mood: score.mood)
     }
 }
 
@@ -73,5 +78,8 @@ enum ScoreCalendarIndex {
 extension Notification.Name {
     /// Posted when `MockScoreService` (or future store) mutates scores so tabs can reload.
     static let scoorScoreStoreDidChange = Notification.Name("ScoorScoreStoreDidChange")
+    /// Posted when the current user's profile (name / avatar / bio) changes so other
+    /// tabs (e.g. World) can refresh their cached copy of the user (BUG-008).
+    static let scoorUserProfileDidChange = Notification.Name("ScoorUserProfileDidChange")
 }
 

@@ -6,9 +6,15 @@
 //
 
 import SwiftUI
+import PhotosUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct MyPageView: View {
     @EnvironmentObject private var appServices: AppServices
+    @EnvironmentObject private var authService: AuthService
+    @EnvironmentObject private var coordinator: AppFlowCoordinator
     @StateObject private var viewModel: MyPageViewModel
     @State private var showSettings = false
     @State private var showProfileEdit = false
@@ -29,6 +35,10 @@ struct MyPageView: View {
                     ProfileHeaderView(
                         username: viewModel.currentUser!.username,
                         bio: viewModel.currentUser!.bio,
+                        email: viewModel.currentUser!.email,
+                        avatarURL: viewModel.currentUser!.avatarURL,
+                        avatarEmoji: viewModel.avatarEmoji,
+                        provider: viewModel.authProvider,
                         monthlyAverage: viewModel.monthlyAverage,
                         onEditProfile: { showProfileEdit = true }
                     )
@@ -42,6 +52,9 @@ struct MyPageView: View {
                             userService: appServices.userService
                         )
                     )
+                    if let mood = viewModel.monthlyTopMood {
+                        MonthlyMoodSummaryView(mood: mood, count: viewModel.monthlyTopMoodCount)
+                    }
                     CalendarSectionView(
                         displayedMonth: $viewModel.displayedMonth,
                         entryForDate: { viewModel.entry(for: $0) },
@@ -53,7 +66,8 @@ struct MyPageView: View {
                         messages: viewModel.guestbookMessages,
                         composeText: $viewModel.guestbookComposeText,
                         isPosting: viewModel.isPostingGuestbook,
-                        onSubmit: { Task { await viewModel.postGuestbookMessage() } }
+                        onSubmit: { Task { await viewModel.postGuestbookMessage() } },
+                        onDelete: { msg in Task { await viewModel.deleteGuestbookMessage(msg) } }
                     )
                 } else if !viewModel.isLoading {
                     Text("Sign in to see your page")
@@ -72,26 +86,49 @@ struct MyPageView: View {
         .background(DesignTokens.backgroundColor)
         .environment(\.colorScheme, .dark)
         .navigationBarHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(action: { showSettings = true }) {
-                    Image(systemName: "gearshape.fill")
-                        .foregroundStyle(DesignTokens.textSecondary)
-                }
+        // 내비게이션 바를 숨겼기 때문에 toolbar 항목은 표시되지 않는다.
+        // 설정 진입점이 사라지지 않도록 화면 우상단에 직접 기어 버튼을 띄운다.
+        .overlay(alignment: .topTrailing) {
+            Button(action: { showSettings = true }) {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(DesignTokens.textSecondary)
+                    .padding(10)
+                    .background(DesignTokens.cardBackground.opacity(0.9), in: Circle())
             }
+            .accessibilityLabel("Settings")
+            .accessibilityIdentifier("settingsButton")
+            .padding(.trailing, DesignTokens.spacingLG)
+            .padding(.top, DesignTokens.spacingSM)
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+                .environmentObject(appServices)
+                .environmentObject(authService)
+                .environmentObject(coordinator)
         }
         .sheet(isPresented: $showProfileEdit) {
             ProfileEditView(
                 username: viewModel.currentUser?.username ?? "",
+                email: viewModel.currentUser?.email ?? "",
                 bio: viewModel.currentUser?.bio ?? "",
-                onSave: { newName, newBio in
+                gender: viewModel.currentUser?.gender,
+                avatarURL: viewModel.currentUser?.avatarURL,
+                avatarEmoji: viewModel.avatarEmoji,
+                onSave: { edits in
                     Task {
-                        await appServices.userService.updateUsername(newName)
-                        await appServices.userService.updateBio(newBio)
+                        await appServices.userService.updateUsername(edits.username)
+                        await appServices.userService.updateEmail(edits.email)
+                        await appServices.userService.updateBio(edits.bio)
+                        await appServices.userService.updateGender(edits.gender)
+                        if let data = edits.avatarImageData {
+                            await appServices.userService.updateAvatarImage(data)
+                        } else if edits.removeAvatar {
+                            await appServices.userService.updateAvatarImage(nil)
+                        }
                         await viewModel.load()
+                        // Broadcast so other tabs (World) refresh the cached profile (BUG-008).
+                        NotificationCenter.default.post(name: .scoorUserProfileDidChange, object: nil)
                     }
                 }
             )
@@ -119,6 +156,8 @@ struct MyPageView: View {
                 ScoreHomeView(
                     scoreService: appServices.scoreService,
                     userService: appServices.userService,
+                    moodAnalyzer: appServices.moodAnalyzer,
+                    notificationService: appServices.notificationService,
                     targetDate: date
                 )
                 .presentationDetents([.large])
@@ -164,17 +203,10 @@ struct MyPageView: View {
         return Int(round(Double(scores.reduce(0, +)) / Double(scores.count)))
     }
 
-    /// 오늘부터 거꾸로 entry가 끊기지 않고 연속된 일 수.
+    /// 연속 기록 일수 — 단일 진실 공급원(StreakService) 위임.
+    /// 오늘 아직 기록 전이어도 어제 기록이 있으면 streak가 유지된다.
     private var currentStreak: Int {
-        let cal = Calendar.current
-        var streak = 0
-        var day = cal.startOfDay(for: Date())
-        while viewModel.entry(for: day) != nil {
-            streak += 1
-            guard let prev = cal.date(byAdding: .day, value: -1, to: day) else { break }
-            day = prev
-        }
-        return streak
+        StreakService.currentStreak(entriesByDay: viewModel.entriesByDay, today: Date())
     }
 }
 
@@ -195,6 +227,10 @@ enum CalendarRoute: Identifiable {
 struct ProfileHeaderView: View {
     let username: String
     var bio: String? = nil
+    var email: String? = nil
+    var avatarURL: URL? = nil
+    var avatarEmoji: String? = nil
+    var provider: AuthProvider? = nil
     let monthlyAverage: Int?
     var onEditProfile: (() -> Void)? = nil
 
@@ -209,20 +245,19 @@ struct ProfileHeaderView: View {
                 onEditProfile?()
             } label: {
                 HStack(spacing: DesignTokens.spacingMD) {
-                    ZStack {
-                        Circle()
-                            .fill(DesignTokens.primaryColor.opacity(0.15))
-                            .frame(width: 56, height: 56)
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundStyle(DesignTokens.primaryColor)
-
-                        // Edit badge
+                    ZStack(alignment: .bottomTrailing) {
+                        ProfileAvatarView(
+                            imageURL: avatarURL,
+                            emoji: avatarEmoji,
+                            size: 56,
+                            provider: provider
+                        )
+                        // Edit affordance badge
                         Image(systemName: "pencil.circle.fill")
-                            .font(.system(size: 16))
+                            .font(.system(size: 15))
                             .foregroundStyle(DesignTokens.primaryColor)
                             .background(Circle().fill(DesignTokens.backgroundColor).padding(-2))
-                            .offset(x: 18, y: 18)
+                            .offset(x: 2, y: 2)
                     }
 
                     VStack(alignment: .leading, spacing: DesignTokens.spacingXS) {
@@ -230,6 +265,9 @@ struct ProfileHeaderView: View {
                         Text("@\(username)")
                             .font(AppTypography.bodySmall())
                             .foregroundStyle(DesignTokens.textSecondary)
+                        if let provider {
+                            providerChip(provider)
+                        }
                         if let trimmedBio {
                             Text(trimmedBio)
                                 .font(AppTypography.bodySmall())
@@ -248,10 +286,13 @@ struct ProfileHeaderView: View {
 
             if let avg = monthlyAverage {
                 VStack(alignment: .trailing, spacing: DesignTokens.spacingXS) {
-                    Text("\(avg)")
-                        .font(AppTypography.title())
-                        .foregroundStyle(DesignTokens.primaryColor)
-                        .italic()
+                    ScoreValueView(
+                        score: avg,
+                        font: AppTypography.title(),
+                        color: DesignTokens.primaryColor,
+                        italic: true,
+                        logoHeight: 22
+                    )
                     Text("MONTHLY AVG")
                         .font(.system(size: 9, weight: .heavy))
                         .foregroundStyle(DesignTokens.textSecondary)
@@ -260,6 +301,23 @@ struct ProfileHeaderView: View {
             }
         }
         .padding(.horizontal, DesignTokens.spacingXXL)
+    }
+
+    @ViewBuilder
+    private func providerChip(_ provider: AuthProvider) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: provider == .apple ? "apple.logo" : (provider == .google ? "g.circle.fill" : "envelope.fill"))
+                .font(.system(size: 9, weight: .bold))
+            Text("\(provider.displayName)로 로그인됨")
+                .font(.system(size: 10, weight: .heavy))
+        }
+        .foregroundStyle(DesignTokens.textSecondary)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 3)
+        .background(ScoorPalette.bgRaised)
+        .clipShape(Capsule())
+        .overlay(Capsule().stroke(ScoorPalette.hairline, lineWidth: 0.5))
+        .accessibilityIdentifier("profile-provider-chip")
     }
 }
 
@@ -498,16 +556,35 @@ struct CalendarDayDetailSheet: View {
             Spacer(minLength: 0)
 
             VStack(spacing: DesignTokens.spacingMD) {
-                Text("\(entry.score)")
-                    .font(.system(size: 96, weight: .heavy, design: .rounded))
-                    .italic()
-                    .foregroundStyle(ScoreTone.from(score: entry.score).primary)
+                ScoreValueView(
+                    score: entry.score,
+                    font: .system(size: 96, weight: .heavy, design: .rounded),
+                    color: ScoreTone.from(score: entry.score).primary,
+                    italic: true,
+                    logoHeight: 70
+                )
                     .shadow(color: ScoreTone.from(score: entry.score).primary.opacity(0.4), radius: 20)
 
                 Text("DAILY SCORE")
                     .font(.system(size: 10, weight: .heavy))
                     .tracking(2)
                     .foregroundStyle(DesignTokens.textSecondary)
+
+                if let mood = entry.mood {
+                    HStack(spacing: 6) {
+                        Text(mood.emoji)
+                            .font(.system(size: 14))
+                        Text(mood.label)
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(mood.tint)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .background(mood.tint.opacity(0.14))
+                    .clipShape(Capsule())
+                    .padding(.top, 6)
+                    .accessibilityIdentifier("detail-mood")
+                }
             }
 
             if hasReason {
@@ -586,6 +663,11 @@ struct GuestbookSectionView: View {
     @Binding var composeText: String
     let isPosting: Bool
     let onSubmit: () -> Void
+    /// Delete a message from the page owner's guestbook (BUG-010).
+    var onDelete: (GuestbookMessageDisplay) -> Void = { _ in }
+
+    /// Drives keyboard dismissal after submit (BUG-009) and focus-on-reply (BUG-010).
+    @FocusState private var inputFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -609,9 +691,12 @@ struct GuestbookSectionView: View {
                 TextField("방명록에 한 줄 남겨보세요...", text: $composeText)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(ScoorPalette.inkPrimary)
+                    .focused($inputFocused)
+                    .submitLabel(.send)
+                    .onSubmit(submit)
                     .padding(.leading, 16)
                     .padding(.vertical, 10)
-                Button(action: onSubmit) {
+                Button(action: submit) {
                     Image(systemName: "paperplane.fill")
                         .font(.system(size: 16))
                         .foregroundStyle(.white)
@@ -636,7 +721,11 @@ struct GuestbookSectionView: View {
             } else {
                 VStack(spacing: 16) {
                     ForEach(messages) { msg in
-                        GuestbookMessageRow(message: msg)
+                        GuestbookMessageRow(
+                            message: msg,
+                            onReply: { reply(to: msg) },
+                            onDelete: { onDelete(msg) }
+                        )
                     }
                 }
                 .padding(.horizontal, 16)
@@ -644,10 +733,25 @@ struct GuestbookSectionView: View {
         }
         .padding(.top, 8)
     }
+
+    /// Submit the composed entry and drop the keyboard (BUG-009).
+    private func submit() {
+        guard !composeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !isPosting else { return }
+        inputFocused = false
+        onSubmit()
+    }
+
+    /// Start a reply: pre-fill the composer with a mention and focus it (BUG-010).
+    private func reply(to message: GuestbookMessageDisplay) {
+        composeText = "@\(message.authorName) "
+        inputFocused = true
+    }
 }
 
 struct GuestbookMessageRow: View {
     let message: GuestbookMessageDisplay
+    var onReply: () -> Void = {}
+    var onDelete: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -691,14 +795,12 @@ struct GuestbookMessageRow: View {
                     .foregroundStyle(Color(red: 0.64, green: 0.64, blue: 0.68))
                 Spacer()
                 HStack(spacing: 12) {
-                    Button("Reply") {}
+                    Button("Reply", action: onReply)
                         .font(.system(size: 12, weight: .bold))
                         .foregroundStyle(DesignTokens.primaryColor)
-                    if !message.isPrivate {
-                        Button("Delete") {}
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(Color(red: 0.64, green: 0.64, blue: 0.68))
-                    }
+                    Button("Delete", action: onDelete)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Color(red: 0.64, green: 0.64, blue: 0.68))
                 }
                 .buttonStyle(.plain)
             }
@@ -764,10 +866,10 @@ struct StatsSummarySection<Destination: View>: View {
                 GridItem(.flexible(), spacing: 10)
             ]
             LazyVGrid(columns: columns, spacing: 10) {
-                miniCard(label: "오늘",     value: todayScore.map(String.init)     ?? "—", subtitle: "TODAY")
-                miniCard(label: "7일 평균",  value: weeklyAverage.map(String.init)  ?? "—", subtitle: "7-DAY AVG")
-                miniCard(label: "연속",     value: "\(currentStreak)",              subtitle: "STREAK · 일")
-                miniCard(label: "이번 달",   value: monthlyAverage.map(String.init) ?? "—", subtitle: "MONTH AVG")
+                miniCard(label: "오늘",     value: todayScore,     subtitle: "TODAY",      isScore: true)
+                miniCard(label: "7일 평균",  value: weeklyAverage,  subtitle: "7-DAY AVG",  isScore: true)
+                miniCard(label: "연속",     value: currentStreak,  subtitle: "STREAK · 일", isScore: false)
+                miniCard(label: "이번 달",   value: monthlyAverage, subtitle: "MONTH AVG",  isScore: true)
             }
         }
         .padding(DesignTokens.spacingXL)
@@ -781,17 +883,22 @@ struct StatsSummarySection<Destination: View>: View {
     }
 
     @ViewBuilder
-    private func miniCard(label: String, value: String, subtitle: String) -> some View {
+    private func miniCard(label: LocalizedStringKey, value: Int?, subtitle: LocalizedStringKey, isScore: Bool) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label)
                 .font(.system(size: 11, weight: .heavy))
                 .tracking(0.6)
                 .foregroundStyle(DesignTokens.textSecondary)
-            Text(value)
-                .font(.system(size: 28, weight: .heavy, design: .rounded))
-                .foregroundStyle(DesignTokens.primaryColor)
-                .italic()
-                .monospacedDigit()
+            // 점수 카드가 100이면 숫자 대신 로고(연속일 수 카드는 제외).
+            if isScore, let v = value, v >= 100 {
+                ScoorLogo(size: 22, variant: .red)
+            } else {
+                Text(value.map(String.init) ?? "—")
+                    .font(.system(size: 28, weight: .heavy, design: .rounded))
+                    .foregroundStyle(DesignTokens.primaryColor)
+                    .italic()
+                    .monospacedDigit()
+            }
             Text(subtitle)
                 .font(.system(size: 9.5, weight: .bold))
                 .tracking(0.6)
@@ -810,82 +917,143 @@ struct StatsSummarySection<Destination: View>: View {
     }
 }
 
+// MARK: - Monthly Mood Summary (Sprint 2-A)
+
+struct MonthlyMoodSummaryView: View {
+    let mood: Mood
+    let count: Int
+
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(mood.tint.opacity(0.16))
+                    .frame(width: 44, height: 44)
+                Text(mood.emoji)
+                    .font(.system(size: 20))
+            }
+            VStack(alignment: .leading, spacing: 3) {
+                Text("이번 달 대표 감정")
+                    .font(.system(size: 10, weight: .heavy))
+                    .tracking(1.0)
+                    .foregroundStyle(DesignTokens.textSecondary)
+                Text(mood.label)
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(DesignTokens.textPrimary)
+            }
+            Spacer()
+            Text("\(count)일")
+                .font(.system(size: 14, weight: .heavy, design: .rounded))
+                .foregroundStyle(mood.tint)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(DesignTokens.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cornerRadiusCard, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignTokens.cornerRadiusCard, style: .continuous)
+                .stroke(ScoorPalette.hairline, lineWidth: 0.5)
+        )
+        .padding(.horizontal, DesignTokens.spacingXXL)
+        .accessibilityIdentifier("monthly-top-mood")
+        .accessibilityLabel("이번 달 대표 감정 \(mood.label), \(count)일")
+    }
+}
+
+/// "My Scoors" 한 행 — 토픽 제목 · 사유 · 날짜 + 우측 큰 점수(100이면 로고).
+struct MyScoorRow: View {
+    let entry: MyScoorEntry
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(entry.topicTitle)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(DesignTokens.textPrimary)
+                    .lineLimit(1)
+                if let reason = entry.reason, !reason.isEmpty {
+                    Text(reason)
+                        .font(.system(size: 13))
+                        .foregroundStyle(DesignTokens.textSecondary)
+                        .lineLimit(2)
+                }
+                Text(Self.dateText(entry.createdAt))
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(DesignTokens.textSecondary.opacity(0.7))
+                    .monospacedDigit()
+            }
+            Spacer(minLength: 8)
+            ScoreValueView(
+                score: entry.score,
+                font: .system(size: 30, weight: .heavy, design: .rounded),
+                color: ScoreTone.from(score: entry.score).primary,
+                italic: true,
+                logoHeight: 22
+            )
+        }
+        .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(entry.topicTitle), Scoor 점수 \(entry.score)")
+    }
+
+    private static func dateText(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.locale = Locale.current
+        f.dateFormat = "yyyy.MM.dd"
+        return f.string(from: date)
+    }
+}
+
 // MARK: - Profile Edit View
 
 struct ProfileEditView: View {
     @Environment(\.dismiss) private var dismiss
-    let username: String
-    var bio: String = ""
-    var onSave: (_ username: String, _ bio: String) -> Void = { _, _ in }
 
-    @State private var editName: String = ""
-    @State private var editUsername: String = ""
-    @State private var editBio: String = ""
+    let username: String
+    var email: String = ""
+    var bio: String = ""
+    var gender: String? = nil
+    var avatarURL: URL? = nil
+    var avatarEmoji: String? = nil
+    var onSave: (ProfileEdits) -> Void = { _ in }
+
+    /// Aggregate of editable profile fields returned on save.
+    struct ProfileEdits {
+        var username: String
+        var email: String
+        var bio: String
+        var gender: String?
+        /// New avatar JPEG to persist (nil = unchanged).
+        var avatarImageData: Data?
+        /// Explicit request to clear the existing avatar.
+        var removeAvatar: Bool
+    }
+
+    private let genderOptions = ["여성", "남성", "기타", "비공개"]
+
+    @State private var editUsername = ""
+    @State private var editEmail = ""
+    @State private var editBio = ""
+    @State private var editGender: String?
+    @State private var pickerItem: PhotosPickerItem?
+    @State private var pickedImageData: Data?
+    @State private var removeAvatar = false
+
+    private var previewImage: UIImage? {
+        if let pickedImageData { return UIImage(data: pickedImageData) }
+        if !removeAvatar, let avatarURL, avatarURL.isFileURL {
+            return UIImage(contentsOfFile: avatarURL.path)
+        }
+        return nil
+    }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 28) {
-
-                    // Avatar edit
-                    VStack(spacing: 12) {
-                        ZStack(alignment: .bottomTrailing) {
-                            Circle()
-                                .fill(DesignTokens.primaryColor.opacity(0.15))
-                                .frame(width: 88, height: 88)
-                                .overlay(
-                                    Image(systemName: "person.fill")
-                                        .font(.system(size: 36, weight: .semibold))
-                                        .foregroundStyle(DesignTokens.primaryColor)
-                                )
-
-                            Circle()
-                                .fill(DesignTokens.primaryColor)
-                                .frame(width: 28, height: 28)
-                                .overlay(
-                                    Image(systemName: "camera.fill")
-                                        .font(.system(size: 12))
-                                        .foregroundStyle(.white)
-                                )
-                                .offset(x: 4, y: 4)
-                        }
-
-                        Text("프로필 사진 변경")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(DesignTokens.primaryColor)
-                    }
-                    .padding(.top, 8)
-
-                    // Fields
-                    VStack(spacing: 0) {
-                        editField(label: "이름", text: $editName, placeholder: "이름을 입력하세요")
-                        Divider().background(ScoorPalette.hairline)
-                        editField(label: "사용자명", text: $editUsername, placeholder: "@username")
-                        Divider().background(ScoorPalette.hairline)
-                        editField(label: "소개", text: $editBio, placeholder: "나를 한 줄로 표현해보세요", identifier: "profile-bio-field")
-                    }
-                    .background(ScoorPalette.bgRaised)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(ScoorPalette.hairline, lineWidth: 0.5)
-                    )
-                    .padding(.horizontal, 20)
-
-                    // Extra info fields
-                    VStack(spacing: 0) {
-                        staticField(label: "이메일", value: "비공개")
-                        Divider().background(ScoorPalette.hairline)
-                        staticField(label: "성별", value: "설정 안 함")
-                    }
-                    .background(ScoorPalette.bgRaised)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(ScoorPalette.hairline, lineWidth: 0.5)
-                    )
-                    .padding(.horizontal, 20)
-
+                    avatarSection
+                    profileFieldsCard
+                    accountFieldsCard
                     Color.clear.frame(height: 40)
                 }
                 .padding(.top, 8)
@@ -902,23 +1070,173 @@ struct ProfileEditView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("저장") {
-                        onSave(editUsername, editBio)
+                        onSave(ProfileEdits(
+                            username: editUsername,
+                            email: editEmail,
+                            bio: editBio,
+                            gender: editGender,
+                            avatarImageData: pickedImageData,
+                            removeAvatar: removeAvatar
+                        ))
                         dismiss()
                     }
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(DesignTokens.primaryColor)
+                    .accessibilityIdentifier("profile-save-button")
                 }
             }
         }
         .environment(\.colorScheme, .dark)
         .onAppear {
             editUsername = username
+            editEmail = email
             editBio = bio
+            editGender = gender
+        }
+        .onChange(of: pickerItem) { _, item in
+            guard let item else { return }
+            Task {
+                if let data = try? await item.loadTransferable(type: Data.self) {
+                    await MainActor.run {
+                        pickedImageData = ProfileImageProcessor.normalized(data) ?? data
+                        removeAvatar = false
+                    }
+                }
+            }
         }
         .presentationDetents([.large])
     }
 
-    private func editField(label: String, text: Binding<String>, placeholder: String, identifier: String? = nil) -> some View {
+    // MARK: - Avatar
+
+    private var avatarSection: some View {
+        VStack(spacing: 10) {
+            ZStack(alignment: .bottomTrailing) {
+                Group {
+                    if let previewImage {
+                        Image(uiImage: previewImage).resizable().scaledToFill()
+                    } else if let avatarEmoji, !avatarEmoji.isEmpty {
+                        Text(avatarEmoji)
+                            .font(.system(size: 44))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(DesignTokens.primaryColor.opacity(0.15))
+                    } else {
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 36, weight: .semibold))
+                            .foregroundStyle(DesignTokens.primaryColor)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(DesignTokens.primaryColor.opacity(0.15))
+                    }
+                }
+                .frame(width: 88, height: 88)
+                .clipShape(Circle())
+
+                PhotosPicker(selection: $pickerItem, matching: .images) {
+                    Circle()
+                        .fill(DesignTokens.primaryColor)
+                        .frame(width: 28, height: 28)
+                        .overlay(
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.white)
+                        )
+                }
+                .offset(x: 4, y: 4)
+            }
+            .accessibilityIdentifier("profile-avatar-picker")
+
+            PhotosPicker(selection: $pickerItem, matching: .images) {
+                Text("프로필 사진 변경")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(DesignTokens.primaryColor)
+            }
+
+            if previewImage != nil {
+                Button("사진 제거") {
+                    pickedImageData = nil
+                    pickerItem = nil
+                    removeAvatar = true
+                }
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(ScoorPalette.inkTertiary)
+            }
+        }
+        .padding(.top, 8)
+    }
+
+    // MARK: - Field cards
+
+    private var profileFieldsCard: some View {
+        VStack(spacing: 0) {
+            editField(label: "사용자명", text: $editUsername, placeholder: "@username")
+            Divider().background(ScoorPalette.hairline)
+            editField(label: "소개", text: $editBio, placeholder: "나를 한 줄로 표현해보세요", identifier: "profile-bio-field")
+        }
+        .background(ScoorPalette.bgRaised)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(ScoorPalette.hairline, lineWidth: 0.5)
+        )
+        .padding(.horizontal, 20)
+    }
+
+    private var accountFieldsCard: some View {
+        VStack(spacing: 0) {
+            editField(
+                label: "이메일",
+                text: $editEmail,
+                placeholder: "you@scoor.app",
+                identifier: "profile-email-field",
+                keyboard: .emailAddress
+            )
+            Divider().background(ScoorPalette.hairline)
+            genderField
+        }
+        .background(ScoorPalette.bgRaised)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(ScoorPalette.hairline, lineWidth: 0.5)
+        )
+        .padding(.horizontal, 20)
+    }
+
+    private var genderField: some View {
+        HStack(spacing: 16) {
+            Text("성별")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(ScoorPalette.inkSecondary)
+                .frame(width: 72, alignment: .leading)
+            Spacer()
+            Menu {
+                ForEach(genderOptions, id: \.self) { option in
+                    Button(option) { editGender = option }
+                }
+                Button("설정 안 함", role: .destructive) { editGender = nil }
+            } label: {
+                HStack(spacing: 6) {
+                    Text(editGender ?? "설정 안 함")
+                        .font(.system(size: 15))
+                        .foregroundStyle(editGender == nil ? ScoorPalette.inkTertiary : ScoorPalette.inkPrimary)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(ScoorPalette.inkTertiary)
+                }
+            }
+            .accessibilityIdentifier("profile-gender-field")
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+    }
+
+    private func editField(
+        label: String,
+        text: Binding<String>,
+        placeholder: String,
+        identifier: String? = nil,
+        keyboard: UIKeyboardType = .default
+    ) -> some View {
         HStack(spacing: 16) {
             Text(label)
                 .font(.system(size: 14, weight: .medium))
@@ -927,25 +1245,10 @@ struct ProfileEditView: View {
             TextField(placeholder, text: text)
                 .font(.system(size: 15))
                 .foregroundStyle(ScoorPalette.inkPrimary)
+                .keyboardType(keyboard)
+                .textInputAutocapitalization(keyboard == .emailAddress ? .never : .sentences)
+                .autocorrectionDisabled(keyboard == .emailAddress)
                 .accessibilityIdentifier(identifier ?? "")
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-    }
-
-    private func staticField(label: String, value: String) -> some View {
-        HStack(spacing: 16) {
-            Text(label)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(ScoorPalette.inkSecondary)
-                .frame(width: 72, alignment: .leading)
-            Text(value)
-                .font(.system(size: 15))
-                .foregroundStyle(ScoorPalette.inkTertiary)
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(ScoorPalette.inkTertiary)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)

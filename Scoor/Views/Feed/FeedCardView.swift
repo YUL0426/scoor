@@ -5,7 +5,7 @@
 //  Toss Community/Threads 톤의 컴팩트 피드 카드.
 //  - 카드 박스/후광 없음. 플랫 row + 하단 hairline divider.
 //  - 한 줄 본문이 시각적 중심. 점수는 우상단 작은 배지로 항상 보이지만 본문보다 작음.
-//  - 액션 4종: heart · comment · repost · empathy.
+//  - 액션 2종: heart · comment (BUG-005: repost / clap 제거).
 //
 
 import SwiftUI
@@ -13,6 +13,10 @@ import SwiftUI
 struct FeedCardView: View {
 
     @Binding var entry: FeedEntry
+    var onLikeToggle: (Bool) -> Void = { _ in }
+    var onCommentTap: () -> Void = {}
+
+    private var tone: ScoreTone { .from(score: entry.score) }
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -27,15 +31,37 @@ struct FeedCardView: View {
                     reactions: Binding(
                         get: { entry.reactions },
                         set: { entry.reactions = $0 }
-                    )
+                    ),
+                    onCommentTap: onCommentTap,
+                    onLikeToggle: onLikeToggle
                 )
                 .padding(.top, 2)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Score-first: 점수를 우측에 크게 고정 — 스크롤 중에도 즉시 읽힌다.
+            scoreColumn
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 14)
         .contentShape(Rectangle())
+    }
+
+    // MARK: - Score column (우측 고정 · 카드의 1차 시각 요소)
+
+    private var scoreColumn: some View {
+        ScoreValueView(
+            score: entry.score,
+            font: .system(size: 40, weight: .heavy, design: .rounded),
+            color: tone.primary,
+            italic: true,
+            logoHeight: 28,
+            logoVariant: .white
+        )
+        .shadow(color: tone.primary.opacity(0.28), radius: 10)
+        .frame(minWidth: 54, alignment: .trailing)
+        .padding(.top, 1)
+        .accessibilityLabel("Scoor 점수 \(entry.score)")
     }
 
     // MARK: - Avatar
@@ -98,13 +124,11 @@ struct FeedCardView: View {
                 .monospacedDigit()
 
             Spacer(minLength: 4)
-
-            FeedScoreDisplay(score: entry.score, size: 18)
         }
     }
 
     private var displayName: String {
-        entry.identity.isAnonymous ? "익명" : entry.identity.name
+        entry.identity.isAnonymous ? String(localized: "익명") : entry.identity.name
     }
 
     private var dot: some View {

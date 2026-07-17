@@ -39,6 +39,10 @@ struct StatsView: View {
             .padding(.bottom, 48)
         }
         .background(Color(red: 0.97, green: 0.98, blue: 0.99))
+        // Light-designed screen: pin the scheme so adaptive text (Color.primary /
+        // DesignTokens.textPrimary) stays dark-on-light even when the device is in
+        // Dark Mode (BUG-003).
+        .environment(\.colorScheme, .light)
         .navigationBarHidden(true)
         .task { await viewModel.load() }
         .onReceive(NotificationCenter.default.publisher(for: .scoorScoreStoreDidChange)) { _ in
@@ -135,13 +139,19 @@ struct StatsView: View {
 
             if let entry = viewModel.todayEntry {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text("\(entry.score)")
-                        .font(.system(size: 88, weight: .heavy))
-                        .italic()
-                        .foregroundStyle(DesignTokens.primaryColor)
-                    Text("/100")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(Color(red: 0.55, green: 0.58, blue: 0.62))
+                    ScoreValueView(
+                        score: entry.score,
+                        font: .system(size: 88, weight: .heavy),
+                        color: DesignTokens.primaryColor,
+                        italic: true,
+                        logoHeight: 62
+                    )
+                    // 100이면 로고가 곧 "100" — "/100" 접미사는 숨긴다.
+                    if entry.score < 100 {
+                        Text("/100")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(Color(red: 0.55, green: 0.58, blue: 0.62))
+                    }
                 }
                 if let reason = entry.reason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     Text(reason)
@@ -689,6 +699,33 @@ struct InstagramStoryShareSheet: View {
     @ObservedObject var viewModel: StatsViewModel
     var onDismiss: () -> Void
 
+    @Environment(\.colorScheme) private var systemScheme
+
+    @State private var storyImage: UIImage?
+    @State private var isBusy = false
+    @State private var feedback: ShareFeedback?
+
+    private struct ShareFeedback: Equatable {
+        let text: String
+        let isSuccess: Bool
+    }
+
+    /// 뷰모델 → 카드 데이터.
+    private var recap: RecapData {
+        let scored = viewModel.heatmapCells.compactMap(\.intensity)
+        let intensities: [Double?] = scored.isEmpty
+            ? RecapData.placeholder.intensities
+            : Array(scored.suffix(14)).map { Optional($0) }
+        return RecapData(
+            monthLine: viewModel.shareMonthLine,
+            averageText: viewModel.shareAveragePts,
+            topScoreText: viewModel.shareTopScore.map { "\($0)" } ?? "—",
+            topDateLabel: viewModel.shareTopDateLabel,
+            streakDays: viewModel.shareStreakDays,
+            intensities: intensities
+        )
+    }
+
     var body: some View {
         ZStack {
             Color.black.opacity(0.4)
@@ -707,141 +744,129 @@ struct InstagramStoryShareSheet: View {
                     .tracking(2)
                     .padding(.bottom, 8)
 
-                storyPreviewCard
+                RecapCardView(data: recap, scheme: systemScheme)
                     .padding(.horizontal, 24)
 
-                VStack(spacing: 12) {
-                    Button(action: {}) {
-                        HStack(spacing: 10) {
-                            Image(systemName: "square.and.arrow.up")
-                            Text("Share to Instagram Story")
-                        }
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(DesignTokens.primaryColor)
-                        .clipShape(Capsule())
-                        .shadow(color: DesignTokens.primaryColor.opacity(0.25), radius: 10, x: 0, y: 4)
-                    }
-                    Button(action: {}) {
-                        HStack(spacing: 10) {
-                            Image(systemName: "arrow.down.circle")
-                            Text("Save to Gallery")
-                        }
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(Color.primary)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(Color.clear)
-                        .overlay(Capsule().stroke(DesignTokens.primaryColor.opacity(0.2), lineWidth: 2))
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 20)
+                actionButtons
+                    .padding(.horizontal, 24)
+                    .padding(.top, 20)
+
+                feedbackLabel
 
                 Button("Not now", action: onDismiss)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(Color(red: 0.55, green: 0.58, blue: 0.62))
-                    .padding(.top, 20)
+                    .padding(.top, 12)
                     .padding(.bottom, 32)
             }
             .frame(maxWidth: .infinity)
-            .background(Color(hex: "F8F5F5"))
+            .background(systemScheme == .dark ? Color(hex: "141417") : Color(hex: "F8F5F5"))
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .padding(.top, 80)
         }
+        .task { await renderIfNeeded() }
     }
 
-    private var storyPreviewCard: some View {
-        VStack(spacing: 16) {
-            ScoorLogo(size: 34, variant: .red)
-                .padding(.bottom, 8)
+    // MARK: - Buttons
 
-            VStack(spacing: 4) {
-                Text("MONTHLY REPORT")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(DesignTokens.primaryColor.opacity(0.6))
-                    .tracking(1.2)
-                Text(viewModel.shareMonthLine)
-                    .font(.system(size: 36, weight: .heavy))
-                    .foregroundStyle(DesignTokens.primaryColor)
-                    .multilineTextAlignment(.center)
-                    .minimumScaleFactor(0.7)
-            }
-
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 7), spacing: 6) {
-                ForEach(0..<14, id: \.self) { i in
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(DesignTokens.primaryColor.opacity([0.8, 0.4, 0.9, 0.2, 0.1, 0.6, 0.7, 0.3, 1, 0.5, 0.9, 0.1, 0.6, 0.4][i]))
-                        .aspectRatio(1, contentMode: .fit)
+    @ViewBuilder
+    private var actionButtons: some View {
+        VStack(spacing: 12) {
+            // 시스템 공유 — 렌더된 이미지를 ShareLink로 전달(인스타 피드/메시지/저장 등 모두 커버).
+            if let storyImage {
+                ShareLink(
+                    item: Image(uiImage: storyImage),
+                    preview: SharePreview("My Scoor month", image: Image(uiImage: storyImage))
+                ) {
+                    primaryButtonLabel(title: "Share", icon: "square.and.arrow.up", filled: true)
                 }
-            }
-            .padding(12)
-            .background(DesignTokens.primaryColor.opacity(0.06))
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-            Text("Monthly score intensity")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(Color(red: 0.55, green: 0.58, blue: 0.62))
-
-            VStack(spacing: 0) {
-                shareRow(label: "Average", value: viewModel.shareAveragePts)
-                shareTopDayRow(
-                    topScore: viewModel.shareTopScore.map { "\($0)" } ?? "—",
-                    dateLabel: viewModel.shareTopDateLabel
-                )
-                shareRow(label: "Streak", value: "\(viewModel.shareStreakDays) Days")
+            } else {
+                primaryButtonLabel(title: "Preparing…", icon: "hourglass", filled: true)
+                    .opacity(0.6)
             }
 
-            Text("Generated by Scoor for iOS")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(Color(red: 0.55, green: 0.58, blue: 0.62))
-        }
-        .padding(24)
-        .frame(maxWidth: 360)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(DesignTokens.primaryColor.opacity(0.06), lineWidth: 1))
-        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-    }
+            Button {
+                Task { await shareToInstagram() }
+            } label: {
+                primaryButtonLabel(title: "Instagram Story", icon: "camera.fill", filled: false)
+            }
+            .disabled(storyImage == nil || isBusy)
 
-    private func shareRow(label: String, value: String) -> some View {
-        HStack {
-            Text(label)
-                .font(.system(size: 14, weight: .regular))
-                .foregroundStyle(Color(red: 0.55, green: 0.58, blue: 0.62))
-            Spacer()
-            Text(value)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(Color.primary)
+            Button {
+                Task { await saveToGallery() }
+            } label: {
+                primaryButtonLabel(title: "Save to Gallery", icon: "arrow.down.circle", filled: false)
+            }
+            .disabled(storyImage == nil || isBusy)
         }
-        .padding(.vertical, 12)
-        .overlay(alignment: .bottom) {
-            Rectangle().fill(DesignTokens.primaryColor.opacity(0.1)).frame(height: 1)
+        .overlay(alignment: .center) {
+            if isBusy { ProgressView().tint(DesignTokens.primaryColor) }
         }
     }
 
-    private func shareTopDayRow(topScore: String, dateLabel: String) -> some View {
-        HStack(alignment: .center) {
-            Text("Top Day")
-                .font(.system(size: 14, weight: .regular))
-                .foregroundStyle(Color(red: 0.55, green: 0.58, blue: 0.62))
-            Spacer()
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(topScore)
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(Color.primary)
-                if !dateLabel.isEmpty {
-                    Text(dateLabel)
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(DesignTokens.primaryColor)
-                }
-            }
+    private func primaryButtonLabel(title: String, icon: String, filled: Bool) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+            Text(title)
         }
-        .padding(.vertical, 12)
-        .overlay(alignment: .bottom) {
-            Rectangle().fill(DesignTokens.primaryColor.opacity(0.1)).frame(height: 1)
+        .font(.system(size: 16, weight: .bold))
+        .foregroundStyle(filled ? Color.white : Color.primary)
+        .frame(maxWidth: .infinity)
+        .frame(height: 56)
+        .background(filled ? DesignTokens.primaryColor : Color.clear)
+        .clipShape(Capsule())
+        .overlay(filled ? nil : Capsule().stroke(DesignTokens.primaryColor.opacity(0.2), lineWidth: 2))
+        .shadow(color: filled ? DesignTokens.primaryColor.opacity(0.25) : .clear, radius: 10, x: 0, y: 4)
+    }
+
+    @ViewBuilder
+    private var feedbackLabel: some View {
+        if let feedback {
+            HStack(spacing: 6) {
+                Image(systemName: feedback.isSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                Text(feedback.text)
+            }
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(feedback.isSuccess ? Color.green : Color.orange)
+            .padding(.top, 14)
+            .transition(.opacity)
+        }
+    }
+
+    // MARK: - Actions
+
+    @MainActor
+    private func renderIfNeeded() async {
+        guard storyImage == nil else { return }
+        storyImage = RecapShareService.renderStory(recap, scheme: systemScheme)
+        if storyImage == nil {
+            withAnimation { feedback = ShareFeedback(text: "Could not prepare image", isSuccess: false) }
+        }
+    }
+
+    private func saveToGallery() async {
+        guard let storyImage else { return }
+        isBusy = true
+        defer { isBusy = false }
+        do {
+            try await RecapShareService.saveToPhotos(storyImage)
+            withAnimation { feedback = ShareFeedback(text: "Saved to your gallery", isSuccess: true) }
+        } catch {
+            let msg = (error as? RecapShareError) == .saveDenied
+                ? "Photo access denied"
+                : "Couldn't save image"
+            withAnimation { feedback = ShareFeedback(text: msg, isSuccess: false) }
+        }
+    }
+
+    @MainActor
+    private func shareToInstagram() async {
+        guard let storyImage else { return }
+        do {
+            try RecapShareService.shareToInstagramStory(storyImage)
+            withAnimation { feedback = ShareFeedback(text: "Opening Instagram…", isSuccess: true) }
+        } catch {
+            withAnimation { feedback = ShareFeedback(text: "Instagram isn't installed", isSuccess: false) }
         }
     }
 }
