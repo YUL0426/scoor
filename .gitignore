@@ -24,4 +24,19 @@ admin/node_modules/
 admin/.next/
 admin/out/
 admin/.env*.local
+admin/.env
 admin/next-env.d.ts
+
+# Node / landing site
+landing/node_modules/
+landing/.next/
+landing/out/
+landing/.env*.local
+landing/.env
+landing/next-env.d.ts
+
+# Local secrets (never commit real OAuth ids/keys)
+Config/Secrets.xcconfig
+
+# Local artifacts
+Simulator Screenshot*.png

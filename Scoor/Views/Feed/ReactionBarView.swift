@@ -2,11 +2,10 @@
 //  ReactionBarView.swift
 //  Scoor
 //
-//  Toss Community/Threads 스타일의 4-액션 바.
-//  - heart · comment · repost · empathy
+//  Toss Community/Threads 스타일의 2-액션 바.
+//  - heart · comment (BUG-005: Repost / Clap(empathy) 제거 — 좋아요·댓글만 유지)
 //  - 카운트는 SF Symbols 옆에 작은 모노 숫자
 //  - heart는 토글 시 채워지고 살짝 펄스, 햅틱
-//  - empathy는 길게 누르면 4종 글리프 picker
 //
 
 import SwiftUI
@@ -20,9 +19,9 @@ struct ReactionBarView: View {
     let entryId: UUID
     @Binding var reactions: PostReactions
     var onCommentTap: () -> Void = {}
-    var onRepostTap: () -> Void = {}
+    /// 좋아요 토글 직후 호출(영속용). 인자는 토글 후의 "좋아요됨" 상태.
+    var onLikeToggle: (Bool) -> Void = { _ in }
 
-    @State private var showEmpathyPicker = false
     @State private var heartBump = false
 
     var body: some View {
@@ -40,20 +39,8 @@ struct ReactionBarView: View {
                        count: reactions.comments,
                        action: onCommentTap)
 
-            actionItem(symbol: "arrow.2.squarepath",
-                       tint: ScoorPalette.inkSecondary,
-                       count: reactions.reposts,
-                       action: onRepostTap)
-
-            empathyItem
-        }
-        .overlay(alignment: .bottom) {
-            if showEmpathyPicker {
-                empathyPicker
-                    .offset(y: 44)
-                    .transition(.scale(scale: 0.85, anchor: .bottom)
-                        .combined(with: .opacity))
-            }
+            // 우측 여백 균형용 — 두 액션만 좌측 정렬되도록.
+            Spacer(minLength: 0)
         }
     }
 
@@ -83,67 +70,6 @@ struct ReactionBarView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Empathy
-
-    private var empathyItem: some View {
-        Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                showEmpathyPicker.toggle()
-            }
-        } label: {
-            HStack(spacing: 6) {
-                if let mine = reactions.empathyByMe {
-                    Text(mine.glyph).font(.system(size: 15))
-                } else {
-                    Image(systemName: "hands.sparkles")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(ScoorPalette.inkSecondary)
-                }
-                Text(CompactCount.format(reactions.empathyTotal))
-                    .font(ScoorType.actionCount)
-                    .foregroundStyle(
-                        reactions.empathyByMe != nil
-                        ? ScoorPalette.inkPrimary
-                        : ScoorPalette.inkTertiary
-                    )
-                    .monospacedDigit()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var empathyPicker: some View {
-        HStack(spacing: 10) {
-            ForEach(EmpathyReaction.allCases) { reaction in
-                Button {
-                    pickEmpathy(reaction)
-                } label: {
-                    Text(reaction.glyph)
-                        .font(.system(size: 22))
-                        .frame(width: 36, height: 36)
-                        .background(
-                            Circle().fill(
-                                reactions.empathyByMe == reaction
-                                ? Color.white.opacity(0.10)
-                                : Color.clear
-                            )
-                        )
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(
-            Capsule()
-                .fill(ScoorPalette.bgFloat)
-                .overlay(Capsule().stroke(ScoorPalette.hairline, lineWidth: 0.6))
-                .shadow(color: .black.opacity(0.4), radius: 14, x: 0, y: 6)
-        )
-    }
-
     // MARK: - 인터랙션
 
     private func toggleLike() {
@@ -158,22 +84,9 @@ struct ReactionBarView: View {
             reactions.likedByMe = true
             reactions.likes += 1
         }
+        onLikeToggle(reactions.likedByMe)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
             withAnimation(.easeOut(duration: 0.18)) { heartBump = false }
-        }
-    }
-
-    private func pickEmpathy(_ reaction: EmpathyReaction) {
-        haptic()
-        if reactions.empathyByMe == reaction {
-            reactions.empathyByMe = nil
-            reactions.empathyTotal = max(0, reactions.empathyTotal - 1)
-        } else {
-            if reactions.empathyByMe == nil { reactions.empathyTotal += 1 }
-            reactions.empathyByMe = reaction
-        }
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            showEmpathyPicker = false
         }
     }
 

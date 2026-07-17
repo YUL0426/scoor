@@ -15,6 +15,10 @@ final class ScoorPersistenceUITests: XCTestCase {
 
     override func setUp() {
         continueAfterFailure = true
+        // Start each test from a brand-new-install slate (no leftover scores /
+        // onboarding from prior runs on this simulator). Mid-test relaunches that
+        // verify persistence drop this arg so saved data survives the restart.
+        app.launchArguments = ["-uitests-reset"]
     }
 
     // MARK: - Helpers
@@ -135,6 +139,7 @@ final class ScoorPersistenceUITests: XCTestCase {
 
         // ===== Force close + reopen =====
         app.terminate()
+        app.launchArguments = [] // relaunch WITHOUT reset so persisted data survives
         app.launch()
         // resumes straight to Main
         XCTAssertTrue(app.buttons["Home"].waitForExistence(timeout: 12),
@@ -166,6 +171,7 @@ final class ScoorPersistenceUITests: XCTestCase {
 
         // Restart and verify the EDIT persisted
         app.terminate()
+        app.launchArguments = [] // relaunch WITHOUT reset so persisted data survives
         app.launch()
         XCTAssertTrue(app.buttons["Home"].waitForExistence(timeout: 12), "Relaunch failed (edit)")
         app.buttons["Home"].tap()

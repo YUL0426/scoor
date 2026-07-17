@@ -29,6 +29,13 @@ struct TodayHeroCard: View {
         Color(hex: MoodPalette.glyphTint(for: viewModel.todayScore))
     }
 
+    /// 월요일 시작으로 정렬된 현지화 요일 약자(주간 바 차트 헤더).
+    static var weekdayLetters: [String] {
+        let syms = Calendar.current.veryShortWeekdaySymbols   // [일,월,화,...] 로캘
+        let mondayFirst = [1, 2, 3, 4, 5, 6, 0]
+        return mondayFirst.map { syms[$0] }
+    }
+
     var body: some View {
         TabView(selection: $slide) {
             slideToday.tag(0)
@@ -57,11 +64,16 @@ struct TodayHeroCard: View {
             Spacer(minLength: 0)
 
             if let score = viewModel.todayScore {
-                Text("\(score)")
-                    .font(.system(size: 132, weight: .heavy))
-                    .italic()
-                    .foregroundStyle(glyphColor)
-                    .contentTransition(.numericText())
+                // 점수 100은 숫자 대신 Scoor 로고로(브랜드 규칙).
+                ScoreValueView(
+                    score: score,
+                    font: .system(size: 132, weight: .heavy),
+                    color: glyphColor,
+                    italic: true,
+                    logoHeight: 86,
+                    logoVariant: .red
+                )
+                .contentTransition(.numericText())
             } else {
                 ScoorLogo(size: 60, variant: .red)
             }
@@ -108,7 +120,9 @@ struct TodayHeroCard: View {
                     .font(.system(size: 11, weight: .bold))
                     .tracking(2)
                     .foregroundStyle(glyphColor.opacity(0.85))
-                Text(viewModel.weekAverage > 0 ? "Average \(viewModel.weekAverage)" : "Still finding your rhythm")
+                Text(viewModel.weekAverage > 0
+                     ? String(localized: "Average \(viewModel.weekAverage)")
+                     : String(localized: "Still finding your rhythm"))
                     .font(.system(size: 28, weight: .heavy))
                     .foregroundStyle(glyphColor)
             }
@@ -126,7 +140,7 @@ struct TodayHeroCard: View {
                                     .frame(width: 18, height: max(8, CGFloat(s) * 1.4))
                             }
                         }
-                        Text(["M", "T", "W", "T", "F", "S", "S"][idx])
+                        Text(Self.weekdayLetters[idx])
                             .font(.system(size: 10, weight: .heavy))
                             .foregroundStyle(glyphColor.opacity(0.7))
                     }
@@ -155,7 +169,7 @@ struct TodayHeroCard: View {
                 .foregroundStyle(glyphColor.opacity(0.95))
                 .padding(.bottom, 14)
 
-            Text(viewModel.emotionalFlow.rawValue)
+            Text(viewModel.emotionalFlow.displayText)
                 .font(.system(size: 24, weight: .bold))
                 .foregroundStyle(glyphColor)
                 .multilineTextAlignment(.leading)
@@ -401,7 +415,7 @@ struct RecentEmotionList: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("recent-day-card")
-                        .accessibilityLabel("Recent day, score \(row.score). Tap to edit.")
+                        .accessibilityLabel("Recent day, score \(row.score)\(row.mood.map { ", mood \($0.label)" } ?? ""). Tap to edit.")
                     }
                 }
                 .padding(.horizontal, 20)
@@ -458,9 +472,20 @@ private struct RecentRowCard: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(DesignTokens.textPrimary)
                     .lineLimit(2)
-                Text(row.relativeLabel)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(DesignTokens.textSecondary)
+                HStack(spacing: 6) {
+                    if let mood = row.mood {
+                        Text("\(mood.emoji) \(mood.label)")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(mood.tint)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(mood.tint.opacity(0.14))
+                            .clipShape(Capsule())
+                    }
+                    Text(row.relativeLabel)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(DesignTokens.textSecondary)
+                }
             }
             Spacer(minLength: 0)
         }
@@ -486,12 +511,12 @@ struct StreakLifeFlowStrip: View {
         HStack(spacing: 10) {
             chip(icon: "flame.fill", value: streakDays > 0 ? "\(streakDays)d" : "—", label: "STREAK")
             chip(icon: "waveform.path.ecg", value: monthlyAverage > 0 ? "\(monthlyAverage)" : "—", label: "MONTH AVG")
-            chip(icon: "sparkle", value: happiestWeekday.isEmpty ? "—" : String(happiestWeekday.prefix(3)).uppercased(), label: "HAPPIEST")
+            chip(icon: "sparkle", value: happiestWeekday.isEmpty ? "—" : String(happiestWeekday.prefix(3)).uppercased(with: .current), label: "HAPPIEST")
         }
         .padding(.horizontal, 20)
     }
 
-    private func chip(icon: String, value: String, label: String) -> some View {
+    private func chip(icon: String, value: String, label: LocalizedStringKey) -> some View {
         VStack(spacing: 6) {
             HStack(spacing: 6) {
                 Image(systemName: icon)

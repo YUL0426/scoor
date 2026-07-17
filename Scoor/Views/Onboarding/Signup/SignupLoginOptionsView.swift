@@ -128,6 +128,7 @@ struct SignupLoginOptionsView: View {
                 .padding(.bottom, 32)
             }
         }
+        .environment(\.colorScheme, .light) // Light canvas — keep text dark-on-light (BUG-003)
         .onTapGesture { focusedField = nil }
     }
 

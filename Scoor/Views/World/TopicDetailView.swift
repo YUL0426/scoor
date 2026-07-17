@@ -20,6 +20,8 @@ struct TopicDetailView: View {
 
     /// 토픽 자체는 상위에서 받아오고, 화면 내에서 globalScore 만 사용자 점수 반영해 갱신.
     @State var topic: WorldTopic
+    /// 월드 점수 영속 서비스(작성/재작성 결과 저장).
+    var socialService: SocialServiceProtocol = MockSocialService()
     @State private var selectedRegion: WorldRegion = .global
     @State private var showScoreSheet = false
     @State private var scoreTarget: ScoorTarget = .match
@@ -59,19 +61,39 @@ struct TopicDetailView: View {
             if let s = feedbackScore {
                 feedbackOverlay(score: s)
                     .transition(.opacity)
+                    .zIndex(10)
             }
         }
         .environment(\.colorScheme, .dark)
+        .task { await loadMySubmissions() }
         .sheet(isPresented: $showScoreSheet) {
             TopicScoreSheet(
                 topic: topic,
                 target: $scoreTarget,
                 existing: mySubmissions[scoreTarget]
-            ) { submitted in
-                handleSubmission(score: submitted)
+            ) { submitted, comment in
+                handleSubmission(score: submitted, comment: comment)
             }
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
+        }
+    }
+
+    // MARK: - Load persisted submissions
+
+    /// 이전에 이 토픽에 매긴 내 점수(영속)를 복원한다.
+    @MainActor
+    private func loadMySubmissions() async {
+        var targets: [ScoorTarget] = [.match]
+        if let sports = detail.sports {
+            targets.append(.team(sports.home.abbr))
+            targets.append(.team(sports.away.abbr))
+            if sports.mvp != nil { targets.append(.mvp) }
+        }
+        for t in targets {
+            if let score = socialService.myWorldScore(topicTitle: topic.title, targetId: t.id) {
+                mySubmissions[t] = score
+            }
         }
     }
 
@@ -216,6 +238,22 @@ struct TopicDetailView: View {
                     .font(.system(size: 10.5, weight: .bold))
                     .tracking(1.4)
                     .foregroundStyle(ScoorPalette.inkSecondary)
+                // Surface the user's own score right at the headline gauge so it's
+                // immediately visible after submitting / editing (BUG-007).
+                if let mine = mySubmissions[.match] {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 10, weight: .bold))
+                        Text("내 Scoor \(mine)")
+                            .font(.system(size: 11, weight: .bold))
+                            .monospacedDigit()
+                    }
+                    .foregroundStyle(ScoorPalette.accent)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(ScoorPalette.accent.opacity(0.16)))
+                    .padding(.leading, 8)
+                }
                 Spacer()
                 deltaPill
             }
@@ -703,6 +741,11 @@ struct TopicDetailView: View {
             }
             .padding(.horizontal, 36)
         }
+        // Fill the screen and own every touch so the overlay never collides with —
+        // or lets taps fall through to — the sticky CTA / top bar underneath (BUG-006).
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea()
+        .contentShape(Rectangle())
         .onTapGesture { dismissFeedback() }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
@@ -727,9 +770,14 @@ struct TopicDetailView: View {
 
     // MARK: - Submission handling
 
-    private func handleSubmission(score: Int) {
+    private func handleSubmission(score: Int, comment: String?) {
         let target = scoreTarget
         mySubmissions[target] = score
+
+        // 영속: 월드 토픽에 매긴 내 점수 저장(작성 후 토픽/상세 집계 반영의 기반).
+        let title = topic.title
+        let targetId = target.id
+        Task { try? await socialService.submitWorldScore(topicTitle: title, targetId: targetId, score: score, comment: comment) }
 
         if target == .match {
             // Rough blend: globalScore = (오래된 평균 * 99 + 내 점수 * 1) / 100
@@ -843,5 +891,5 @@ private struct PressableScale: ButtonStyle {
 }
 
 #Preview {
-    TopicDetailView(topic: MockWorld.topics[0])
+    TopicDetailView(topic: MockWorld.topics[0], socialService: MockSocialService())
 }

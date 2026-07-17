@@ -20,6 +20,8 @@ final class ScoorSprint1UITests: XCTestCase {
 
     override func setUp() {
         continueAfterFailure = true
+        // Fresh-install slate per test; persistence relaunches drop this arg.
+        app.launchArguments = ["-uitests-reset"]
     }
 
     // MARK: - Helpers
@@ -236,6 +238,7 @@ final class ScoorSprint1UITests: XCTestCase {
 
         // Restart and confirm the bio persisted.
         app.terminate()
+        app.launchArguments = [] // relaunch WITHOUT reset so the saved bio survives
         app.launch()
         XCTAssertTrue(app.buttons["Home"].waitForExistence(timeout: 12), "Relaunch failed (bio)")
         openMyPage()

@@ -62,6 +62,9 @@ struct OnboardingView: View {
                 .padding(.bottom, 28)
             }
         }
+        // Light onboarding canvas: pin scheme so adaptive text renders dark-on-light
+        // regardless of the device appearance (BUG-003).
+        .environment(\.colorScheme, .light)
     }
 
     private func advance() {

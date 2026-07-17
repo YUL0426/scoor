@@ -16,7 +16,8 @@ struct HomeEditTarget: Identifiable {
 struct HomeView: View {
     @EnvironmentObject private var appServices: AppServices
     @StateObject private var viewModel: HomeViewModel
-    @State private var showProfilePanel = false
+    @State private var showMyScoors = false
+    @State private var myScoors: [MyScoorEntry] = []
     @State private var editTarget: HomeEditTarget?
 
     var onRequestScoreSheet: () -> Void
@@ -69,19 +70,38 @@ struct HomeView: View {
                 .padding(.top, 4)
             }
         }
-        .task { await viewModel.load() }
+        .task {
+            await viewModel.load()
+            myScoors = await appServices.socialService.myWorldScores()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .scoorScoreStoreDidChange)) { _ in
             Task { await viewModel.load() }
         }
-        .sheet(isPresented: $showProfilePanel) {
-            HomeProfilePanel(viewModel: viewModel)
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.visible)
+        .onReceive(NotificationCenter.default.publisher(for: .scoorSocialStoreDidChange)) { _ in
+            Task { myScoors = await appServices.socialService.myWorldScores() }
+        }
+        // Home 우상단 프로필 아이콘 → "My Scoors"(내가 점수 매긴 토픽 이력). My Page와 별개.
+        .sheet(isPresented: $showMyScoors) {
+            NavigationStack {
+                MyScoorsView(entries: myScoors)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button { showMyScoors = false } label: {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .accessibilityLabel("닫기")
+                        }
+                    }
+            }
+            .presentationDragIndicator(.visible)
         }
         .sheet(item: $editTarget) { target in
             ScoreHomeView(
                 scoreService: appServices.scoreService,
                 userService: appServices.userService,
+                moodAnalyzer: appServices.moodAnalyzer,
+                notificationService: appServices.notificationService,
                 targetDate: target.date
             )
             .presentationDetents([.large])
@@ -97,7 +117,10 @@ struct HomeView: View {
 
             Spacer()
 
-            Button { showProfilePanel = true } label: {
+            Button {
+                showMyScoors = true
+                Task { myScoors = await appServices.socialService.myWorldScores() }
+            } label: {
                 ZStack {
                     Circle()
                         .fill(DesignTokens.primaryColor.opacity(0.15))
@@ -108,6 +131,8 @@ struct HomeView: View {
                 }
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("My Scoors")
+            .accessibilityIdentifier("home-profile-button")
         }
     }
 
@@ -131,96 +156,6 @@ struct HomeView: View {
                 .offset(x: -160, y: 280)
                 .allowsHitTesting(false)
         }
-    }
-}
-
-// MARK: - Profile Quick Panel
-
-private struct HomeProfilePanel: View {
-    @ObservedObject var viewModel: HomeViewModel
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        VStack(spacing: 0) {
-            // Handle
-            Capsule()
-                .fill(ScoorPalette.hairline)
-                .frame(width: 40, height: 4)
-                .padding(.top, 12)
-                .padding(.bottom, 24)
-
-            VStack(spacing: 20) {
-                // Avatar + name row
-                HStack(spacing: 14) {
-                    ZStack {
-                        Circle()
-                            .fill(DesignTokens.primaryColor.opacity(0.15))
-                            .frame(width: 56, height: 56)
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundStyle(DesignTokens.primaryColor)
-                    }
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("나의 감정 기록")
-                            .font(.system(size: 17, weight: .bold))
-                            .foregroundStyle(ScoorPalette.inkPrimary)
-                        Text("Scoor 감정 트래커")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(ScoorPalette.inkSecondary)
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal, 24)
-
-                // Stats grid
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: 10) {
-                    panelStat(
-                        label: "오늘",
-                        value: viewModel.todayScore.map { "\($0)" } ?? "—",
-                        icon: "sun.max.fill"
-                    )
-                    panelStat(
-                        label: "이번 달 평균",
-                        value: viewModel.monthlyAverage > 0 ? "\(viewModel.monthlyAverage)" : "—",
-                        icon: "calendar"
-                    )
-                    panelStat(
-                        label: "연속",
-                        value: viewModel.streakDays > 0 ? "\(viewModel.streakDays)일" : "—",
-                        icon: "flame.fill"
-                    )
-                }
-                .padding(.horizontal, 24)
-            }
-
-            Spacer()
-        }
-        .background(ScoorPalette.bgBase)
-        .environment(\.colorScheme, .dark)
-    }
-
-    private func panelStat(label: String, value: String, icon: String) -> some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(DesignTokens.primaryColor)
-            Text(value)
-                .font(.system(size: 24, weight: .heavy, design: .rounded))
-                .italic()
-                .foregroundStyle(ScoorPalette.inkPrimary)
-            Text(label)
-                .font(.system(size: 10, weight: .bold))
-                .tracking(0.5)
-                .foregroundStyle(ScoorPalette.inkTertiary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(ScoorPalette.bgRaised)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
 

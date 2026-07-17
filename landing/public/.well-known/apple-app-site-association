@@ -1,0 +1,21 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID1234.company.must.scoor",
+        "paths": [
+          "/score/*",
+          "/user/*",
+          "/topic/*",
+          "/profile",
+          "/open",
+          "/open/*"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAMID1234.company.must.scoor"]
+  }
+}

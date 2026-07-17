@@ -21,7 +21,7 @@ struct WorldTrendingRow: View {
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(ScoorPalette.inkPrimary)
                 Spacer()
-                Text("더보기")
+                Text("더 보기")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(ScoorPalette.inkTertiary)
             }
@@ -71,10 +71,12 @@ private struct TopicMiniCard: View {
 
             // Score + delta
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text("\(topic.globalScore)")
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
-                    .foregroundStyle(tone.primary)
-                    .monospacedDigit()
+                ScoreValueView(
+                    score: topic.globalScore,
+                    font: .system(size: 32, weight: .heavy, design: .rounded),
+                    color: tone.primary,
+                    logoHeight: 24
+                )
                 deltaBadge
                 Spacer()
             }

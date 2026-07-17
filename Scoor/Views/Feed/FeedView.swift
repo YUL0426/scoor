@@ -3,30 +3,29 @@
 //  Scoor
 //
 //  Toss Community 톤의 텍스트 우선 피드.
-//  - 시네마틱 hero/도시 쇼케이스 제거
-//  - 상단 sticky: 작은 헤더 + 정렬 탭 + 필터 칩
-//  - 본문: hairline divider로 구분된 flat 카드 스트림
-//  - pull-to-refresh, 무한 스크롤(목 데이터 반복)으로 “살아 있는 피드” 감
+//  - 데이터: SocialService 기반(FeedViewModel) — 좋아요/댓글 영속, 페이지네이션, 새로고침
+//  - 상단 sticky: 작은 헤더 + 탐색 진입 + 정렬 탭 + 필터 칩
+//  - 본문: hairline divider로 구분된 flat 카드 스트림, 무한 스크롤
+//  - 로딩/빈/에러 상태 처리
 //
 
 import SwiftUI
 
 struct FeedView: View {
 
-    // MARK: - State
+    @EnvironmentObject private var appServices: AppServices
+    @StateObject private var vm: FeedViewModel
 
-    @State private var sort: FeedSort = .live
-    @State private var selectedMood: Mood? = nil
-    @State private var entries: [FeedEntry] = MockFeed.entries
-    @State private var isRefreshing = false
+    private let socialService: SocialServiceProtocol
 
-    // MARK: - Derived
+    @State private var commentTarget: FeedEntry? = nil
+    @State private var showDiscover = false
+    @State private var myName: String = "나"
+    private let mySeed = 1
 
-    private var filtered: [FeedEntry] {
-        guard let mood = selectedMood else { return entries }
-        return entries.filter {
-            $0.primaryMood == mood || $0.extraTags.contains(mood)
-        }
+    init(socialService: SocialServiceProtocol) {
+        self.socialService = socialService
+        _vm = StateObject(wrappedValue: FeedViewModel(service: socialService))
     }
 
     // MARK: - Body
@@ -37,42 +36,55 @@ struct FeedView: View {
 
             VStack(spacing: 0) {
                 topHeader
-
                 LivePulseView(pulses: MockFeed.pulses)
                     .padding(.top, 6)
-
                 sortTabs
                     .padding(.top, 10)
-
                 Divider().background(ScoorPalette.hairlineSoft)
-
-                MoodFilterView(selected: $selectedMood)
+                MoodFilterView(selected: $vm.selectedMood)
                     .padding(.vertical, 10)
-
                 Divider().background(ScoorPalette.hairline)
 
                 feedStream
             }
         }
         .environment(\.colorScheme, .dark)
-        .animation(.easeInOut(duration: 0.18), value: selectedMood)
-        .animation(.easeInOut(duration: 0.18), value: sort)
+        .animation(.easeInOut(duration: 0.18), value: vm.selectedMood)
+        .animation(.easeInOut(duration: 0.18), value: vm.sort)
+        .task {
+            await vm.loadIfNeeded()
+            if let user = await appServices.userService.getCurrentUser() {
+                myName = user.username.isEmpty ? "나" : user.username
+            }
+        }
+        .sheet(item: $commentTarget) { entry in
+            CommentsSheet(
+                postId: entry.id,
+                headerPreview: entry.message,
+                service: socialService,
+                currentUserName: myName,
+                currentUserSeed: mySeed,
+                onChange: { Task { await vm.reloadOverlays() } }
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showDiscover) {
+            DiscoverView(socialService: socialService)
+        }
     }
 
-    // MARK: - Top header (얇은 앱바)
+    // MARK: - Top header
 
     private var topHeader: some View {
         HStack(spacing: 8) {
             Text("Feed")
                 .font(.system(size: 22, weight: .heavy))
                 .foregroundStyle(ScoorPalette.inkPrimary)
-
-            statusDot
-                .padding(.leading, 2)
+            statusDot.padding(.leading, 2)
 
             Spacer()
 
-            // 오늘 기록 수 + 평균 — 작은 stat
             HStack(spacing: 6) {
                 Text("오늘")
                     .font(.system(size: 11, weight: .medium))
@@ -81,14 +93,24 @@ struct FeedView: View {
                     .font(.system(size: 12.5, weight: .bold))
                     .foregroundStyle(ScoorPalette.inkPrimary)
                     .monospacedDigit()
-                Text("·")
-                    .font(.system(size: 11))
-                    .foregroundStyle(ScoorPalette.inkTertiary)
+                Text("·").font(.system(size: 11)).foregroundStyle(ScoorPalette.inkTertiary)
                 Text("평균 \(MockFeed.todayAverage)")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(ScoorPalette.accent)
                     .monospacedDigit()
             }
+
+            Button { showDiscover = true } label: {
+                Image(systemName: "person.2.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(ScoorPalette.inkSecondary)
+                    .frame(width: 32, height: 32)
+                    .background(ScoorPalette.bgRaised)
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("사용자 탐색")
+            .accessibilityIdentifier("feed.discoverButton")
         }
         .padding(.horizontal, 18)
         .padding(.top, 10)
@@ -102,32 +124,24 @@ struct FeedView: View {
             .shadow(color: ScoorPalette.accent.opacity(0.6), radius: 4)
     }
 
-    // MARK: - Sort tabs (실시간 / 인기 / 비슷한 기분)
+    // MARK: - Sort tabs
 
     private var sortTabs: some View {
         HStack(spacing: 0) {
-            ForEach(FeedSort.allCases) { mode in
-                sortTab(mode)
-            }
+            ForEach(FeedSort.allCases) { mode in sortTab(mode) }
             Spacer()
         }
         .padding(.horizontal, 18)
     }
 
     private func sortTab(_ mode: FeedSort) -> some View {
-        Button {
-            sort = mode
-        } label: {
+        Button { vm.sort = mode } label: {
             VStack(spacing: 6) {
                 Text(mode.rawValue)
-                    .font(.system(size: 14,
-                                  weight: sort == mode ? .bold : .medium))
-                    .foregroundStyle(
-                        sort == mode ? ScoorPalette.inkPrimary
-                                     : ScoorPalette.inkTertiary
-                    )
+                    .font(.system(size: 14, weight: vm.sort == mode ? .bold : .medium))
+                    .foregroundStyle(vm.sort == mode ? ScoorPalette.inkPrimary : ScoorPalette.inkTertiary)
                 Rectangle()
-                    .fill(sort == mode ? ScoorPalette.accent : Color.clear)
+                    .fill(vm.sort == mode ? ScoorPalette.accent : Color.clear)
                     .frame(height: 2)
             }
             .padding(.trailing, 18)
@@ -136,33 +150,66 @@ struct FeedView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Feed stream (flat + divider)
+    // MARK: - Feed stream
 
+    @ViewBuilder
     private var feedStream: some View {
+        switch vm.phase {
+        case .idle, .loading:
+            loadingState
+        case .error(let msg):
+            errorState(msg)
+        case .empty:
+            ScrollView { emptyState.padding(.top, 80) }.refreshable { await vm.refresh() }
+        case .loaded:
+            loadedStream
+        }
+    }
+
+    private var loadedStream: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
-                ForEach(filtered.indices, id: \.self) { i in
-                    FeedCardView(entry: binding(for: filtered[i].id))
-                    Divider().background(ScoorPalette.hairline)
+                ForEach(vm.visible) { entry in
+                    if let binding = vm.binding(for: entry.id) {
+                        FeedCardView(
+                            entry: binding,
+                            onLikeToggle: { liked in vm.persistLike(entryId: entry.id, nowLiked: liked) },
+                            onCommentTap: { commentTarget = entry }
+                        )
+                        .onAppear { Task { await vm.loadMoreIfNeeded(currentItem: entry) } }
+                        Divider().background(ScoorPalette.hairline)
+                    }
                 }
 
-                if filtered.isEmpty {
-                    emptyState
-                }
-
+                if vm.visible.isEmpty { emptyState.padding(.top, 60) }
+                if vm.isLoadingMore { loadMoreSpinner }
                 bottomSpacer
             }
         }
-        .refreshable { await refresh() }
+        .refreshable { await vm.refresh() }
     }
 
-    /// 필터된 배열은 복사본이라 바인딩이 안되므로 id 기반으로 원본 인덱스를 찾는다.
-    private func binding(for id: UUID) -> Binding<FeedEntry> {
-        guard let idx = entries.firstIndex(where: { $0.id == id }) else {
-            // 안전망 — 실제로는 도달하지 않음.
-            return .constant(entries[0])
+    private var loadingState: some View {
+        VStack { Spacer(); ProgressView().tint(ScoorPalette.inkSecondary); Spacer() }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func errorState(_ msg: String) -> some View {
+        VStack(spacing: 10) {
+            Spacer()
+            Image(systemName: "wifi.exclamationmark").font(.system(size: 32)).foregroundStyle(ScoorPalette.inkTertiary)
+            Text("피드를 불러오지 못했어요").font(.system(size: 15, weight: .semibold)).foregroundStyle(ScoorPalette.inkSecondary)
+            Text(msg).font(.system(size: 12)).foregroundStyle(ScoorPalette.inkTertiary)
+            Button("다시 시도") { Task { await vm.load() } }
+                .font(.system(size: 13, weight: .bold)).foregroundStyle(ScoorPalette.accent)
+                .padding(.top, 4)
+            Spacer()
         }
-        return $entries[idx]
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var loadMoreSpinner: some View {
+        ProgressView().tint(ScoorPalette.inkTertiary).padding(.vertical, 18)
     }
 
     private var emptyState: some View {
@@ -178,25 +225,10 @@ struct FeedView: View {
         .padding(.vertical, 60)
     }
 
-    /// ScoorTabBar(64) + FAB lift(18) + 안전 여유.
-    private var bottomSpacer: some View {
-        Color.clear.frame(height: 120)
-    }
-
-    // MARK: - Refresh
-
-    @MainActor
-    private func refresh() async {
-        isRefreshing = true
-        // 데모 — 항목 순서를 살짝 섞고, 첫 항목 시간 갱신.
-        try? await Task.sleep(nanoseconds: 600_000_000)
-        if !entries.isEmpty {
-            entries.swapAt(0, min(1, entries.count - 1))
-        }
-        isRefreshing = false
-    }
+    private var bottomSpacer: some View { Color.clear.frame(height: 120) }
 }
 
 #Preview {
-    FeedView()
+    FeedView(socialService: MockSocialService())
+        .environmentObject(AppServices())
 }

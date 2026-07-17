@@ -38,7 +38,9 @@ struct ContentView: View {
         .sheet(isPresented: $showScoreSheet) {
             ScoreHomeView(
                 scoreService: appServices.scoreService,
-                userService: appServices.userService
+                userService: appServices.userService,
+                moodAnalyzer: appServices.moodAnalyzer,
+                notificationService: appServices.notificationService
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
@@ -55,9 +57,9 @@ struct ContentView: View {
                 onRequestScoreSheet: { showScoreSheet = true }
             )
         case .feed:
-            FeedView()
+            FeedView(socialService: appServices.socialService)
         case .world:
-            WorldView()
+            WorldView(socialService: appServices.socialService)
         case .mypage:
             NavigationStack {
                 MyPageView(

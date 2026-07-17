@@ -26,7 +26,20 @@ enum DesignTokens {
             endPoint: .bottom
         )
     }
-    static var textPrimary: Color { Color(hex: "F5F5F8") }
+    /// Primary text ink. Adaptive (BUG-003): near-white on dark surfaces, dark ink
+    /// on light surfaces, so it stays legible whether a screen renders in the
+    /// app's dark theme or on a light/onboarding canvas.
+    static var textPrimary: Color {
+        #if canImport(UIKit)
+        return Color(UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0xF5 / 255, green: 0xF5 / 255, blue: 0xF8 / 255, alpha: 1)
+                : UIColor(red: 0x1A / 255, green: 0x1A / 255, blue: 0x1E / 255, alpha: 1)
+        })
+        #else
+        return Color(hex: "F5F5F8")
+        #endif
+    }
     static var textSecondary: Color { Color(hex: "7B7B85") }
     static var surfaceLight: Color { Color(hex: "1E1E22") }
     static var surfaceElevated: Color { Color(hex: "252529") }
