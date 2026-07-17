@@ -40,14 +40,15 @@ final class AppServices: ObservableObject {
         self.moodAnalyzer = moodAnalyzer
     }
 
-    /// Production init — backs scores with the app's SwiftData container so they
-    /// survive app restarts. User/guestbook stay mock for now (out of Sprint 0 scope).
+    /// Production init — backs scores, guestbook, and social interactions with the
+    /// app's SwiftData container so they survive app restarts. User profile stays
+    /// local-first (UserDefaults/Keychain) until a backend profile API exists.
     /// Notifications use the real `UNUserNotificationCenter`-backed service.
-    /// Social interactions (likes/comments/world scores/follows) persist via SwiftData.
     @MainActor
     convenience init(modelContext: ModelContext) {
         self.init(
             scoreService: SwiftDataScoreService(modelContext: modelContext),
+            guestbookService: SwiftDataGuestbookService(modelContext: modelContext),
             notificationService: LocalNotificationService(),
             socialService: SwiftDataSocialService(modelContext: modelContext)
         )

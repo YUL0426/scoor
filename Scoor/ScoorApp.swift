@@ -66,6 +66,7 @@ enum UITestSupport {
         try? context.delete(model: CommentRecord.self)
         try? context.delete(model: WorldScoreRecord.self)
         try? context.delete(model: FollowRecord.self)
+        try? context.delete(model: GuestbookRecord.self)
         try? context.save()
     }
 }
@@ -93,7 +94,8 @@ struct ScoorApp: App {
                 LikeRecord.self,
                 CommentRecord.self,
                 WorldScoreRecord.self,
-                FollowRecord.self
+                FollowRecord.self,
+                GuestbookRecord.self
             )
         } catch {
             fatalError("Failed to create the Scoor ModelContainer: \(error)")

@@ -32,4 +32,8 @@ final class MockGuestbookService: GuestbookServiceProtocol {
     func deleteMessage(id: UUID) async throws {
         storage.removeAll { $0.id == id }
     }
+
+    func deleteAllMessages() async throws {
+        storage.removeAll()
+    }
 }
