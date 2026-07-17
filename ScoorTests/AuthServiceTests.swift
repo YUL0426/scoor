@@ -58,6 +58,32 @@ final class AuthServiceTests: XCTestCase {
         XCTAssertEqual(bytes[8] & 0xC0, 0x80, "variant bits must be RFC 4122")
     }
 
+    // MARK: - Email credential store (P0-2 / P0-7)
+
+    func testEmailRegisterThenVerifyRoundTrip() throws {
+        let email = "unit-test-\(UUID().uuidString)@scoor.app"
+        defer { EmailCredentialStore.removeAccount(email: email) }
+
+        XCTAssertEqual(
+            try EmailCredentialStore.registerOrVerify(email: email, password: "secret123"),
+            .createdNewAccount
+        )
+        XCTAssertEqual(
+            try EmailCredentialStore.registerOrVerify(email: email, password: "secret123"),
+            .signedInExisting
+        )
+        XCTAssertThrowsError(
+            try EmailCredentialStore.registerOrVerify(email: email, password: "wrong-pass"),
+            "기존 계정에 다른 비밀번호는 거부되어야 함"
+        )
+    }
+
+    func testEmailIdentityIsDeterministicAndCaseInsensitive() {
+        let a = AuthenticatedIdentity(provider: .email, providerUserID: EmailCredentialStore.normalize("Me@Scoor.App"))
+        let b = AuthenticatedIdentity(provider: .email, providerUserID: EmailCredentialStore.normalize(" me@scoor.app "))
+        XCTAssertEqual(a.stableUserID, b.stableUserID, "같은 이메일은 로그아웃 후에도 같은 로컬 id로 복원되어야 함")
+    }
+
     // MARK: - JWT claim decoding (Google id_token)
 
     func testJWTDecodePayloadExtractsClaims() {

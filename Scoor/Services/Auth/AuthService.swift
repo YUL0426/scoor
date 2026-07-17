@@ -22,6 +22,7 @@ protocol AuthServiceProtocol: AnyObject {
     func signIn(with provider: AuthProvider) async throws -> AuthenticatedIdentity
     func signInWithApple() async throws -> AuthenticatedIdentity
     func signInWithGoogle() async throws -> AuthenticatedIdentity
+    func signInWithEmail(email: String, password: String) async throws -> AuthenticatedIdentity
     func restoreSession()
     func signOut()
 }
@@ -66,6 +67,25 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
         let identity = UITestSupport.wantsCleanState
             ? Self.mockIdentity(provider: .google)
             : try await google.signIn()
+        persist(identity)
+        return identity
+    }
+
+    /// Email flow: creates the device-local account on first use (salted PBKDF2
+    /// hash in the Keychain), verifies the password on subsequent sign-ins, and
+    /// derives the user id deterministically from the email — so signing out and
+    /// back in restores the same identity and all records keyed by it (P0-7).
+    func signInWithEmail(email: String, password: String) async throws -> AuthenticatedIdentity {
+        let normalized = EmailCredentialStore.normalize(email)
+        // PBKDF2 is deliberately slow — keep it off the main actor.
+        _ = try await Task.detached(priority: .userInitiated) {
+            try EmailCredentialStore.registerOrVerify(email: normalized, password: password)
+        }.value
+        let identity = AuthenticatedIdentity(
+            provider: .email,
+            providerUserID: normalized,
+            email: normalized
+        )
         persist(identity)
         return identity
     }

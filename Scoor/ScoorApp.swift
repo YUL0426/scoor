@@ -200,10 +200,23 @@ struct RootFlowView: View {
 
         case .signupLogin:
             SignupLoginOptionsView { provider, email in
-                // Email keeps its dedicated email/password flow; Apple/Google run
-                // through the real provider sign-in.
+                // Email keeps its dedicated email/password flow (the view already ran
+                // AuthService.signInWithEmail); Apple/Google run through the real
+                // provider sign-in.
                 if provider == .email {
-                    coordinator.completeAuthentication(provider: provider, email: email)
+                    Task {
+                        // Adopt the deterministic email identity so records keyed by
+                        // userId survive sign-out/sign-in cycles (P0-7).
+                        if let session = authService.currentSession, session.providerKind == .email {
+                            await services.userService.applyAuthenticatedIdentity(
+                                provider: session.provider,
+                                userID: session.userID,
+                                email: session.email,
+                                displayName: session.fullName
+                            )
+                        }
+                        coordinator.completeAuthentication(provider: provider, email: email)
+                    }
                 } else {
                     performSocialSignIn(provider)
                 }
