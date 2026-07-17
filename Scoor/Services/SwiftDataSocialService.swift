@@ -184,4 +184,15 @@ final class SwiftDataSocialService: SocialServiceProtocol {
         try modelContext.save()
         NotificationCenter.default.post(name: .scoorSocialStoreDidChange, object: nil)
     }
+
+    // MARK: - Account lifecycle
+
+    func deleteAllLocalData() async throws {
+        try modelContext.delete(model: LikeRecord.self)
+        try modelContext.delete(model: CommentRecord.self)
+        try modelContext.delete(model: WorldScoreRecord.self)
+        try modelContext.delete(model: FollowRecord.self)
+        try modelContext.save()
+        NotificationCenter.default.post(name: .scoorSocialStoreDidChange, object: nil)
+    }
 }

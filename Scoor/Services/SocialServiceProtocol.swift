@@ -43,6 +43,10 @@ protocol SocialServiceProtocol {
     func loadDiscover() async -> DiscoverData
     func isFollowing(_ userName: String) -> Bool
     func setFollowing(_ following: Bool, userName: String) async throws
+
+    // MARK: Account lifecycle
+    /// 로컬에 영속된 소셜 상태(좋아요/댓글/월드점수/팔로우) 전체 삭제 (P0-4).
+    func deleteAllLocalData() async throws
 }
 
 // MARK: - Notifications

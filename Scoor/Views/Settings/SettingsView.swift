@@ -20,6 +20,8 @@ struct SettingsView: View {
     @State private var didLoad = false
     @State private var accountEmail: String?
     @State private var showSignOutConfirm = false
+    @State private var showDeleteAccountConfirm = false
+    @State private var isDeletingAccount = false
 
     private var notifications: NotificationServiceProtocol { services.notificationService }
 
@@ -74,8 +76,15 @@ struct SettingsView: View {
                 Button("로그아웃", role: .destructive) { Task { await signOut() } }
                 Button("취소", role: .cancel) {}
             } message: {
-                Text("로그아웃하면 가입 화면으로 돌아갑니다. 기기에 저장된 기록은 유지됩니다.")
+                Text("로그아웃하면 가입 화면으로 돌아갑니다. 기기에 저장된 기록은 유지되며, 같은 계정으로 다시 로그인하면 복원됩니다.")
             }
+            .confirmationDialog("계정을 삭제하시겠어요?", isPresented: $showDeleteAccountConfirm, titleVisibility: .visible) {
+                Button("계정 및 데이터 삭제", role: .destructive) { Task { await deleteAccount() } }
+                Button("취소", role: .cancel) {}
+            } message: {
+                Text("되돌릴 수 없습니다. 이 기기에 저장된 모든 기록(점수, 방명록, 소셜 활동)과 로그인 정보가 영구 삭제됩니다.")
+            }
+            .disabled(isDeletingAccount)
         }
     }
 
@@ -106,6 +115,15 @@ struct SettingsView: View {
                 Label("로그아웃", systemImage: "rectangle.portrait.and.arrow.right")
             }
             .accessibilityIdentifier("settings-signout-button")
+
+            // App Store Guideline 5.1.1(v): apps with account creation must let
+            // users delete the account in-app.
+            Button(role: .destructive) {
+                showDeleteAccountConfirm = true
+            } label: {
+                Label("계정 삭제", systemImage: "trash")
+            }
+            .accessibilityIdentifier("settings-delete-account-button")
         }
     }
 
@@ -127,6 +145,21 @@ struct SettingsView: View {
 
     private func signOut() async {
         authService.signOut()
+        await services.userService.signOutCurrentUser()
+        coordinator.resetForDebug()
+        dismiss()
+    }
+
+    /// 계정 삭제: 기기에 저장된 모든 사용자 데이터(점수/소셜/방명록/프로필)와
+    /// 자격 증명·세션을 제거하고 온보딩 처음으로 되돌린다.
+    private func deleteAccount() async {
+        isDeletingAccount = true
+        defer { isDeletingAccount = false }
+        try? await services.scoreService.deleteAllScores()
+        try? await services.socialService.deleteAllLocalData()
+        try? await services.guestbookService.deleteAllMessages()
+        await services.notificationService.setEnabled(false)
+        authService.deleteAccount()
         await services.userService.signOutCurrentUser()
         coordinator.resetForDebug()
         dismiss()

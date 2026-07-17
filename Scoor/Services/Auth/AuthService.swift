@@ -25,6 +25,7 @@ protocol AuthServiceProtocol: AnyObject {
     func signInWithEmail(email: String, password: String) async throws -> AuthenticatedIdentity
     func restoreSession()
     func signOut()
+    func deleteAccount()
 }
 
 @MainActor
@@ -107,6 +108,17 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
         KeychainStore.delete(tokenKeys.identity)
         KeychainStore.delete(tokenKeys.access)
         KeychainStore.delete(tokenKeys.refresh)
+    }
+
+    /// Delete the account's local auth footprint (App Store 5.1.1(v), P0-4):
+    /// removes the stored email credential (if any) so the account can no longer
+    /// be signed into, then clears the session and Keychain tokens. Server-side
+    /// token revocation for Apple/Google is a backend follow-up — no backend exists yet.
+    func deleteAccount() {
+        if let session = currentSession, session.providerKind == .email {
+            EmailCredentialStore.removeAccount(email: session.providerUserID)
+        }
+        signOut()
     }
 
     // MARK: - Persistence

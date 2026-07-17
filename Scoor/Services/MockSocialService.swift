@@ -115,4 +115,11 @@ final class MockSocialService: SocialServiceProtocol {
     func setFollowing(_ following: Bool, userName: String) async throws {
         if following { follows.insert(userName) } else { follows.remove(userName) }
     }
+
+    func deleteAllLocalData() async throws {
+        likes.removeAll()
+        commentsStore.removeAll()
+        worldScores.removeAll()
+        follows.removeAll()
+    }
 }
