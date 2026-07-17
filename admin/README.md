@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Scoor Admin
 
-## Getting Started
+Operations dashboard for Scoor (Next.js App Router). **Dashboard data is
+currently mock/sample data** — only authentication is real.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Install dependencies:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   ```bash
+   npm install
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. Configure auth (required — sign-in fails closed without it):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   cp .env.example .env.local
+   # then fill in:
+   #   ADMIN_EMAIL             — admin login email
+   #   ADMIN_PASSWORD_SHA256   — printf '%s' 'password' | shasum -a 256 | cut -d' ' -f1
+   #   ADMIN_SESSION_SECRET    — openssl rand -hex 32
+   ```
 
-## Learn More
+3. Run:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Auth architecture
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Credentials are verified server-side in `app/api/auth/login/route.ts`
+  against environment variables; no credentials exist in the client bundle.
+- Sessions are HMAC-SHA256-signed tokens in an httpOnly cookie
+  (`lib/server/session.ts`).
+- `proxy.ts` enforces auth on `/`, `/admin/*`, and `/login` at the edge,
+  so route protection does not depend on client JavaScript.
+- The client (`lib/auth.ts`, `providers/auth-provider.tsx`) only calls the
+  API routes; nothing is stored in localStorage.

@@ -3,25 +3,25 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Zap, AlertCircle } from "lucide-react";
-import { signIn, getSession } from "@/lib/auth";
+import { signIn, AuthConfigError } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@scoor.app");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
+  // Already-authenticated visitors are redirected to /admin by proxy.ts
+  // before this page renders — no client-side session check needed.
   useEffect(() => {
     setMounted(true);
-    const session = getSession();
-    if (session) router.replace("/admin");
-  }, [router]);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,15 +29,19 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const session = await signIn(email, password);
-      if (!session) {
+      const user = await signIn(email, password);
+      if (!user) {
         setError("Invalid credentials. Please check your email and password.");
         setLoading(false);
         return;
       }
       router.replace("/admin");
-    } catch {
-      setError("An unexpected error occurred. Please try again.");
+    } catch (err) {
+      setError(
+        err instanceof AuthConfigError
+          ? "Admin auth is not configured. Set ADMIN_EMAIL, ADMIN_PASSWORD_SHA256, and ADMIN_SESSION_SECRET."
+          : "An unexpected error occurred. Please try again."
+      );
       setLoading(false);
     }
   }
@@ -158,11 +162,6 @@ export default function LoginPage() {
             Protected access · Scoor Admin v1.0
           </p>
         </div>
-
-        {/* Bottom label */}
-        <p className="text-center text-[10px] text-[#52526c] mt-4">
-          Demo: admin@scoor.app / scoor2026
-        </p>
       </div>
     </div>
   );
