@@ -24,10 +24,8 @@ const COLS = [
   {
     title: "Legal",
     links: [
-      ["Privacy", "#"],
-      ["Terms", "#"],
-      ["Cookies", "#"],
-      ["Guidelines", "#"],
+      ["Privacy", "/privacy"],
+      ["Terms", "/terms"],
     ],
   },
 ];

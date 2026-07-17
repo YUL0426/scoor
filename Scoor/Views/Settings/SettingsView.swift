@@ -6,6 +6,40 @@
 import SwiftUI
 import UserNotifications
 
+/// 앱 전역 외형 설정. Settings의 Theme 피커가 쓰고, ScoorApp이
+/// `preferredColorScheme`으로 적용한다 (P0-5).
+enum AppAppearance: String, CaseIterable, Identifiable {
+    case system
+    case light
+    case dark
+
+    static let storageKey = "scoor.appearance"
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .system: return String(localized: "System")
+        case .light:  return String(localized: "Light")
+        case .dark:   return String(localized: "Dark")
+        }
+    }
+
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: return nil
+        case .light:  return .light
+        case .dark:   return .dark
+        }
+    }
+}
+
+/// 스토어 제출에 필요한 법적 문서 링크 (랜딩 사이트에서 호스팅).
+enum LegalLinks {
+    static let privacyPolicy = URL(string: "https://scoor.app/privacy")!
+    static let termsOfService = URL(string: "https://scoor.app/terms")!
+}
+
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var services: AppServices
@@ -22,6 +56,7 @@ struct SettingsView: View {
     @State private var showSignOutConfirm = false
     @State private var showDeleteAccountConfirm = false
     @State private var isDeletingAccount = false
+    @AppStorage(AppAppearance.storageKey) private var appearanceRaw = AppAppearance.system.rawValue
 
     private var notifications: NotificationServiceProtocol { services.notificationService }
 
@@ -38,13 +73,56 @@ struct SettingsView: View {
                 reminderSection
 
                 Section("Preferences") {
-                    Label("Theme", systemImage: "paintbrush")
-                    Label("Language", systemImage: "globe")
+                    Picker(selection: $appearanceRaw) {
+                        ForEach(AppAppearance.allCases) { appearance in
+                            Text(appearance.label).tag(appearance.rawValue)
+                        }
+                    } label: {
+                        Label("Theme", systemImage: "paintbrush")
+                    }
+                    .accessibilityIdentifier("settings-theme-picker")
+
+                    // 앱별 언어는 iOS 설정에서 바꾼다 (앱에 ko/ja/zh 등 로컬라이제이션 존재).
+                    Button {
+                        openSystemSettings()
+                    } label: {
+                        HStack {
+                            Label("Language", systemImage: "globe")
+                            Spacer()
+                            Image(systemName: "arrow.up.forward")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    .foregroundStyle(.primary)
+                    .accessibilityIdentifier("settings-language-button")
                 }
 
                 Section("About") {
-                    Label("Privacy Policy", systemImage: "lock.shield")
-                    Label("Terms of Service", systemImage: "doc.text")
+                    Link(destination: LegalLinks.privacyPolicy) {
+                        HStack {
+                            Label("Privacy Policy", systemImage: "lock.shield")
+                            Spacer()
+                            Image(systemName: "arrow.up.forward")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    .foregroundStyle(.primary)
+                    .accessibilityIdentifier("settings-privacy-link")
+
+                    Link(destination: LegalLinks.termsOfService) {
+                        HStack {
+                            Label("Terms of Service", systemImage: "doc.text")
+                            Spacer()
+                            Image(systemName: "arrow.up.forward")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    .foregroundStyle(.primary)
+                    .accessibilityIdentifier("settings-terms-link")
+
                     Label("Version 1.0", systemImage: "info.circle")
                 }
 

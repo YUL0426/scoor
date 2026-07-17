@@ -77,6 +77,8 @@ struct ScoorApp: App {
     @StateObject private var coordinator = AppFlowCoordinator()
     @StateObject private var services: AppServices
     @StateObject private var authService = AuthService()
+    /// Theme picked in Settings (system/light/dark) — applied app-wide (P0-5).
+    @AppStorage(AppAppearance.storageKey) private var appearanceRaw = AppAppearance.system.rawValue
 
     /// Single, app-wide SwiftData container. Created once and shared by both the
     /// SwiftUI environment (`.modelContainer`) and `AppServices` (score persistence).
@@ -111,6 +113,7 @@ struct ScoorApp: App {
     var body: some Scene {
         WindowGroup {
             RootFlowView()
+                .preferredColorScheme(AppAppearance(rawValue: appearanceRaw)?.colorScheme)
                 .environmentObject(coordinator)
                 .environmentObject(services)
                 .environmentObject(authService)
