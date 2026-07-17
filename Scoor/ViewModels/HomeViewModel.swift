@@ -3,8 +3,8 @@
 //  Scoor
 //
 //  Aggregates everything the emotional Home screen needs:
-//  today's entry, AI-style insights, a global "live feeling" feed,
-//  recent emotional history, and a streak / life-flow summary.
+//  today's entry, AI-style insights, a personal-rhythm ticker (derived from
+//  the user's own history), recent emotional history, and a streak summary.
 //
 //  Mood-first: numbers are inputs; the output is *atmosphere*.
 //
@@ -103,7 +103,7 @@ final class HomeViewModel: ObservableObject {
         self.userService = userService
         self.now = now
         self.todayDateLine = Self.dateLine(for: now())
-        self.liveFeed = Self.seedLiveFeed
+        self.liveFeed = Self.freshUserTicker
     }
 
     var todayScore: Int? { todayEntry?.score }
@@ -178,6 +178,17 @@ final class HomeViewModel: ObservableObject {
             today: today,
             todayEntry: todayEntry,
             weekAverage: weekAverage,
+            cal: cal
+        )
+
+        // Personal rhythm ticker — true statements about the user's own data (P0-1)
+        liveFeed = Self.buildPersonalTicker(
+            byDay: byDay,
+            today: today,
+            weekAverage: weekAverage,
+            monthlyAverage: monthlyAverage,
+            streakDays: streakDays,
+            happiestWeekday: happiestWeekday,
             cal: cal
         )
 
@@ -347,17 +358,51 @@ final class HomeViewModel: ObservableObject {
         return f.string(from: date).uppercased(with: .current)
     }
 
-    // MARK: - Live feed (mock for v1; backend stream later)
+    // MARK: - Personal rhythm ticker
+    //
+    // Until a backend exists there is no real global stream, so the ticker only
+    // states facts derived from the user's own history — never fabricated
+    // "someone in Tokyo just recorded a 92" claims (P0-1).
 
-    private static var seedLiveFeed: [LiveFeedItem] {
+    /// Honest fallback shown before history loads / for brand-new users.
+    static var freshUserTicker: [LiveFeedItem] {
         [
-            LiveFeedItem(id: "lf-seoul", icon: "wave.3.right", text: String(localized: "Average Scoor in Seoul right now: 7.4")),
-            LiveFeedItem(id: "lf-tokyo", icon: "sparkles", text: String(localized: "Someone in Tokyo just recorded a 92")),
-            LiveFeedItem(id: "lf-osaka", icon: "sun.max", text: String(localized: "Today's happiest city: Osaka")),
-            LiveFeedItem(id: "lf-live", icon: "dot.radiowaves.left.and.right", text: String(localized: "12 people are recording their day right now")),
-            LiveFeedItem(id: "lf-london", icon: "cloud.moon", text: String(localized: "London is feeling 6.8 this evening")),
-            LiveFeedItem(id: "lf-asia", icon: "globe.asia.australia", text: String(localized: "Mood across Asia leans warm tonight")),
+            LiveFeedItem(id: "pt-fresh-1", icon: "sparkles", text: String(localized: "This space fills with your own rhythm as you record days")),
+            LiveFeedItem(id: "pt-fresh-2", icon: "lock", text: String(localized: "Your scores stay on this device — community feed is coming soon")),
         ]
+    }
+
+    static func buildPersonalTicker(
+        byDay: [Date: ScoreEntry],
+        today: Date,
+        weekAverage: Int,
+        monthlyAverage: Int,
+        streakDays: Int,
+        happiestWeekday: String,
+        cal: Calendar
+    ) -> [LiveFeedItem] {
+        var items: [LiveFeedItem] = []
+
+        if weekAverage > 0 {
+            items.append(LiveFeedItem(id: "pt-week", icon: "wave.3.right", text: String(localized: "Your average this week: \(weekAverage)")))
+        }
+        if streakDays >= 2 {
+            items.append(LiveFeedItem(id: "pt-streak", icon: "flame", text: String(localized: "\(streakDays) days recorded in a row")))
+        }
+        if monthlyAverage > 0 {
+            items.append(LiveFeedItem(id: "pt-month", icon: "calendar", text: String(localized: "Your average this month: \(monthlyAverage)")))
+        }
+        if let best = byDay.values.map(\.score).max(), best > 0, byDay.count >= 3 {
+            items.append(LiveFeedItem(id: "pt-best", icon: "sun.max", text: String(localized: "Your brightest day so far: \(best)")))
+        }
+        if !happiestWeekday.isEmpty {
+            items.append(LiveFeedItem(id: "pt-weekday", icon: "sparkles", text: String(localized: "\(happiestWeekday) tends to be your happiest day")))
+        }
+        if byDay.count >= 5 {
+            items.append(LiveFeedItem(id: "pt-count", icon: "square.stack.3d.up", text: String(localized: "\(byDay.count) days of your life scored so far")))
+        }
+
+        return items.isEmpty ? freshUserTicker : items
     }
 }
 

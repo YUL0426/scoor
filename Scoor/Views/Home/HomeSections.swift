@@ -5,7 +5,7 @@
 //  Section components for the emotional Home screen:
 //   • TodayHeroCard (3 swipeable slides — today / week pulse / flow)
 //   • AIInsightSection (1–3 speech-bubble cards)
-//   • LiveFeelingTicker (auto-rotating global mood feed)
+//   • LiveFeelingTicker (auto-rotating personal-rhythm ticker — own data only)
 //   • RecentEmotionList (last 4 entries as mood cards)
 //   • StreakLifeFlowStrip (streak / monthly avg / happiest day)
 //
@@ -311,24 +311,20 @@ struct LiveFeelingTicker: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // 개인 리듬 티커 — 백엔드가 없는 동안 "LIVE / Around the world" 같은
+            // 실시간·글로벌 데이터인 척하는 프레이밍은 쓰지 않는다 (P0-1).
             HStack(spacing: 8) {
-                ZStack {
-                    Circle()
-                        .fill(Color.green.opacity(0.18))
-                        .frame(width: 18, height: 18)
-                    Circle()
-                        .fill(Color.green)
-                        .frame(width: 8, height: 8)
-                        .scaleEffect(pulse ? 1.0 : 0.7)
-                        .opacity(pulse ? 1.0 : 0.5)
-                        .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: pulse)
-                }
-                Text("LIVE")
+                Image(systemName: "waveform.path.ecg")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(DesignTokens.primaryColor)
+                    .scaleEffect(pulse ? 1.0 : 0.88)
+                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: pulse)
+                Text("YOUR RHYTHM")
                     .font(.system(size: 11, weight: .heavy))
                     .tracking(2)
-                    .foregroundStyle(Color.green.opacity(0.8))
+                    .foregroundStyle(DesignTokens.primaryColor.opacity(0.85))
                 Spacer()
-                Text("Around the world")
+                Text("From your own days")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(DesignTokens.textSecondary)
             }

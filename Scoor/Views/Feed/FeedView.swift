@@ -36,6 +36,8 @@ struct FeedView: View {
 
             VStack(spacing: 0) {
                 topHeader
+                PreviewContentBanner()
+                    .padding(.top, 4)
                 LivePulseView(pulses: MockFeed.pulses)
                     .padding(.top, 6)
                 sortTabs

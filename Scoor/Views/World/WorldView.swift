@@ -35,6 +35,8 @@ struct WorldView: View {
 
             VStack(spacing: 0) {
                 topHeader
+                PreviewContentBanner()
+                    .padding(.top, 4)
                 WorldPulseStrip(pulses: MockWorld.pulses)
                     .padding(.top, 6)
                 sortTabs
