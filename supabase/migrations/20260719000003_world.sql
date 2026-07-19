@@ -75,10 +75,13 @@ create trigger world_scores_touch_updated_at
 -- 뷰(materialized 아님)인 이유: Phase 1 규모에서는 실시간성이 더 중요하고,
 -- world_scores_topic_idx로 충분히 빠르다. 부하가 문제가 되면 materialized +
 -- pg_cron으로 바꾼다 (spec-13 §3.7의 pulse_stats와 같은 방식).
+-- 주의: 뷰는 소유자(postgres) 권한으로 실행되어 기저 테이블 RLS를 우회한다.
+-- 집계만 노출하므로 의도된 동작이지만, 그래서 draft 토픽 필터를 뷰 안에서
+-- 직접 걸어야 한다 — topics의 RLS에 기댈 수 없다.
 create or replace view public.topic_stats as
 select
   t.id                                             as topic_id,
-  count(ws.*)                                      as posts_count,
+  count(ws.id)                                     as posts_count,
   round(avg(ws.value))::smallint                   as global_score,
   coalesce(round(
     avg(ws.value) filter (where ws.created_at > now() - interval '1 hour')
@@ -88,6 +91,7 @@ select
 from public.topics t
 left join public.world_scores ws
   on ws.topic_id = t.id and not ws.is_hidden
+where t.status in ('live', 'closed')
 group by t.id;
 
 -- 지역별 반응(RegionalReaction). k-익명성: 표본 5 미만 지역은 노출하지 않는다
@@ -100,6 +104,7 @@ select
   round(avg(ws.value))::smallint as avg_score,
   count(*)                       as participants
 from public.world_scores ws
+join public.topics t on t.id = ws.topic_id and t.status in ('live', 'closed')
 where not ws.is_hidden and ws.country_code is not null
 group by ws.topic_id, ws.country_code
 having count(*) >= 5;

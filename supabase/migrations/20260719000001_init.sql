@@ -96,6 +96,27 @@ comment on column public.scores.deleted_at is
 create index if not exists scores_user_updated_idx
   on public.scores (user_id, client_updated_at desc);
 
+-- Last-write-wins를 서버가 강제한다. PostgREST의 upsert(merge-duplicates)는
+-- 무조건 덮어쓰므로, 이 트리거 없이는 기기 A의 지연 업로드(옛 쓰기)가 기기 B의
+-- 최신 쓰기를 덮어쓸 수 있다. 더 오래된 쓰기는 조용히 무시된다 — 클라이언트는
+-- 재시도할 필요가 없고(멱등), 최신 상태가 항상 승리한다.
+create or replace function public.scores_last_write_wins()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.client_updated_at < old.client_updated_at then
+    return null; -- BEFORE UPDATE에서 null 반환 = 이 행 갱신 건너뜀
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists scores_lww on public.scores;
+create trigger scores_lww
+  before update on public.scores
+  for each row execute function public.scores_last_write_wins();
+
 -- ---------------------------------------------------------------------------
 -- RLS
 -- ---------------------------------------------------------------------------
