@@ -66,49 +66,84 @@ Phase 0 기반 공사를 함께 수행했다.
 
 ---
 
-## 3. 미검증 ⚠️ — 서버 왕복은 아직 하지 않았다
+## 3. 실서버 적용 완료 ✅ (2026-07-19)
 
-| 항목 | 막힌 이유 |
-|---|---|
-| 마이그레이션 실서버 적용 | `supabase db push`는 **DB 비밀번호**가 필요. CLI 토큰은 키체인 ACL로 보호되어 추출 불가(정상) |
-| RLS 실서버 검증 | 위 선행 필요 |
-| 점수 저장 → 업로드 → 재로그인 복원 E2E | 위 선행 + 이메일 확인 설정 |
-| Apple/Google id_token 교환 | 대시보드에 provider 미설정 |
-| account-delete Edge Function | 미배포 |
+마이그레이션 4건이 `ebxdbadcejbytixumxrj`에 적용되었다. `supabase migration list --linked`
+기준 local/remote 해시가 4건 모두 일치한다.
 
-### E2E를 막는 두 번째 조건 (실측)
+### 3.1 배포가 잡아낸 결함 — GRANT 누락
 
-GoTrue를 직접 두드려 확인한 결과:
+적용 직후 **모든 테이블이 401**을 반환했다.
 
-- `Confirm email`이 **켜져 있다** → 가입 직후 세션이 발급되지 않아 로그인 왕복 검증 불가.
-- 이메일 도메인 검증이 있다 → `example.com`, `test.com`, `scoor.app`은 거부(`email_address_invalid`).
-- 무료 티어 SMTP 발송 제한이 낮다 → 확인 메일이 필요한 상태로는 테스트 반복 불가.
+```
+{"code":"42501","message":"permission denied for table topics",
+ "hint":"Grant the required privileges to the current role with: GRANT SELECT ON public.topics TO anon;"}
+```
 
-> **부작용 고지:** 위 확인 과정에서 미확인(unconfirmed) 프로브 계정이
-> 몇 개 생성되었다. `scoor-e2e-probe@*`, `probe-1@*` 형태이며 대시보드
-> Authentication에서 삭제하면 된다.
+원인: 0001~0003이 RLS만 켜고 **테이블 GRANT를 주지 않았다.** 접근에는 두 겹이
+모두 필요하다 — `GRANT`가 "이 롤이 이 테이블을 건드릴 수 있는가"(거친 문),
+`RLS`가 "그중 어떤 행을 볼 수 있는가"(촘촘한 체). 문이 잠겨 있으면 체는 의미가 없다.
+
+> **이 결함을 로컬 검증이 놓친 이유가 중요하다.** 로컬 테스트 하네스가
+> `grants_shim.sql`로 전 테이블에 권한을 뿌리고 시작했다. 편의를 위해 넣은 그
+> 한 줄이 실제 프로덕션 구멍을 정확히 가렸다. 스키마 논리는 로컬에서 증명되지만,
+> **권한 설정은 배포된 프로젝트에서만 증명된다.**
+
+→ `20260719000004_grants.sql`로 수정. 향후 테이블이 같은 구멍에 빠지지 않도록
+`ALTER DEFAULT PRIVILEGES`도 함께 설정했다.
+
+### 3.2 익명(비로그인) 권한 경계 — 실서버 검증 통과
+
+| 요청 | 기대 | 실제 |
+|---|---|---|
+| topics 읽기 | 허용 (게스트 모드) | 200 ✅ |
+| topics 쓰기 | 거부 (어드민 전용) | 401 ✅ |
+| scores 읽기 | 거부 (개인 저널) | 401 ✅ |
+| scores 쓰기 | 거부 | 401 ✅ |
+| profiles 수정 | 거부 | 401 ✅ |
+| world_scores 쓰기 | 거부 | 401 ✅ |
+| reports 삽입 | 거부 (로그인 필요) | 401 ✅ |
+
+공개 읽기(topics/topic_stats/world_scores/profiles)는 200, 나머지는 전부 401.
 
 ---
 
-## 4. 남은 작업 — 사용자 실행 필요
+## 4. 미검증 ⚠️ — 로그인 사용자 왕복
 
-### 4.1 마이그레이션 적용 (본인 터미널)
+| 항목 | 막힌 이유 |
+|---|---|
+| 사용자 A/B 간 RLS 격리 | 아래 `Confirm email` 설정 |
+| LWW 트리거 실서버 동작 | 동일 |
+| 점수 저장 → 업로드 → 재로그인 복원 | 동일 |
+| Apple/Google id_token 교환 | 대시보드에 provider 미설정 |
+| account-delete Edge Function | 미배포 |
 
-```bash
-cd /Users/yul/Desktop/Scoor/Scoor
-supabase db push --dry-run   # 적용 대상 3건 확인
-supabase db push             # DB 비밀번호 입력 프롬프트
-```
+### 막고 있는 것: `Confirm email`
 
-CLI 로그인·링크는 이미 되어 있다(`ebxdbadcejbytixumxrj`). 비밀번호를 잊었다면
-대시보드 → Settings → Database → Reset database password.
+GoTrue를 직접 두드려 확인한 결과:
 
-### 4.2 이메일 확인 끄기 (테스트 동안)
+- `Confirm email`이 **켜져 있다.** 가입 시 확인 메일을 보내려 하고, 세션은 발급되지
+  않는다. 가입 요청이 `over_email_send_rate_limit`을 반환하는 것 자체가 발송을
+  시도한다는 증거다(꺼져 있으면 메일을 보내지 않는다).
+- 무료 티어 내장 SMTP는 시간당 발송량이 매우 낮아, 켜둔 채로는 테스트를 반복할 수 없다.
+- 도메인 검증도 있다 → `example.com`, `test.com`, `scoor.app`은 `email_address_invalid`로 거부.
 
-Authentication → Sign In / Providers → Email → **Confirm email OFF**.
-베타 공개 전에는 다시 켜야 한다(계정 도용·스팸 방지).
+> **부작용 고지:** 위 확인 과정에서 미확인(unconfirmed) 프로브 계정이 몇 개
+> 생성되었다. `scoor-e2e-probe@*`, `scoor-check-*`, `probe-1@*` 형태이며
+> 대시보드 Authentication에서 삭제하면 된다.
 
-### 4.3 그다음 (자동)
+---
+
+## 5. 남은 작업 — 사용자 실행 필요
+
+### 5.1 이메일 확인 끄기 (테스트 동안) ← **유일한 블로커**
+
+대시보드 → Authentication → Sign In / Providers → Email → **Confirm email OFF**.
+
+베타 공개 전에는 다시 켜야 한다(계정 도용·스팸 방지). 이 토글 하나면 아래
+검증이 전부 자동으로 돌아간다.
+
+### 5.2 그다음 (자동)
 
 ```bash
 SUPABASE_HOST=ebxdbadcejbytixumxrj.supabase.co \
@@ -133,11 +168,15 @@ SUPABASE_ANON_KEY=<publishable key> \
 
 ---
 
-## 6. 결론
+## 7. 결론
 
-**스키마와 동기화 로직은 검증되었고, 실서버 연결은 검증되지 않았다.**
-로컬 Postgres 검증은 정책 논리를 증명하지만 배포된 프로젝트에 RLS가 실제로
-켜져 있는지는 증명하지 못한다. 4.1/4.2를 마치면 남은 검증은 자동으로 돌릴 수 있다.
+**스키마는 실서버에 적용되었고 익명 경계까지 검증되었다. 로그인 사용자 왕복은
+아직 검증되지 않았다.**
 
+배포 과정이 로컬 검증으로는 잡히지 않던 GRANT 누락을 드러냈고 수정했다 —
+로컬 하네스가 권한을 미리 뿌려 그 구멍을 가리고 있었다는 점이 이번 검증의
+가장 큰 교훈이다.
+
+`Confirm email` 토글 하나가 남은 전부이며, 그 뒤 검증은 자동으로 돌아간다.
 요청하신 기준("실제 동기화와 인증 테스트까지 통과한 뒤 완료 보고")에 따라
-**Phase 1은 미완료로 보고한다.**
+**Phase 1은 여전히 미완료로 보고한다.**
