@@ -5,10 +5,13 @@
 # 로컬 Postgres 검증이 스키마 논리를 증명한다면, 이 스크립트는 배포된 프로젝트에
 # RLS가 실제로 켜져 있는지를 증명한다.
 #
-# 사전 조건 (둘 다 대시보드 설정):
+# 사전 조건:
 #   1. supabase db push 로 마이그레이션이 적용되어 있을 것
-#   2. Authentication → Sign In/Providers → Email → "Confirm email" OFF
-#      (켜져 있으면 가입 직후 세션이 없어 로그인 왕복을 검증할 수 없다)
+#   2. supabase CLI가 로그인·링크되어 있을 것
+#
+# "Confirm email"이 켜져 있어도 동작한다 — 가입 직후 세션이 없으면 CLI(Management
+# API)로 테스트 계정만 확인 처리하고 정상 로그인 경로로 진행한다. 프로덕션 설정을
+# 바꾸지 않으므로 검증 때문에 인증을 약화시킬 일이 없다.
 #
 # 사용법:
 #   SUPABASE_HOST=<ref>.supabase.co SUPABASE_ANON_KEY=<publishable key> \
@@ -55,40 +58,65 @@ rest() { # method path token [body]
   fi
 }
 
-echo "== 0. 계정 생성 =="
-RA="$(signup "$EMAIL_A")"; TOKEN_A="$(echo "$RA" | jqv access_token)"
-RB="$(signup "$EMAIL_B")"; TOKEN_B="$(echo "$RB" | jqv access_token)"
-if [ -z "$TOKEN_A" ] || [ -z "$TOKEN_B" ]; then
-  echo "  가입 응답에 세션이 없습니다. 'Confirm email'이 켜져 있는지 확인하세요."
-  echo "  A: $(echo "$RA" | head -c 200)"
-  exit 1
-fi
-UID_A="$(echo "$RA" | python3 -c "import sys,json;print(json.load(sys.stdin)['user']['id'])")"
-UID_B="$(echo "$RB" | python3 -c "import sys,json;print(json.load(sys.stdin)['user']['id'])")"
-ok "A/B 세션 발급 (A=$UID_A)"
+# 테스트 계정을 GoTrue 가입 대신 SQL로 만든다.
+#
+# 가입 엔드포인트는 확인 메일을 보내려 하고, 무료 티어 SMTP 한도(시간당 소수)에
+# 즉시 걸려 테스트를 반복할 수 없다. 계정을 직접 넣으면 메일 경로를 건드리지 않고,
+# 프로덕션의 Confirm email 설정도 끌 필요가 없다. 비밀번호는 GoTrue와 같은 bcrypt로
+# 저장하므로 이후 로그인은 실제 인증 경로를 그대로 탄다.
+seed_user() {
+  supabase db query --linked "
+    insert into auth.users (
+      instance_id, id, aud, role, email, encrypted_password,
+      email_confirmed_at, created_at, updated_at,
+      raw_app_meta_data, raw_user_meta_data,
+      -- GoTrue는 이 토큰 컬럼들을 non-nullable 문자열로 읽는다. NULL로 두면
+      -- 로그인 시 'Database error querying schema'로 실패한다.
+      confirmation_token, recovery_token, email_change, email_change_token_new,
+      email_change_token_current, phone_change, phone_change_token, reauthentication_token
+    ) values (
+      '00000000-0000-0000-0000-000000000000', gen_random_uuid(),
+      'authenticated', 'authenticated', '$1', crypt('$PASSWORD', gen_salt('bf')),
+      now(), now(), now(), '{\"provider\":\"email\",\"providers\":[\"email\"]}', '{}',
+      '', '', '', '', '', '', '', ''
+    ) returning id" 2>/dev/null \
+  | python3 -c "import sys,json,re;m=re.search(r'\{.*\}',sys.stdin.read(),re.S);d=json.loads(m.group(0)) if m else {};r=d.get('result') or d.get('rows') or [];print(r[0]['id'] if r else '')"
+}
+
+echo "== 0. 테스트 계정 생성 (SQL) =="
+UID_A="$(seed_user "$EMAIL_A")"
+UID_B="$(seed_user "$EMAIL_B")"
+[ -n "$UID_A" ] && [ -n "$UID_B" ] || { echo "  계정 생성 실패 — CLI 링크 상태를 확인하세요."; exit 1; }
+ok "A/B 계정 생성 (A=$UID_A)"
+
+echo "== 0b. 실제 로그인 경로로 세션 발급 =="
+TOKEN_A="$(signin "$EMAIL_A" | jqv access_token)"
+TOKEN_B="$(signin "$EMAIL_B" | jqv access_token)"
+[ -n "$TOKEN_A" ] && [ -n "$TOKEN_B" ] || { echo "  로그인 실패: $(signin "$EMAIL_A" | head -c 200)"; exit 1; }
+ok "A/B 세션 발급 (GoTrue password grant)"
 
 echo "== 1. 가입 트리거: 프로필 자동 생성 =="
 check 1 "$(rest GET "profiles?id=eq.$UID_A&select=id,username" "$TOKEN_A" | count)" "A의 프로필이 생성됨"
 
 echo "== 2. scores RLS: 소유자만 =="
-rest POST "scores" "$TOKEN_A" \
+rest POST "scores?on_conflict=user_id,day" "$TOKEN_A" \
   "[{\"user_id\":\"$UID_A\",\"day\":\"2026-07-19\",\"value\":72,\"reason\":\"E2E\",\"client_updated_at\":\"2026-07-19T10:00:00Z\"}]" >/dev/null
 check 1 "$(rest GET "scores?select=day,value" "$TOKEN_A" | count)" "A가 자기 점수를 읽음"
 check 0 "$(rest GET "scores?select=day,value" "$TOKEN_B" | count)" "B는 A의 점수를 볼 수 없음"
 
-RESP="$(rest POST "scores" "$TOKEN_B" \
+RESP="$(rest POST "scores?on_conflict=user_id,day" "$TOKEN_B" \
   "[{\"user_id\":\"$UID_A\",\"day\":\"2026-07-18\",\"value\":1,\"client_updated_at\":\"2026-07-19T10:00:00Z\"}]")"
 echo "$RESP" | grep -q "42501\|violates row-level security" \
   && ok "B가 A의 계정에 쓰기 시도 → 차단됨" \
   || bad "B가 A의 계정에 썼습니다: $(echo "$RESP" | head -c 120)"
 
 echo "== 3. Last-write-wins 트리거 =="
-rest POST "scores" "$TOKEN_A" \
+rest POST "scores?on_conflict=user_id,day" "$TOKEN_A" \
   "[{\"user_id\":\"$UID_A\",\"day\":\"2026-07-19\",\"value\":10,\"client_updated_at\":\"2026-07-19T09:00:00Z\"}]" >/dev/null
 V="$(rest GET "scores?day=eq.2026-07-19&select=value" "$TOKEN_A" | python3 -c "import sys,json;print(json.load(sys.stdin)[0]['value'])" 2>/dev/null)"
 check 72 "$V" "오래된 쓰기(09:00)는 무시됨"
 
-rest POST "scores" "$TOKEN_A" \
+rest POST "scores?on_conflict=user_id,day" "$TOKEN_A" \
   "[{\"user_id\":\"$UID_A\",\"day\":\"2026-07-19\",\"value\":88,\"client_updated_at\":\"2026-07-19T11:00:00Z\"}]" >/dev/null
 V="$(rest GET "scores?day=eq.2026-07-19&select=value" "$TOKEN_A" | python3 -c "import sys,json;print(json.load(sys.stdin)[0]['value'])" 2>/dev/null)"
 check 88 "$V" "최신 쓰기(11:00)는 반영됨"
@@ -110,11 +138,21 @@ echo "$RESP" | grep -q "42501\|violates row-level security" \
 echo "== 6. reports: 삽입만 가능, 조회 불가 =="
 rest POST "reports" "$TOKEN_B" \
   "[{\"reporter_id\":\"$UID_B\",\"target_type\":\"user\",\"target_id\":\"$UID_A\",\"reason\":\"spam\"}]" >/dev/null
-check 0 "$(rest GET "reports?select=id" "$TOKEN_B" | count)" "신고자가 신고 내역을 되읽을 수 없음"
+RESP="$(rest GET "reports?select=id" "$TOKEN_B")"
+if echo "$RESP" | grep -q "42501\|permission denied" || [ "$(echo "$RESP" | count)" = "0" ]; then
+  ok "신고자가 신고 내역을 되읽을 수 없음"
+else
+  bad "신고 내역이 노출됨: $(echo "$RESP" | head -c 120)"
+fi
+
+echo "== 7. 정리: 테스트 계정 삭제 (CASCADE 동작 확인 겸) =="
+supabase db query --linked \
+  "delete from auth.users where email in ('$EMAIL_A','$EMAIL_B')" >/dev/null 2>&1
+LEFT="$(supabase db query --linked \
+  "select count(*) as n from public.scores where user_id in ('$UID_A','$UID_B')" 2>/dev/null \
+  | python3 -c "import sys,json,re;m=re.search(r'\{.*\}',sys.stdin.read(),re.S);d=json.loads(m.group(0)) if m else {};r=d.get('result') or d.get('rows') or [];print(r[0]['n'] if r else -1)")"
+check 0 "$LEFT" "계정 삭제 시 점수까지 CASCADE 삭제됨 (완전 삭제 정책)"
 
 echo
 echo "결과: PASS=$PASS FAIL=$FAIL"
-echo "정리: 아래 계정은 테스트 잔여물입니다 — 대시보드 Authentication에서 삭제하세요."
-echo "  $EMAIL_A"
-echo "  $EMAIL_B"
 [ "$FAIL" -eq 0 ]
