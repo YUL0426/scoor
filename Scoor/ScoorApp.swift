@@ -74,9 +74,10 @@ enum UITestSupport {
 @main
 struct ScoorApp: App {
 
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var coordinator = AppFlowCoordinator()
     @StateObject private var services: AppServices
-    @StateObject private var authService = AuthService()
+    @StateObject private var authService: AuthService
     /// Theme picked in Settings (system/light/dark) — applied app-wide (P0-5).
     @AppStorage(AppAppearance.storageKey) private var appearanceRaw = AppAppearance.system.rawValue
 
@@ -106,8 +107,15 @@ struct ScoorApp: App {
         // For a clean-state UI test launch, also drop any scores left on disk by
         // previous runs so the calendar/home start empty.
         UITestSupport.wipeScoresIfNeeded(in: container.mainContext)
+        // Built here (not inline) so AppServices can borrow it as the token source
+        // for the backend stack.
+        let auth = AuthService()
+        _authService = StateObject(wrappedValue: auth)
         // Inject the container's mainContext so saved scores persist to disk.
-        _services = StateObject(wrappedValue: AppServices(modelContext: container.mainContext))
+        _services = StateObject(wrappedValue: AppServices(
+            modelContext: container.mainContext,
+            authService: auth
+        ))
     }
 
     var body: some Scene {
@@ -122,6 +130,17 @@ struct ScoorApp: App {
                     // 유닛 테스트 호스트에서는 UNUserNotificationCenter 접근이 불안정하므로 건너뛴다.
                     guard !AppEnvironment.isRunningUnitTests else { return }
                     await services.notificationService.refreshSchedule()
+                    services.syncScores(userId: authService.currentSession?.userID)
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    // 포그라운드 복귀 시 동기화 (spec-13 §5). 실패는 무소음이라
+                    // 사용자 플로우를 막지 않는다.
+                    guard phase == .active, !AppEnvironment.isRunningUnitTests else { return }
+                    services.syncScores(userId: authService.currentSession?.userID)
+                }
+                .onChange(of: authService.currentSession?.userID) { _, userID in
+                    // 로그인 직후: 큐에 쌓인 로컬 기록을 올리고 서버 기록을 내려받는다.
+                    services.syncScores(userId: userID)
                 }
         }
         .modelContainer(modelContainer)
@@ -177,7 +196,7 @@ struct RootFlowView: View {
                 let identity = try await authService.signIn(with: provider)
                 await services.userService.applyAuthenticatedIdentity(
                     provider: provider.rawValue,
-                    userID: identity.stableUserID,
+                    userID: identity.resolvedUserID,
                     email: identity.email,
                     displayName: identity.fullName
                 )

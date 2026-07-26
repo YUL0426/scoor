@@ -6,6 +6,13 @@
 //  persists the session (UserDefaults) and tokens (Keychain), and exposes the
 //  current session as observable state.
 //
+//  BACKEND (spec-13 §6, C4): when `SupabaseConfig` is provisioned every sign-in
+//  is exchanged for a real Supabase session and the account id becomes
+//  `auth.users.id` — server-issued, so records follow the account across devices.
+//  With no backend configured the service keeps its previous device-local
+//  behavior unchanged, which is what lets previews, unit tests, and
+//  un-provisioned checkouts keep working.
+//
 //  UI-TEST BYPASS: when launched with `-uitests-reset`, the social providers
 //  return a deterministic mock identity instead of presenting system UI, so the
 //  existing onboarding UI tests (which tap "Continue with Apple") stay green and
@@ -37,14 +44,27 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
     private let apple = AppleSignInController()
     private let google = GoogleSignInController()
 
+    /// Nil when the backend is not provisioned — the signal that every path
+    /// below uses to decide between server and device-local behavior.
+    private let supabase: SupabaseAuthClient?
+    /// Live tokens. Mirrored to the Keychain so they survive relaunch.
+    private var supabaseSession: SupabaseSession?
+
     private let sessionKey = "scoor.authSession"
+    private let supabaseSessionKey = "scoor.auth.supabaseSession"
     private let tokenKeys = (
         identity: "scoor.auth.identityToken",
         access: "scoor.auth.accessToken",
         refresh: "scoor.auth.refreshToken"
     )
 
-    init() { restoreSession() }
+    init(config: SupabaseConfig? = SupabaseConfig.current) {
+        self.supabase = config.map { SupabaseAuthClient(config: $0) }
+        restoreSession()
+    }
+
+    /// Whether this build authenticates against the backend.
+    var isBackendBacked: Bool { supabase != nil }
 
     // MARK: - Sign in
 
@@ -60,40 +80,107 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
         let identity = UITestSupport.wantsCleanState
             ? Self.mockIdentity(provider: .apple)
             : try await apple.signIn()
-        persist(identity)
-        return identity
+        return try await finish(identity, providerName: "apple")
     }
 
     func signInWithGoogle() async throws -> AuthenticatedIdentity {
         let identity = UITestSupport.wantsCleanState
             ? Self.mockIdentity(provider: .google)
             : try await google.signIn()
-        persist(identity)
-        return identity
+        return try await finish(identity, providerName: "google")
     }
 
-    /// Email flow: creates the device-local account on first use (salted PBKDF2
-    /// hash in the Keychain), verifies the password on subsequent sign-ins, and
-    /// derives the user id deterministically from the email — so signing out and
-    /// back in restores the same identity and all records keyed by it (P0-7).
+    /// Email flow.
+    ///
+    /// Backend: signs in, falling back to sign-up on the first attempt for an
+    /// unknown address — this preserves the one-step UX the screen already has,
+    /// where the same button both registers and logs in.
+    ///
+    /// No backend: creates the device-local account (salted PBKDF2 hash in the
+    /// Keychain) and derives the id from the email, as before.
     func signInWithEmail(email: String, password: String) async throws -> AuthenticatedIdentity {
         let normalized = EmailCredentialStore.normalize(email)
-        // PBKDF2 is deliberately slow — keep it off the main actor.
-        _ = try await Task.detached(priority: .userInitiated) {
-            try EmailCredentialStore.registerOrVerify(email: normalized, password: password)
-        }.value
+
+        guard let supabase else {
+            // PBKDF2 is deliberately slow — keep it off the main actor.
+            _ = try await Task.detached(priority: .userInitiated) {
+                try EmailCredentialStore.registerOrVerify(email: normalized, password: password)
+            }.value
+            let identity = AuthenticatedIdentity(
+                provider: .email,
+                providerUserID: normalized,
+                email: normalized
+            )
+            persist(identity)
+            return identity
+        }
+
+        let session: SupabaseSession
+        do {
+            session = try await supabase.signIn(email: normalized, password: password)
+        } catch APIError.unauthorized {
+            // Either a new address or a wrong password; sign-up tells us which.
+            do {
+                guard let created = try await supabase.signUp(email: normalized, password: password) else {
+                    // Confirmation required: the account exists but cannot be used yet.
+                    throw AuthError.emailConfirmationRequired(normalized)
+                }
+                session = created
+            } catch APIError.rejected(let message) where message.contains("이미 가입") {
+                // The address is taken, so the password was simply wrong.
+                throw AuthError.failed("비밀번호가 올바르지 않습니다.")
+            }
+        }
+
+        adopt(session)
         let identity = AuthenticatedIdentity(
             provider: .email,
             providerUserID: normalized,
-            email: normalized
+            email: session.email ?? normalized,
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken,
+            serverUserID: session.userId
         )
         persist(identity)
         return identity
     }
 
+    /// Exchange a provider identity token for a Supabase session when the backend
+    /// is provisioned. Falls back to the local identity when it is not, or when
+    /// the provider has not been configured server-side yet — a dashboard setup
+    /// gap should not make sign-in impossible, it should just mean no sync.
+    private func finish(_ identity: AuthenticatedIdentity,
+                        providerName: String) async throws -> AuthenticatedIdentity {
+        guard let supabase, let idToken = identity.identityToken else {
+            persist(identity)
+            return identity
+        }
+
+        var resolved = identity
+        do {
+            let session = try await supabase.signInWithIdToken(provider: providerName, idToken: idToken)
+            adopt(session)
+            resolved.serverUserID = session.userId
+            resolved.accessToken = session.accessToken
+            resolved.refreshToken = session.refreshToken
+        } catch {
+            #if DEBUG
+            print("[Scoor] \(providerName) id-token exchange failed: \(error.localizedDescription)")
+            #endif
+        }
+
+        persist(resolved)
+        return resolved
+    }
+
     // MARK: - Session lifecycle
 
     func restoreSession() {
+        if let data = KeychainStore.get(supabaseSessionKey)?.data(using: .utf8),
+           let stored = try? JSONDecoder().decode(SupabaseSession.self, from: data) {
+            supabaseSession = stored
+        }
+
         guard let data = UserDefaults.standard.data(forKey: sessionKey),
               let session = try? JSONDecoder().decode(AuthSession.self, from: data) else {
             currentSession = nil
@@ -103,18 +190,36 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
     }
 
     func signOut() {
+        if let token = supabaseSession?.accessToken, let supabase {
+            Task { await supabase.signOut(accessToken: token) }
+        }
+        supabaseSession = nil
         currentSession = nil
         UserDefaults.standard.removeObject(forKey: sessionKey)
+        KeychainStore.delete(supabaseSessionKey)
         KeychainStore.delete(tokenKeys.identity)
         KeychainStore.delete(tokenKeys.access)
         KeychainStore.delete(tokenKeys.refresh)
     }
 
-    /// Delete the account's local auth footprint (App Store 5.1.1(v), P0-4):
-    /// removes the stored email credential (if any) so the account can no longer
-    /// be signed into, then clears the session and Keychain tokens. Server-side
-    /// token revocation for Apple/Google is a backend follow-up — no backend exists yet.
+    /// Delete the account (App Store 5.1.1(v), P0-4).
+    ///
+    /// With a backend this calls the `account-delete` Edge Function, which holds
+    /// the service-role key and revokes the Apple token — neither of which can
+    /// happen in the client. The local footprint is cleared either way, so the
+    /// user is signed out even if the server call fails.
     func deleteAccount() {
+        if let supabase, let token = supabaseSession?.accessToken {
+            Task {
+                do {
+                    try await supabase.deleteAccount(accessToken: token)
+                } catch {
+                    #if DEBUG
+                    print("[Scoor] server account deletion failed: \(error.localizedDescription)")
+                    #endif
+                }
+            }
+        }
         if let session = currentSession, session.providerKind == .email {
             EmailCredentialStore.removeAccount(email: session.providerUserID)
         }
@@ -123,13 +228,21 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
 
     // MARK: - Persistence
 
+    private func adopt(_ session: SupabaseSession) {
+        supabaseSession = session
+        if let data = try? JSONEncoder().encode(session),
+           let json = String(data: data, encoding: .utf8) {
+            KeychainStore.set(json, for: supabaseSessionKey)
+        }
+    }
+
     private func persist(_ identity: AuthenticatedIdentity) {
         let session = AuthSession(
             provider: identity.provider.rawValue,
             providerUserID: identity.providerUserID,
             email: identity.email,
             fullName: identity.fullName,
-            userID: identity.stableUserID,
+            userID: identity.resolvedUserID,
             signedInAt: Date()
         )
         currentSession = session
@@ -151,5 +264,36 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
             fullName: "Scoor QA",
             identityToken: "uitest.identity.token"
         )
+    }
+}
+
+// MARK: - Token supply for the data layer
+
+extension AuthService: SupabaseTokenProviding {
+
+    /// Current access token, refreshed first when it is at or near expiry so the
+    /// data layer rarely has to handle a 401 at all.
+    func currentAccessToken() async -> String? {
+        guard let session = supabaseSession else { return nil }
+        guard session.isExpired() else { return session.accessToken }
+        return await refreshAccessToken()
+    }
+
+    func refreshAccessToken() async -> String? {
+        guard let supabase, let session = supabaseSession else { return nil }
+        do {
+            let refreshed = try await supabase.refresh(refreshToken: session.refreshToken)
+            adopt(refreshed)
+            return refreshed.accessToken
+        } catch APIError.offline {
+            // Keep the session: the token may still be good once we reconnect,
+            // and dropping it here would sign the user out for a subway ride.
+            return nil
+        } catch {
+            // A rejected refresh token is unrecoverable — the session is dead.
+            supabaseSession = nil
+            KeychainStore.delete(supabaseSessionKey)
+            return nil
+        }
     }
 }

@@ -23,6 +23,8 @@ struct AuthenticatedIdentity: Equatable {
     var identityToken: String?
     var accessToken: String?
     var refreshToken: String?
+    /// `auth.users.id` once a Supabase session exists. Nil in local-only builds.
+    var serverUserID: UUID?
 
     init(
         provider: AuthProvider,
@@ -31,7 +33,8 @@ struct AuthenticatedIdentity: Equatable {
         fullName: String? = nil,
         identityToken: String? = nil,
         accessToken: String? = nil,
-        refreshToken: String? = nil
+        refreshToken: String? = nil,
+        serverUserID: UUID? = nil
     ) {
         self.provider = provider
         self.providerUserID = providerUserID
@@ -40,7 +43,15 @@ struct AuthenticatedIdentity: Equatable {
         self.identityToken = identityToken
         self.accessToken = accessToken
         self.refreshToken = refreshToken
+        self.serverUserID = serverUserID
     }
+
+    /// The id every local record is keyed by.
+    ///
+    /// Prefers the server id: it is stable across devices, which the derived
+    /// `stableUserID` never was — that one only survived sign-out on the *same*
+    /// device, which is as far as P0-7 could go without a backend.
+    var resolvedUserID: UUID { serverUserID ?? stableUserID }
 
     /// Deterministic, stable UUID for this account (UUIDv5-style: SHA256 of
     /// "provider:subject", with version/variant bits set).
@@ -77,6 +88,9 @@ enum AuthError: LocalizedError, Equatable {
     case notConfigured(String)
     case failed(String)
     case invalidResponse
+    /// Sign-up succeeded but the project requires a confirmed email before the
+    /// account can be used, so there is no session yet.
+    case emailConfirmationRequired(String)
 
     var errorDescription: String? {
         switch self {
@@ -84,6 +98,8 @@ enum AuthError: LocalizedError, Equatable {
         case .notConfigured(let w): return "설정이 필요합니다: \(w)"
         case .failed(let m):        return "로그인에 실패했습니다: \(m)"
         case .invalidResponse:      return "로그인 응답이 올바르지 않습니다."
+        case .emailConfirmationRequired(let email):
+            return "\(email)로 확인 메일을 보냈습니다. 메일의 링크를 눌러 가입을 완료해 주세요."
         }
     }
 }
