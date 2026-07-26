@@ -9,5 +9,13 @@
 	     (GENERATE_INFOPLIST_FILE = YES merges this file on top). -->
 	<key>GIDClientID</key>
 	<string>$(GID_CLIENT_ID)</string>
+	<!-- Supabase backend (spec-13 Phase 0/1). Injected from Config/Secrets.xcconfig.
+	     Empty ⇒ SupabaseConfig.current is nil and the app runs local-only
+	     (SwiftData services), so previews and un-provisioned checkouts still build.
+	     SupabaseHost is scheme-less because xcconfig treats "//" as a comment. -->
+	<key>SupabaseHost</key>
+	<string>$(SUPABASE_HOST)</string>
+	<key>SupabaseAnonKey</key>
+	<string>$(SUPABASE_ANON_KEY)</string>
 </dict>
 </plist>

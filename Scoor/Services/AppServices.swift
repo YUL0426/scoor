@@ -23,6 +23,15 @@ final class AppServices: ObservableObject {
     let moodAnalyzer: MoodAnalyzing
     @Published private(set) var version: Int = 0
 
+    /// Backend-backed services. Nil when `SupabaseConfig` is not provisioned, which
+    /// is how the app stays fully functional with no server (spec-13 §5).
+    private(set) var remoteScoreService: RemoteScoreService?
+    private(set) var worldService: RemoteWorldService?
+    private(set) var moderationService: RemoteModerationService?
+
+    /// Whether this build syncs to a backend at all — drives the Settings sync row.
+    var isBackendBacked: Bool { remoteScoreService != nil }
+
     /// Designated init. Defaults to mock services so SwiftUI previews keep working.
     init(
         scoreService: ScoreServiceProtocol = MockScoreService(),
@@ -30,7 +39,10 @@ final class AppServices: ObservableObject {
         guestbookService: GuestbookServiceProtocol = MockGuestbookService(),
         notificationService: NotificationServiceProtocol = MockNotificationService(),
         socialService: SocialServiceProtocol = MockSocialService(),
-        moodAnalyzer: MoodAnalyzing = DisabledMoodAnalyzer()
+        moodAnalyzer: MoodAnalyzing = DisabledMoodAnalyzer(),
+        remoteScoreService: RemoteScoreService? = nil,
+        worldService: RemoteWorldService? = nil,
+        moderationService: RemoteModerationService? = nil
     ) {
         self.scoreService = scoreService
         self.userService = userService
@@ -38,19 +50,57 @@ final class AppServices: ObservableObject {
         self.notificationService = notificationService
         self.socialService = socialService
         self.moodAnalyzer = moodAnalyzer
+        self.remoteScoreService = remoteScoreService
+        self.worldService = worldService
+        self.moderationService = moderationService
     }
 
     /// Production init — backs scores, guestbook, and social interactions with the
     /// app's SwiftData container so they survive app restarts. User profile stays
     /// local-first (UserDefaults/Keychain) until a backend profile API exists.
     /// Notifications use the real `UNUserNotificationCenter`-backed service.
+    ///
+    /// When the backend is provisioned *and* an auth service can supply tokens,
+    /// scores are wrapped in `RemoteScoreService` — a decorator, so SwiftData
+    /// stays the source of truth and every read still comes from disk. Passing no
+    /// auth service (previews, tests) leaves the local stack untouched.
     @MainActor
-    convenience init(modelContext: ModelContext) {
+    convenience init(modelContext: ModelContext, authService: AuthService? = nil) {
+        let localScores = SwiftDataScoreService(modelContext: modelContext)
+
+        var remoteScores: RemoteScoreService?
+        var world: RemoteWorldService?
+        var moderation: RemoteModerationService?
+
+        if let config = SupabaseConfig.current, let authService {
+            let client = SupabaseHTTPClient(config: config, tokenProvider: authService)
+            remoteScores = RemoteScoreService(local: localScores, client: client)
+            // Reads the id at call time rather than capturing it: the session can
+            // change (sign-out, account switch) while these services live on.
+            let currentUserID: () -> UUID? = { [weak authService] in
+                authService?.currentSession?.userID
+            }
+            world = RemoteWorldService(client: client, currentUserID: currentUserID)
+            moderation = RemoteModerationService(client: client, currentUserID: currentUserID)
+        }
+
         self.init(
-            scoreService: SwiftDataScoreService(modelContext: modelContext),
+            scoreService: remoteScores ?? localScores,
             guestbookService: SwiftDataGuestbookService(modelContext: modelContext),
             notificationService: LocalNotificationService(),
-            socialService: SwiftDataSocialService(modelContext: modelContext)
+            socialService: SwiftDataSocialService(modelContext: modelContext),
+            remoteScoreService: remoteScores,
+            worldService: world,
+            moderationService: moderation
         )
+    }
+
+    /// Push queued score writes and pull anything newer from other devices.
+    /// Safe to call often — overlapping runs collapse, and it is a no-op with no
+    /// backend or no signed-in user.
+    @MainActor
+    func syncScores(userId: UUID?) {
+        guard let userId, let remoteScoreService else { return }
+        remoteScoreService.sync(userId: userId)
     }
 }
