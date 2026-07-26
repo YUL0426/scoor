@@ -3,9 +3,9 @@
 날짜: 2026-07-19 · 브랜치: `feat/spec-13-phase1-backend` · PR: #2
 프로젝트: `ebxdbadcejbytixumxrj` (scoor, ap-northeast-2 / 서울)
 
-> **Phase 1은 아직 완료가 아니다.** 서버 왕복 검증(E2E)이 남아 있고, 그 전제인
-> 마이그레이션 적용이 사용자 자격증명을 필요로 한다. 아래에 검증된 것과 남은
-> 것을 분리해 적는다.
+> **Phase 1은 아직 완료가 아니다.** 마이그레이션은 실서버에 적용되었고 익명
+> 권한 경계까지 검증했지만, 로그인 사용자 왕복(RLS 격리·LWW·재로그인 복원)이
+> 남아 있다. 아래에 검증된 것과 남은 것을 분리해 적는다.
 
 ---
 
@@ -155,7 +155,7 @@ SUPABASE_ANON_KEY=<publishable key> \
 
 ---
 
-## 5. Phase 1 완료까지 남은 코드 작업
+## 6. Phase 1 완료까지 남은 코드 작업
 
 - [ ] World 탭을 `RemoteWorldService`에 연결 (현재는 시드 데이터 그대로)
 - [ ] 신고/차단 UI (World 코멘트) — App Store 1.2 요건, World 오픈과 **동시** 출시
