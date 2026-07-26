@@ -28,11 +28,22 @@ final class WorldFeedViewModel: ObservableObject {
     @Published var transientError: String? = nil
 
     private let service: SocialServiceProtocol
+    /// Server-backed topics. Nil when the backend is not provisioned, in which
+    /// case the local seed keeps the screen populated for previews and tests.
+    private let world: RemoteWorldService?
     private let pageSize: Int
     private var loadedPages = 0
 
-    init(service: SocialServiceProtocol, pageSize: Int = 8) {
+    /// Whether the topic list came from the server. The screen uses this to decide
+    /// between the "preview content" banner and a real empty state — labelling
+    /// real data as a preview is the same dishonesty P0-1 was about, in reverse.
+    @Published private(set) var topicsAreLive = false
+
+    init(service: SocialServiceProtocol,
+         world: RemoteWorldService? = nil,
+         pageSize: Int = 8) {
         self.service = service
+        self.world = world
         self.pageSize = pageSize
     }
 
@@ -81,7 +92,7 @@ final class WorldFeedViewModel: ObservableObject {
         phase = .loading
         loadedPages = 0
         canLoadMore = true
-        topics = await service.loadTopics()
+        topics = await loadTopicList()
         let page = await service.loadWorldPosts(page: 0, pageSize: pageSize)
         posts = page
         loadedPages = 1
@@ -89,12 +100,35 @@ final class WorldFeedViewModel: ObservableObject {
     }
 
     func refresh() async {
-        topics = await service.loadTopics()
+        topics = await loadTopicList()
         let page = await service.loadWorldPosts(page: 0, pageSize: pageSize)
         posts = page
         loadedPages = 1
         canLoadMore = true
         phase = page.isEmpty ? .empty : .loaded
+    }
+
+    /// Server topics when available, local seed otherwise.
+    ///
+    /// A network failure falls back to the seed rather than emptying the screen —
+    /// but `topicsAreLive` stays false so the UI keeps saying the content is a
+    /// preview. Showing seed data unlabelled is exactly what P0-1 was about.
+    private func loadTopicList() async -> [WorldTopic] {
+        guard let world else {
+            topicsAreLive = false
+            return await service.loadTopics()
+        }
+        do {
+            let remote = try await world.loadTopics()
+            topicsAreLive = true
+            return remote
+        } catch {
+            topicsAreLive = false
+            #if DEBUG
+            print("[Scoor] World topics fell back to seed: \(error.localizedDescription)")
+            #endif
+            return await service.loadTopics()
+        }
     }
 
     func loadMoreIfNeeded(currentItem: WorldPost) async {

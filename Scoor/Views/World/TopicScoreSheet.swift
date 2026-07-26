@@ -19,6 +19,10 @@ struct TopicScoreSheet: View {
     let topic: WorldTopic
     @Binding var target: ScoorTarget
     let existing: Int?
+    /// 게시 단위 익명 토글. nil이면 서버 미연결 상태라 토글을 감춘다.
+    /// 기본값은 닉네임 노출 — 실명은 부담스럽다는 판단으로 닉네임을 택했고(§15-2),
+    /// 익명은 매 게시마다 사용자가 고르는 선택지로 남긴다.
+    var isAnonymous: Binding<Bool>? = nil
     /// 제출 콜백 — (점수 0~100, 한 줄 코멘트?)
     var onSubmit: (Int, String?) -> Void
 
@@ -46,6 +50,12 @@ struct TopicScoreSheet: View {
                 commentFieldSection
                     .padding(.horizontal, 22)
                     .padding(.top, 16)
+
+                if let isAnonymous {
+                    anonymousToggle(isAnonymous)
+                        .padding(.horizontal, 22)
+                        .padding(.top, 12)
+                }
 
                 Spacer(minLength: 8)
 
@@ -239,6 +249,19 @@ struct TopicScoreSheet: View {
     // MARK: - Comment field
 
     @State private var comment: String = ""
+
+    private func anonymousToggle(_ binding: Binding<Bool>) -> some View {
+        Toggle(isOn: binding) {
+            HStack(spacing: 6) {
+                Image(systemName: binding.wrappedValue ? "eye.slash.fill" : "person.fill")
+                    .font(.system(size: 12))
+                Text(binding.wrappedValue ? "익명으로 남기기" : "닉네임으로 남기기")
+                    .font(.system(size: 13, weight: .medium))
+            }
+            .foregroundStyle(ScoorPalette.inkSecondary)
+        }
+        .tint(ScoorPalette.inkSecondary)
+    }
 
     private var commentFieldSection: some View {
         VStack(alignment: .leading, spacing: 6) {
