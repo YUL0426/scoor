@@ -50,4 +50,23 @@ final class SwiftDataGuestbookService: GuestbookServiceProtocol {
         try modelContext.delete(model: GuestbookRecord.self)
         try modelContext.save()
     }
+
+    /// Re-key both sides: entries the user received (recipient) and ones they left
+    /// on their own page (author) — spec-13 §7.
+    func reassignMessages(from oldUserId: UUID, to newUserId: UUID) async throws {
+        guard oldUserId != newUserId else { return }
+
+        let received = try modelContext.fetch(
+            FetchDescriptor<GuestbookRecord>(predicate: #Predicate { $0.recipientId == oldUserId })
+        )
+        for record in received { record.recipientId = newUserId }
+
+        let written = try modelContext.fetch(
+            FetchDescriptor<GuestbookRecord>(predicate: #Predicate { $0.authorId == oldUserId })
+        )
+        for record in written { record.authorId = newUserId }
+
+        guard !received.isEmpty || !written.isEmpty else { return }
+        try modelContext.save()
+    }
 }

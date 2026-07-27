@@ -77,6 +77,52 @@ final class SwiftDataScoreService: ScoreServiceProtocol {
         NotificationCenter.default.post(name: .scoorScoreStoreDidChange, object: nil)
     }
 
+    /// Re-key every record from one owner to another (spec-13 §7).
+    ///
+    /// A day the account already holds is kept only if it is newer than the
+    /// incoming row — the same "one score per day, last write wins" rule the app
+    /// applies everywhere else, so adopting an account on a second device cannot
+    /// silently downgrade a day that was edited more recently elsewhere.
+    @discardableResult
+    func reassignScores(from oldUserId: UUID, to newUserId: UUID) async throws -> [Score] {
+        guard oldUserId != newUserId else { return [] }
+
+        let incoming = try modelContext.fetch(
+            FetchDescriptor<ScoreModel>(predicate: #Predicate { $0.userId == oldUserId })
+        )
+        guard !incoming.isEmpty else { return [] }
+
+        let existing = try modelContext.fetch(
+            FetchDescriptor<ScoreModel>(predicate: #Predicate { $0.userId == newUserId })
+        )
+        var byDay: [Date: ScoreModel] = [:]
+        for row in existing {
+            byDay[Self.dayBounds(for: row.date).start] = row
+        }
+
+        var moved: [Score] = []
+        for row in incoming {
+            let day = Self.dayBounds(for: row.date).start
+            if let incumbent = byDay[day] {
+                guard row.createdAt > incumbent.createdAt else {
+                    modelContext.delete(row)
+                    continue
+                }
+                modelContext.delete(incumbent)
+            }
+            row.userId = newUserId
+            byDay[day] = row
+            moved.append(row.toScore())
+        }
+        try modelContext.save()
+
+        #if DEBUG
+        print("[Scoor] SwiftDataScoreService reassignScores \(oldUserId) → \(newUserId) moved=\(moved.count) of \(incoming.count)")
+        #endif
+        NotificationCenter.default.post(name: .scoorScoreStoreDidChange, object: nil)
+        return moved
+    }
+
     // MARK: - Read
 
     func getTodaysScore(userId: UUID) async -> Score? {

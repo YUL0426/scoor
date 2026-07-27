@@ -51,4 +51,48 @@ final class MockScoreService: ScoreServiceProtocol {
         storage.removeAll()
         NotificationCenter.default.post(name: .scoorScoreStoreDidChange, object: nil)
     }
+
+    /// Mirrors `SwiftDataScoreService.reassignScores` — newer record wins per day.
+    @discardableResult
+    func reassignScores(from oldUserId: UUID, to newUserId: UUID) async throws -> [Score] {
+        guard oldUserId != newUserId else { return [] }
+        let calendar = Calendar.current
+
+        let incoming = storage.filter { $0.userId == oldUserId }
+        guard !incoming.isEmpty else { return [] }
+
+        var byDay: [Date: Score] = [:]
+        for score in storage where score.userId == newUserId {
+            byDay[calendar.startOfDay(for: score.date)] = score
+        }
+
+        var moved: [Score] = []
+        for score in incoming {
+            let day = calendar.startOfDay(for: score.date)
+            if let incumbent = byDay[day] {
+                guard score.createdAt > incumbent.createdAt else {
+                    storage.removeAll { $0.id == score.id }
+                    continue
+                }
+                storage.removeAll { $0.id == incumbent.id }
+            }
+            let rekeyed = Score(
+                id: score.id,
+                userId: newUserId,
+                value: score.value,
+                reason: score.reason,
+                mood: score.mood,
+                date: score.date,
+                locationId: score.locationId,
+                createdAt: score.createdAt
+            )
+            storage.removeAll { $0.id == score.id }
+            storage.append(rekeyed)
+            byDay[day] = rekeyed
+            moved.append(rekeyed)
+        }
+        storage.sort { $0.date > $1.date }
+        NotificationCenter.default.post(name: .scoorScoreStoreDidChange, object: nil)
+        return moved
+    }
 }

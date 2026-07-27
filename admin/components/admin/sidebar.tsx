@@ -13,18 +13,36 @@ import {
   LogOut,
   Zap,
   ChevronRight,
+  ListChecks,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard, exact: true },
-  { label: "Users", href: "/admin/users", icon: Users },
-  { label: "World Agenda", href: "/admin/agenda", icon: Globe },
-  { label: "Feed", href: "/admin/feed", icon: Rss },
-  { label: "Notifications", href: "/admin/notifications", icon: Bell },
-  { label: "Analytics", href: "/admin/analytics", icon: BarChart2 },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
+/// Grouped by a field rather than by index slices: the previous form hard-coded
+/// `slice(0, 4)` / `slice(4, 6)` / `[6]`, so adding one item silently moved
+/// another into the wrong section.
+const NAV_GROUPS = [
+  {
+    title: "Operations",
+    items: [
+      { label: "Dashboard", href: "/admin", icon: LayoutDashboard, exact: true },
+      { label: "Users", href: "/admin/users", icon: Users },
+      { label: "World Topics", href: "/admin/topics", icon: ListChecks },
+      { label: "World Agenda", href: "/admin/agenda", icon: Globe },
+      { label: "Feed", href: "/admin/feed", icon: Rss },
+    ],
+  },
+  {
+    title: "Insights",
+    items: [
+      { label: "Notifications", href: "/admin/notifications", icon: Bell },
+      { label: "Analytics", href: "/admin/analytics", icon: BarChart2 },
+    ],
+  },
+  {
+    title: "System",
+    items: [{ label: "Settings", href: "/admin/settings", icon: Settings }],
+  },
 ] as const;
 
 function NavItem({
@@ -90,30 +108,20 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
-        <div className="px-2 mb-2">
-          <span className="text-[10px] font-semibold text-[#52526c] uppercase tracking-widest">
-            Operations
-          </span>
-        </div>
-        {NAV_ITEMS.slice(0, 4).map((item) => (
-          <NavItem key={item.href} {...item} />
+        {NAV_GROUPS.map((group, index) => (
+          <div key={group.title}>
+            <div className={cn("px-2 mb-2", index > 0 && "mt-4")}>
+              <span className="text-[10px] font-semibold text-[#52526c] uppercase tracking-widest">
+                {group.title}
+              </span>
+            </div>
+            <div className="space-y-0.5">
+              {group.items.map((item) => (
+                <NavItem key={item.href} {...item} />
+              ))}
+            </div>
+          </div>
         ))}
-
-        <div className="px-2 mt-4 mb-2">
-          <span className="text-[10px] font-semibold text-[#52526c] uppercase tracking-widest">
-            Insights
-          </span>
-        </div>
-        {NAV_ITEMS.slice(4, 6).map((item) => (
-          <NavItem key={item.href} {...item} />
-        ))}
-
-        <div className="px-2 mt-4 mb-2">
-          <span className="text-[10px] font-semibold text-[#52526c] uppercase tracking-widest">
-            System
-          </span>
-        </div>
-        <NavItem {...NAV_ITEMS[6]} />
       </nav>
 
       {/* User area */}

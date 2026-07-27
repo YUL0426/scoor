@@ -92,13 +92,28 @@ final class RemoteDecodingTests: XCTestCase {
 
     /// 갓 만들어진 토픽은 등락보다 "새 토픽"이 우선한다 — 콜드 스타트 구간에는
     /// 참여를 부르는 라벨이 더 유용하고, 표본 몇 개짜리 등락은 노이즈다.
+    ///
+    /// 생성 시각은 실행 시점 기준으로 만든다. 고정 타임스탬프를 쓰면 "6시간 이내"
+    /// 규칙이 작성한 날 하루만 통과하고 다음 날부터 영구 실패한다(실제로 그랬다).
     func testFreshTakesPriorityOverDeltaForNewTopics() throws {
+        let json = """
+        [{"id":"79fa6cb6-adbe-4127-850a-fb95bd094107","category":"love","title":"방금 만든 토픽",
+          "subtitle":null,"cover_emoji":"❤️","status":"live",
+          "created_at":"\(Self.iso(Date().addingTimeInterval(-3600)))","posts_count":3,
+          "global_score":64,"score_delta":-9,
+          "last_activity_at":"\(Self.iso(Date().addingTimeInterval(-600)))"}]
+        """
         let topic = try XCTUnwrap(
-            try SupabaseHTTPClient.decoder
-                .decode([TopicRow].self, from: Data(topicsFeedJSON.utf8))[1]
-                .toDomain()
+            try SupabaseHTTPClient.decoder.decode([TopicRow].self, from: Data(json.utf8))[0].toDomain()
         )
-        XCTAssertEqual(topic.heat, .fresh, "오늘 만들어진 토픽은 fresh여야 한다")
+        XCTAssertEqual(topic.heat, .fresh,
+                       "6시간 이내에 만들어진 토픽은 등락(-9)보다 fresh가 우선해야 한다")
+    }
+
+    private static func iso(_ date: Date) -> String {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f.string(from: date)
     }
 
     /// 충분히 오래된 토픽에서는 등락이 그대로 드러나야 한다.

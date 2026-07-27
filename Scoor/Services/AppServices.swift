@@ -32,6 +32,10 @@ final class AppServices: ObservableObject {
     /// Whether this build syncs to a backend at all — drives the Settings sync row.
     var isBackendBacked: Bool { remoteScoreService != nil }
 
+    /// Adopts pre-login data on sign-in (spec-13 §7). Present even with no backend:
+    /// the account id changes there too, so the local re-key is still required.
+    private(set) var accountMigrator: AccountMigrator?
+
     /// Designated init. Defaults to mock services so SwiftUI previews keep working.
     init(
         scoreService: ScoreServiceProtocol = MockScoreService(),
@@ -71,9 +75,11 @@ final class AppServices: ObservableObject {
         var remoteScores: RemoteScoreService?
         var world: RemoteWorldService?
         var moderation: RemoteModerationService?
+        var httpClient: SupabaseHTTPClient?
 
         if let config = SupabaseConfig.current, let authService {
             let client = SupabaseHTTPClient(config: config, tokenProvider: authService)
+            httpClient = client
             remoteScores = RemoteScoreService(local: localScores, client: client)
             // Reads the id at call time rather than capturing it: the session can
             // change (sign-out, account switch) while these services live on.
@@ -84,14 +90,22 @@ final class AppServices: ObservableObject {
             moderation = RemoteModerationService(client: client, currentUserID: currentUserID)
         }
 
+        let guestbook = SwiftDataGuestbookService(modelContext: modelContext)
         self.init(
             scoreService: remoteScores ?? localScores,
-            guestbookService: SwiftDataGuestbookService(modelContext: modelContext),
+            guestbookService: guestbook,
             notificationService: LocalNotificationService(),
             socialService: SwiftDataSocialService(modelContext: modelContext),
             remoteScoreService: remoteScores,
             worldService: world,
             moderationService: moderation
+        )
+        self.accountMigrator = AccountMigrator(
+            scoreService: scoreService,
+            guestbookService: guestbook,
+            userService: userService,
+            remoteScoreService: remoteScores,
+            client: httpClient
         )
     }
 
@@ -102,5 +116,22 @@ final class AppServices: ObservableObject {
     func syncScores(userId: UUID?) {
         guard let userId, let remoteScoreService else { return }
         remoteScoreService.sync(userId: userId)
+    }
+
+    /// Call right after a sign-in has been applied to the profile: adopt whatever
+    /// was recorded before the account existed, then sync (spec-13 §7).
+    ///
+    /// - Parameter previousLocalUserID: the id local rows were keyed to *before*
+    ///   `applyAuthenticatedIdentity` swapped it.
+    @MainActor
+    func adoptSignedInAccount(previousLocalUserID: UUID?, accountUserID: UUID) async {
+        await accountMigrator?.migrateIfNeeded(from: previousLocalUserID, to: accountUserID)
+        syncScores(userId: accountUserID)
+    }
+
+    /// Timestamp of the last successful pull, for the Settings sync row.
+    @MainActor
+    func lastSyncedAt() async -> Date? {
+        await remoteScoreService?.lastSyncedAt()
     }
 }

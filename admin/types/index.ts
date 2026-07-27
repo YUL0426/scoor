@@ -11,6 +11,48 @@ export type UserStatus = "active" | "suspended" | "banned" | "pending";
 export type FeedType = "score" | "agenda_reaction" | "comment" | "share";
 
 // ─────────────────────────────────────────────
+// World topics (real backend — public.topics)
+//
+// Distinct from the mock `Agenda` types above: these mirror the live schema the
+// iOS app reads. `TOPIC_CATEGORIES` must stay in sync with the iOS
+// `WorldCategory` enum and the DB check constraint on `topics.category` — all
+// three list the same raw values.
+// ─────────────────────────────────────────────
+
+export const TOPIC_CATEGORIES = [
+  "sports",
+  "politics",
+  "society",
+  "entertainment",
+  "stocks",
+  "crypto",
+  "tech",
+  "love",
+  "work",
+  "students",
+  "night",
+] as const;
+
+export const TOPIC_STATUSES = ["draft", "live", "closed"] as const;
+
+export type TopicStatus = (typeof TOPIC_STATUSES)[number];
+
+export interface AdminTopic {
+  id: string;
+  category: string;
+  title: string;
+  subtitle: string | null;
+  coverEmoji: string | null;
+  status: TopicStatus;
+  createdAt: string;
+  startsAt: string | null;
+  endsAt: string | null;
+  /** From `topic_stats`; 0 for a topic nobody has scored yet. */
+  postsCount: number;
+  globalScore: number;
+}
+
+// ─────────────────────────────────────────────
 // User
 // ─────────────────────────────────────────────
 

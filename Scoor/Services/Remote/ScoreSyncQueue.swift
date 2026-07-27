@@ -37,7 +37,15 @@ struct ScoreSyncOperation: Codable, Equatable, Identifiable {
     /// Attempts so far; used to back off and eventually drop poison operations.
     var attempts: Int = 0
 
-    static func upsert(_ score: Score, calendar: Calendar = .current) -> ScoreSyncOperation {
+    /// - Parameter clientUpdatedAt: when the value was actually written locally.
+    ///   Defaults to now, which is right for a live edit. A backfill of history
+    ///   (spec-13 §7) must pass the record's own timestamp instead: stamping old
+    ///   rows with `now` would make them look like the newest write and overwrite a
+    ///   genuinely newer edit from another device — the server's LWW trigger can
+    ///   only compare the times we give it.
+    static func upsert(_ score: Score,
+                       calendar: Calendar = .current,
+                       clientUpdatedAt: Date = Date()) -> ScoreSyncOperation {
         ScoreSyncOperation(
             id: UUID(),
             kind: .upsert,
@@ -46,7 +54,7 @@ struct ScoreSyncOperation: Codable, Equatable, Identifiable {
             value: score.value,
             reason: score.reason,
             mood: score.mood?.rawValue,
-            clientUpdatedAt: Date()
+            clientUpdatedAt: clientUpdatedAt
         )
     }
 

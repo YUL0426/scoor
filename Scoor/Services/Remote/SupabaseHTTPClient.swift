@@ -279,6 +279,21 @@ struct SupabaseRequest {
         )
     }
 
+    /// Partial update of existing rows. Used where an upsert would be wrong
+    /// because the row is created for us — `profiles` is inserted by the sign-up
+    /// trigger, so the client only ever patches it.
+    static func update<T: Encodable>(_ table: String,
+                                     values: T,
+                                     filters: [String: String]) throws -> SupabaseRequest {
+        SupabaseRequest(
+            method: .patch,
+            path: table,
+            query: filters,
+            headers: ["Prefer": "return=minimal"],
+            body: try SupabaseHTTPClient.encoder.encode(values)
+        )
+    }
+
     static func delete(_ table: String, filters: [String: String]) -> SupabaseRequest {
         SupabaseRequest(method: .delete, path: table, query: filters,
                         headers: ["Prefer": "return=minimal"])
