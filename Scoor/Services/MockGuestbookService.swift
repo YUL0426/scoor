@@ -36,4 +36,19 @@ final class MockGuestbookService: GuestbookServiceProtocol {
     func deleteAllMessages() async throws {
         storage.removeAll()
     }
+
+    func reassignMessages(from oldUserId: UUID, to newUserId: UUID) async throws {
+        guard oldUserId != newUserId else { return }
+        storage = storage.map { message in
+            guard message.authorId == oldUserId || message.recipientId == oldUserId else { return message }
+            return GuestbookMessage(
+                id: message.id,
+                authorId: message.authorId == oldUserId ? newUserId : message.authorId,
+                recipientId: message.recipientId == oldUserId ? newUserId : message.recipientId,
+                content: message.content,
+                isPrivate: message.isPrivate,
+                createdAt: message.createdAt
+            )
+        }
+    }
 }

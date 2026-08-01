@@ -62,6 +62,30 @@ final class RemoteScoreService: ScoreServiceProtocol {
         await queue.removeAll()
     }
 
+    /// Adopt records written before sign-in (spec-13 §7). The local re-key is what
+    /// makes the history visible again; queueing the moved rows is what gets them
+    /// to the server. Each keeps its original write time so last-write-wins stays
+    /// honest against edits already on the server from another device.
+    @discardableResult
+    func reassignScores(from oldUserId: UUID, to newUserId: UUID) async throws -> [Score] {
+        let moved = try await local.reassignScores(from: oldUserId, to: newUserId)
+        for score in moved {
+            await queue.enqueue(.upsert(score, calendar: calendar, clientUpdatedAt: score.createdAt))
+        }
+        return moved
+    }
+
+    /// Queue every locally held record for upload without touching the rows.
+    ///
+    /// Needed for the account whose ids already match but whose history predates
+    /// the sync layer: nothing was ever queued for those days, so a re-key moves
+    /// nothing and the backup would stay empty until each day is edited again.
+    func enqueueBackfill(userId: UUID) async {
+        for score in await local.getScoreHistory(userId: userId, limit: 3650) {
+            await queue.enqueue(.upsert(score, calendar: calendar, clientUpdatedAt: score.createdAt))
+        }
+    }
+
     // MARK: - Reads (always local — never blocked on network)
 
     func getTodaysScore(userId: UUID) async -> Score? {

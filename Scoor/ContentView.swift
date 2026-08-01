@@ -59,7 +59,8 @@ struct ContentView: View {
         case .feed:
             FeedView(socialService: appServices.socialService)
         case .world:
-            WorldView(socialService: appServices.socialService)
+            WorldView(socialService: appServices.socialService,
+                      worldService: appServices.worldService)
         case .mypage:
             NavigationStack {
                 MyPageView(

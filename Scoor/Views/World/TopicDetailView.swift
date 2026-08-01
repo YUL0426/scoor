@@ -22,11 +22,28 @@ struct TopicDetailView: View {
     @State var topic: WorldTopic
     /// 월드 점수 영속 서비스(작성/재작성 결과 저장).
     var socialService: SocialServiceProtocol = MockSocialService()
+    /// 서버 연결 시 토픽 반응/점수 제출을 담당. nil이면 로컬 시드로 동작한다.
+    var worldService: RemoteWorldService? = nil
+    /// 신고·차단·가이드라인 동의 (App Store 1.2). World와 함께 나가야 한다.
+    var moderationService: RemoteModerationService? = nil
+
     @State private var selectedRegion: WorldRegion = .global
     @State private var showScoreSheet = false
     @State private var scoreTarget: ScoorTarget = .match
     @State private var mySubmissions: [ScoorTarget: Int] = [:]
     @State private var feedbackScore: Int? = nil
+
+    /// 서버에서 내려온 반응. nil이면 아직 로드 전이거나 백엔드가 없어 시드를 쓴다.
+    @State private var liveReactions: [TopicReactionRow]? = nil
+    /// 사용자가 이 세션에서 차단·신고해 즉시 감춘 항목. 서버 RLS가 다음 로드부터
+    /// 걸러주지만, 그 사이에도 화면에 남아 있으면 안 된다.
+    @State private var hiddenReactionIds: Set<UUID> = []
+    @State private var reportTarget: TopicReactionRow? = nil
+    @State private var showGuidelines = false
+    @State private var pendingSubmission: (score: Int, comment: String?)? = nil
+    @State private var submitError: String? = nil
+    /// 게시 단위 익명 선택 (§15-2: 닉네임 기본, 게시별 토글).
+    @AppStorage("scoor.world.anonymousDefault") private var isAnonymous = false
 
     private var detail: TopicDetail { MockWorld.detail(for: topic) }
 
@@ -65,17 +82,63 @@ struct TopicDetailView: View {
             }
         }
         .environment(\.colorScheme, .dark)
-        .task { await loadMySubmissions() }
+        .task {
+            await loadMySubmissions()
+            await loadLiveReactions()
+        }
         .sheet(isPresented: $showScoreSheet) {
             TopicScoreSheet(
                 topic: topic,
                 target: $scoreTarget,
-                existing: mySubmissions[scoreTarget]
+                existing: mySubmissions[scoreTarget],
+                // 서버에 올릴 때만 익명 선택이 의미가 있다.
+                isAnonymous: worldService == nil ? nil : $isAnonymous
             ) { submitted, comment in
-                handleSubmission(score: submitted, comment: comment)
+                submitWithGuidelineGate(score: submitted, comment: comment)
             }
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $reportTarget) { row in
+            ReportSheet(
+                targetType: .worldScore,
+                targetId: row.id,
+                authorId: nil,
+                service: moderationService,
+                onCompleted: {
+                    // 신고한 항목은 검토 전에도 신고자 화면에서 즉시 사라진다.
+                    hiddenReactionIds.insert(row.id)
+                }
+            )
+        }
+        .sheet(isPresented: $showGuidelines) {
+            CommunityGuidelinesSheet(service: moderationService) {
+                if let pending = pendingSubmission {
+                    pendingSubmission = nil
+                    handleSubmission(score: pending.score, comment: pending.comment)
+                }
+            }
+        }
+        .alert("게시하지 못했어요", isPresented: Binding(
+            get: { submitError != nil },
+            set: { if !$0 { submitError = nil } }
+        )) {
+            Button("확인", role: .cancel) { submitError = nil }
+        } message: {
+            Text(submitError ?? "")
+        }
+    }
+
+    /// 서버 반응 로드. 백엔드가 없으면 시드를 그대로 쓴다(liveReactions == nil).
+    @MainActor
+    private func loadLiveReactions() async {
+        guard let worldService else { return }
+        do {
+            liveReactions = try await worldService.reactions(topicId: topic.id)
+        } catch {
+            #if DEBUG
+            print("[Scoor] topic reactions load failed: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -580,15 +643,29 @@ struct TopicDetailView: View {
             .padding(.bottom, 12)
 
             VStack(spacing: 0) {
-                ForEach(detail.recent) { r in
-                    reactionRow(r)
-                    Divider().background(ScoorPalette.hairline)
-                }
-                if detail.recent.isEmpty {
-                    Text("아직 반응이 없어요. 첫 Scoor를 남겨주세요.")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(ScoorPalette.inkSecondary)
-                        .padding(.vertical, 28)
+                if let live = liveReactions {
+                    let visible = live.filter { !hiddenReactionIds.contains($0.id) }
+                    ForEach(visible, id: \.id) { row in
+                        liveReactionRow(row)
+                        Divider().background(ScoorPalette.hairline)
+                    }
+                    if visible.isEmpty {
+                        Text("아직 반응이 없어요. 첫 Scoor를 남겨주세요.")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(ScoorPalette.inkSecondary)
+                            .padding(.vertical, 28)
+                    }
+                } else {
+                    ForEach(detail.recent) { r in
+                        reactionRow(r)
+                        Divider().background(ScoorPalette.hairline)
+                    }
+                    if detail.recent.isEmpty {
+                        Text("아직 반응이 없어요. 첫 Scoor를 남겨주세요.")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(ScoorPalette.inkSecondary)
+                            .padding(.vertical, 28)
+                    }
                 }
             }
         }
@@ -624,6 +701,47 @@ struct TopicDetailView: View {
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 12)
+    }
+
+    /// 서버 반응 한 줄. 길게 누르면 신고/차단 (App Store 1.2 — UGC가 보이는
+    /// 모든 곳에서 신고 경로가 닿아야 한다).
+    private func liveReactionRow(_ row: TopicReactionRow) -> some View {
+        let identity = row.identity
+        return HStack(alignment: .top, spacing: 12) {
+            avatarCircle(seed: identity.avatarSeed,
+                         initial: identity.isAnonymous ? "?" :
+                            String(identity.name.prefix(1)).uppercased())
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    Text(identity.name)
+                        .font(ScoorType.name)
+                        .foregroundStyle(ScoorPalette.inkPrimary)
+                    Text("·").font(ScoorType.meta).foregroundStyle(ScoorPalette.inkTertiary)
+                    Text(RelativeTime.short(from: row.createdAt))
+                        .font(ScoorType.meta)
+                        .foregroundStyle(ScoorPalette.inkTertiary)
+                    Spacer()
+                    FeedScoreDisplay(score: row.value, size: 17)
+                }
+                if let comment = row.comment, !comment.isEmpty {
+                    Text(comment)
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(ScoorPalette.inkPrimary.opacity(0.94))
+                        .lineSpacing(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+        .contextMenu {
+            Button(role: .destructive) {
+                reportTarget = row
+            } label: {
+                Label("신고하기", systemImage: "flag")
+            }
+        }
     }
 
     private func avatarCircle(seed: Int, initial: String) -> some View {
@@ -770,14 +888,55 @@ struct TopicDetailView: View {
 
     // MARK: - Submission handling
 
+    /// 첫 게시 전에 커뮤니티 가이드라인 동의를 한 번 받는다 (§9).
+    /// 이미 동의했거나 백엔드가 없으면 그대로 통과시킨다.
+    private func submitWithGuidelineGate(score: Int, comment: String?) {
+        guard let moderation = moderationService else {
+            handleSubmission(score: score, comment: comment)
+            return
+        }
+        Task {
+            if await moderation.hasAcceptedGuidelines() {
+                handleSubmission(score: score, comment: comment)
+            } else {
+                pendingSubmission = (score, comment)
+                showGuidelines = true
+            }
+        }
+    }
+
     private func handleSubmission(score: Int, comment: String?) {
         let target = scoreTarget
         mySubmissions[target] = score
 
         // 영속: 월드 토픽에 매긴 내 점수 저장(작성 후 토픽/상세 집계 반영의 기반).
-        let title = topic.title
-        let targetId = target.id
-        Task { try? await socialService.submitWorldScore(topicTitle: title, targetId: targetId, score: score, comment: comment) }
+        if let worldService {
+            let topicId = topic.id
+            let targetId = target.id
+            let anonymous = isAnonymous
+            Task {
+                do {
+                    try await worldService.submitWorldScore(
+                        topicId: topicId,
+                        targetId: targetId,
+                        score: score,
+                        comment: comment,
+                        isAnonymous: anonymous,
+                        countryCode: nil
+                    )
+                    // 내 반응이 목록에 바로 보이도록 다시 읽는다.
+                    await loadLiveReactions()
+                } catch {
+                    // 피드 게시는 오프라인 우선이 아니다 — 실패하면 알려야 한다 (spec-13 §5).
+                    submitError = (error as? LocalizedError)?.errorDescription
+                        ?? error.localizedDescription
+                }
+            }
+        } else {
+            let title = topic.title
+            let targetId = target.id
+            Task { try? await socialService.submitWorldScore(topicTitle: title, targetId: targetId, score: score, comment: comment) }
+        }
 
         if target == .match {
             // Rough blend: globalScore = (오래된 평균 * 99 + 내 점수 * 1) / 100

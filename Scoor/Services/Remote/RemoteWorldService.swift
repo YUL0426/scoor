@@ -29,17 +29,14 @@ final class RemoteWorldService {
     // MARK: - Topics
 
     /// Live + closed topics with their aggregate stats, newest first.
+    ///
+    /// Reads `topics_feed`, a view that pre-joins the stats. PostgREST cannot
+    /// embed a view from a table (no FK relationship to follow — it fails the
+    /// whole query with PGRST200), so the join is done in the database and the
+    /// client makes one flat request.
     func loadTopics(limit: Int = 50) async throws -> [WorldTopic] {
-        // One embedded read instead of N+1: PostgREST joins topic_stats through
-        // the FK relationship in a single request.
         let rows: [TopicRow] = try await client.send(
-            .select(
-                "topics",
-                columns: "id,category,title,cover_emoji,status,created_at,topic_stats(*)",
-                filters: ["status": "in.(live,closed)"],
-                order: "created_at.desc",
-                limit: limit
-            ),
+            .select("topics_feed", order: "created_at.desc", limit: limit),
             as: [TopicRow].self
         )
         return rows.compactMap { $0.toDomain() }
@@ -103,37 +100,43 @@ final class RemoteWorldService {
 
 // MARK: - Wire models
 
+/// Mirrors `public.topics_feed` — topic columns with the aggregate already joined.
 struct TopicRow: Codable {
     let id: UUID
     let category: String
     let title: String
+    let subtitle: String?
     let coverEmoji: String?
     let createdAt: Date
-    let stats: [TopicStatsRow]
+    let postsCount: Int
+    let globalScore: Int
+    let scoreDelta: Int
+    let lastActivityAt: Date
 
     enum CodingKeys: String, CodingKey {
-        case id, category, title, createdAt = "created_at"
+        case id, category, title, subtitle
         case coverEmoji = "cover_emoji"
-        case stats = "topic_stats"
+        case createdAt = "created_at"
+        case postsCount = "posts_count"
+        case globalScore = "global_score"
+        case scoreDelta = "score_delta"
+        case lastActivityAt = "last_activity_at"
     }
 
     func toDomain() -> WorldTopic? {
         // An unknown category means the server has a topic type this build cannot
         // render. Dropping it beats showing a broken cell.
         guard let category = WorldCategory(rawValue: category) else { return nil }
-        let stat = stats.first
-        let postsCount = stat?.postsCount ?? 0
-        let delta = stat?.scoreDelta ?? 0
         return WorldTopic(
             id: id,
             category: category,
             title: title,
             emoji: coverEmoji ?? category.emoji,
-            globalScore: stat?.globalScore ?? 0,
-            scoreDelta: delta,
+            globalScore: globalScore,
+            scoreDelta: scoreDelta,
             postsCount: postsCount,
-            lastActivityAt: stat?.lastActivityAt ?? createdAt,
-            heat: Self.heat(postsCount: postsCount, delta: delta, createdAt: createdAt)
+            lastActivityAt: lastActivityAt,
+            heat: Self.heat(postsCount: postsCount, delta: scoreDelta, createdAt: createdAt)
         )
     }
 
@@ -146,20 +149,6 @@ struct TopicRow: Codable {
         if delta <= -8 { return .falling }
         if postsCount >= 500 { return .hot }
         return .calm
-    }
-}
-
-struct TopicStatsRow: Codable {
-    let postsCount: Int
-    let globalScore: Int?
-    let scoreDelta: Int?
-    let lastActivityAt: Date?
-
-    enum CodingKeys: String, CodingKey {
-        case postsCount = "posts_count"
-        case globalScore = "global_score"
-        case scoreDelta = "score_delta"
-        case lastActivityAt = "last_activity_at"
     }
 }
 
@@ -182,7 +171,7 @@ struct WorldScoreRow: Codable, Equatable {
     }
 }
 
-struct TopicReactionRow: Codable {
+struct TopicReactionRow: Codable, Identifiable {
     let id: UUID
     let value: Int
     let comment: String?

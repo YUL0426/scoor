@@ -91,7 +91,12 @@ private struct TopicMiniCard: View {
                 Image(systemName: "text.bubble")
                     .font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(ScoorPalette.inkTertiary)
-                Text("\(CompactCount.format(topic.postsCount))글")
+                // CompactCount는 0을 빈 문자열로 낸다. 시드에서는 모든 토픽이
+                // 수천 건이라 드러나지 않았지만, 실제 서비스의 새 토픽은 전부
+                // 0에서 시작해 "글"만 덩그러니 남는다.
+                Text(topic.postsCount > 0
+                     ? "\(CompactCount.format(topic.postsCount))글"
+                     : "아직 반응 없음")
                     .font(.system(size: 10.5, weight: .medium))
                     .foregroundStyle(ScoorPalette.inkTertiary)
             }

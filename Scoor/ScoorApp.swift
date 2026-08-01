@@ -193,12 +193,19 @@ struct RootFlowView: View {
         Task {
             defer { isAuthenticating = false }
             do {
+                // Captured before the profile adopts the account id — afterwards
+                // there is no way to know which id the local rows belong to.
+                let previousUserID = await services.userService.getCurrentUser()?.id
                 let identity = try await authService.signIn(with: provider)
                 await services.userService.applyAuthenticatedIdentity(
                     provider: provider.rawValue,
                     userID: identity.resolvedUserID,
                     email: identity.email,
                     displayName: identity.fullName
+                )
+                await services.adoptSignedInAccount(
+                    previousLocalUserID: previousUserID,
+                    accountUserID: identity.resolvedUserID
                 )
                 coordinator.completeAuthentication(provider: provider, email: identity.email)
             } catch AuthError.cancelled {
@@ -232,11 +239,16 @@ struct RootFlowView: View {
                         // Adopt the deterministic email identity so records keyed by
                         // userId survive sign-out/sign-in cycles (P0-7).
                         if let session = authService.currentSession, session.providerKind == .email {
+                            let previousUserID = await services.userService.getCurrentUser()?.id
                             await services.userService.applyAuthenticatedIdentity(
                                 provider: session.provider,
                                 userID: session.userID,
                                 email: session.email,
                                 displayName: session.fullName
+                            )
+                            await services.adoptSignedInAccount(
+                                previousLocalUserID: previousUserID,
+                                accountUserID: session.userID
                             )
                         }
                         coordinator.completeAuthentication(provider: provider, email: email)

@@ -56,6 +56,8 @@ struct SettingsView: View {
     @State private var showSignOutConfirm = false
     @State private var showDeleteAccountConfirm = false
     @State private var isDeletingAccount = false
+    @State private var lastSyncedAt: Date?
+    @State private var isSyncing = false
     @AppStorage(AppAppearance.storageKey) private var appearanceRaw = AppAppearance.system.rawValue
 
     private var notifications: NotificationServiceProtocol { services.notificationService }
@@ -69,6 +71,10 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 accountSection
+
+                if services.isBackendBacked {
+                    syncSection
+                }
 
                 reminderSection
 
@@ -205,6 +211,62 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Sync section (spec-13 C7)
+
+    /// Sync is deliberately almost invisible: it must never look like something the
+    /// user has to manage, because journaling works whether or not it succeeded.
+    /// One timestamp, and a manual retry for the case where they *want* certainty.
+    @ViewBuilder
+    private var syncSection: some View {
+        Section {
+            HStack {
+                Label("마지막 동기화", systemImage: "arrow.triangle.2.circlepath")
+                Spacer()
+                if isSyncing {
+                    ProgressView()
+                } else {
+                    Text(lastSyncedText)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("settings-last-synced")
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture { Task { await syncNow() } }
+
+            NavigationLink {
+                BlockedUsersView(moderationService: services.moderationService)
+            } label: {
+                Label("차단한 사용자", systemImage: "hand.raised")
+            }
+            .accessibilityIdentifier("settings-blocked-users-link")
+        } header: {
+            Text("동기화")
+        } footer: {
+            Text("기록은 기기에 먼저 저장되고, 연결되면 계정으로 백업됩니다. 오프라인에서도 그대로 사용할 수 있어요.")
+        }
+    }
+
+    private var lastSyncedText: String {
+        guard authService.currentSession != nil else { return "로그인 필요" }
+        guard let lastSyncedAt else { return "대기 중" }
+        let f = RelativeDateTimeFormatter()
+        f.unitsStyle = .abbreviated
+        return f.localizedString(for: lastSyncedAt, relativeTo: Date())
+    }
+
+    private func syncNow() async {
+        guard let userID = authService.currentSession?.userID, !isSyncing else { return }
+        isSyncing = true
+        services.syncScores(userId: userID)
+        // The sync itself is fire-and-forget by design (spec-13 §5); this only
+        // holds the spinner long enough for the timestamp to land, so the row does
+        // not flash and look like nothing happened.
+        try? await Task.sleep(nanoseconds: 900_000_000)
+        lastSyncedAt = await services.lastSyncedAt()
+        isSyncing = false
+    }
+
     private var providerIcon: String {
         switch authService.currentSession?.providerKind {
         case .apple:  return "apple.logo"
@@ -306,6 +368,7 @@ struct SettingsView: View {
         } else {
             accountEmail = await services.userService.getCurrentUser()?.email
         }
+        lastSyncedAt = await services.lastSyncedAt()
         guard !didLoad else {
             // 시트 재진입 시 권한 상태는 다시 확인(설정에서 바꿨을 수 있음).
             authStatus = await notifications.currentAuthorizationStatus()

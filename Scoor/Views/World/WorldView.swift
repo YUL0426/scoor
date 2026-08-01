@@ -22,9 +22,12 @@ struct WorldView: View {
     @State private var myName: String = "나"
     private let mySeed = 1
 
-    init(socialService: SocialServiceProtocol) {
+    init(socialService: SocialServiceProtocol, worldService: RemoteWorldService? = nil) {
         self.socialService = socialService
-        _vm = StateObject(wrappedValue: WorldFeedViewModel(service: socialService))
+        _vm = StateObject(wrappedValue: WorldFeedViewModel(
+            service: socialService,
+            world: worldService
+        ))
     }
 
     // MARK: - Body
@@ -35,10 +38,16 @@ struct WorldView: View {
 
             VStack(spacing: 0) {
                 topHeader
+                // 토픽은 서버에서 오지만 아래 글 스트림은 아직 시드다(Phase 2에서
+                // 전환). 스트림이 가짜인 동안에는 배너를 유지해야 한다 — 진짜
+                // 토픽이 생겼다고 배너를 떼면 가짜 글이 진짜처럼 보인다(P0-1).
                 PreviewContentBanner()
                     .padding(.top, 4)
-                WorldPulseStrip(pulses: MockWorld.pulses)
-                    .padding(.top, 6)
+                // 펄스 티커도 시드 수치라 실데이터(/pulse) 연동 전까지 감춘다.
+                if !vm.topicsAreLive {
+                    WorldPulseStrip(pulses: MockWorld.pulses)
+                        .padding(.top, 6)
+                }
                 sortTabs
                     .padding(.top, 10)
                 Divider().background(ScoorPalette.hairlineSoft)
@@ -61,7 +70,10 @@ struct WorldView: View {
             Task { await refreshMyName() }
         }
         .sheet(item: $selectedTopic) { topic in
-            TopicDetailView(topic: topic, socialService: socialService)
+            TopicDetailView(topic: topic,
+                            socialService: socialService,
+                            worldService: appServices.worldService,
+                            moderationService: appServices.moderationService)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.hidden)
         }
@@ -94,23 +106,35 @@ struct WorldView: View {
                 .font(.system(size: 22, weight: .heavy))
                 .foregroundStyle(ScoorPalette.inkPrimary)
                 .accessibilityIdentifier("world.header")
-            statusDot.padding(.leading, 2)
+            // 접속자 수·평균 점수를 표시하던 자리. 그 수치는 하드코딩된
+            // 가짜였고(P0-1), 실데이터는 /pulse 집계가 붙어야 나온다(C9).
+            // 없는 데이터를 지어내느니 자리를 비워둔다.
+            if !vm.topicsAreLive {
+                statusDot.padding(.leading, 2)
+            }
 
             Spacer()
 
-            HStack(spacing: 6) {
-                Text("지금")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(ScoorPalette.inkTertiary)
-                Text(CompactCount.format(MockWorld.liveActiveCount))
-                    .font(.system(size: 12.5, weight: .bold))
-                    .foregroundStyle(ScoorPalette.inkPrimary)
-                    .monospacedDigit()
-                Text("·").font(.system(size: 11)).foregroundStyle(ScoorPalette.inkTertiary)
-                Text("평균 \(MockWorld.liveAverage)")
+            if vm.topicsAreLive {
+                Text("토픽 \(vm.topics.count)")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(ScoorPalette.accent)
+                    .foregroundStyle(ScoorPalette.inkTertiary)
                     .monospacedDigit()
+            } else {
+                HStack(spacing: 6) {
+                    Text("지금")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(ScoorPalette.inkTertiary)
+                    Text(CompactCount.format(MockWorld.liveActiveCount))
+                        .font(.system(size: 12.5, weight: .bold))
+                        .foregroundStyle(ScoorPalette.inkPrimary)
+                        .monospacedDigit()
+                    Text("·").font(.system(size: 11)).foregroundStyle(ScoorPalette.inkTertiary)
+                    Text("평균 \(MockWorld.liveAverage)")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ScoorPalette.accent)
+                        .monospacedDigit()
+                }
             }
         }
         .padding(.horizontal, 18)
