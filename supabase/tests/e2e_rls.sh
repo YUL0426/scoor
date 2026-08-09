@@ -145,7 +145,45 @@ else
   bad "신고 내역이 노출됨: $(echo "$RESP" | head -c 120)"
 fi
 
-echo "== 7. 정리: 테스트 계정 삭제 (CASCADE 동작 확인 겸) =="
+echo "== 7. account-delete Edge Function: 실제 계정 삭제 =="
+# SQL DELETE가 아니라 앱이 실제로 호출하는 Edge Function 경로를 그대로 탄다.
+EMAIL_C="scoor-e2e-c-$STAMP@gmail.com"
+UID_C="$(seed_user "$EMAIL_C")"
+TOKEN_C="$(signin "$EMAIL_C" | jqv access_token)"
+if [ -z "$UID_C" ] || [ -z "$TOKEN_C" ]; then
+  bad "C 계정 준비 실패 — Edge Function 검증 건너뜀"
+else
+  rest POST "scores?on_conflict=user_id,day" "$TOKEN_C" \
+    "[{\"user_id\":\"$UID_C\",\"day\":\"2026-07-20\",\"value\":55,\"client_updated_at\":\"2026-07-20T10:00:00Z\"}]" >/dev/null
+  check 1 "$(rest GET "scores?select=day" "$TOKEN_C" | count)" "C가 삭제 전 점수를 보유"
+
+  # 세션 없는 호출이 통하면 남의 계정을 지울 수 있는 구멍이 된다.
+  NOAUTH="$(curl -sS -m 30 -o /dev/null -w "%{http_code}" -X POST \
+    "$BASE/functions/v1/account-delete" -H "apikey: $KEY")"
+  check 401 "$NOAUTH" "세션 없는 삭제 요청은 401"
+
+  DEL="$(curl -sS -m 30 -X POST "$BASE/functions/v1/account-delete" \
+    -H "apikey: $KEY" -H "Authorization: Bearer $TOKEN_C")"
+  echo "$DEL" | grep -q '"deleted":true' \
+    && ok "C가 자기 계정 삭제 성공 (Edge Function)" \
+    || bad "삭제 응답이 예상과 다름: $(echo "$DEL" | head -c 160)"
+
+  GONE="$(supabase db query --linked \
+    "select count(*) as n from auth.users where id = '$UID_C'" 2>/dev/null \
+    | python3 -c "import sys,json,re;m=re.search(r'\{.*\}',sys.stdin.read(),re.S);d=json.loads(m.group(0)) if m else {};r=d.get('result') or d.get('rows') or [];print(r[0]['n'] if r else -1)")"
+  check 0 "$GONE" "auth.users에서 C가 사라짐"
+
+  LEFT_C="$(supabase db query --linked \
+    "select count(*) as n from public.scores where user_id = '$UID_C'" 2>/dev/null \
+    | python3 -c "import sys,json,re;m=re.search(r'\{.*\}',sys.stdin.read(),re.S);d=json.loads(m.group(0)) if m else {};r=d.get('result') or d.get('rows') or [];print(r[0]['n'] if r else -1)")"
+  check 0 "$LEFT_C" "C의 점수까지 CASCADE 삭제됨"
+
+  RETRY="$(curl -sS -m 30 -o /dev/null -w "%{http_code}" -X POST \
+    "$BASE/functions/v1/account-delete" -H "apikey: $KEY" -H "Authorization: Bearer $TOKEN_C")"
+  check 401 "$RETRY" "삭제된 계정의 토큰은 더 이상 통하지 않음"
+fi
+
+echo "== 8. 정리: 테스트 계정 삭제 (CASCADE 동작 확인 겸) =="
 supabase db query --linked \
   "delete from auth.users where email in ('$EMAIL_A','$EMAIL_B')" >/dev/null 2>&1
 LEFT="$(supabase db query --linked \
