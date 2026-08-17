@@ -14,38 +14,38 @@ interface QuickAction {
 
 const ACTIONS: QuickAction[] = [
   {
-    label: "New Agenda",
-    description: "Create world agenda",
+    label: "새 아젠다",
+    description: "월드 아젠다 생성",
     icon: Globe,
     color: "#4f8ef7",
   },
   {
-    label: "Review Reports",
+    label: "신고 검토",
     description: "7 pending items",
     icon: ShieldAlert,
     color: "#f59e0b",
   },
   {
-    label: "Send Notification",
-    description: "Push to all users",
+    label: "알림 발송",
+    description: "전체 사용자에게 푸시",
     icon: Bell,
     color: "#a855f7",
   },
   {
-    label: "Export Report",
-    description: "Download CSV data",
+    label: "리포트 내보내기",
+    description: "CSV 데이터 다운로드",
     icon: Download,
     color: "#22c55e",
   },
   {
-    label: "View Analytics",
-    description: "Deep dive metrics",
+    label: "분석 보기",
+    description: "지표 상세 분석",
     icon: BarChart2,
     color: "#06b6d4",
   },
   {
-    label: "Create Admin",
-    description: "Invite team member",
+    label: "관리자 추가",
+    description: "팀원 초대",
     icon: Plus,
     color: "#f42525",
   },
@@ -80,7 +80,7 @@ export function QuickActions() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
+        <CardTitle>빠른 작업</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-2">

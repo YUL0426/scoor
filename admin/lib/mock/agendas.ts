@@ -20,7 +20,7 @@ export const mockAgendas: Agenda[] = [
   {
     id: "ag_02",
     title: "Copa América Final",
-    description: "Brazil vs Argentina in the most anticipated match of the decade.",
+    description: "10년 만의 최대 관심 경기, 브라질 대 아르헨티나.",
     category: "sports",
     status: "active",
     tags: ["football", "brazil", "argentina", "sports"],
@@ -35,7 +35,7 @@ export const mockAgendas: Agenda[] = [
   },
   {
     id: "ag_03",
-    title: "AI Takes Over Creative Industry",
+    title: "AI가 창작 산업을 잠식하다",
     description: "Generative AI is replacing designers and writers. Your thoughts?",
     category: "technology",
     status: "active",
@@ -67,8 +67,8 @@ export const mockAgendas: Agenda[] = [
   },
   {
     id: "ag_05",
-    title: "Global Food Price Crisis",
-    description: "Food inflation hits record highs across emerging markets.",
+    title: "글로벌 식료품 가격 위기",
+    description: "신흥국 전반에서 식품 물가가 사상 최고치를 기록했습니다.",
     category: "economy",
     status: "trending",
     tags: ["economy", "food", "poverty", "crisis"],
@@ -83,7 +83,7 @@ export const mockAgendas: Agenda[] = [
   },
   {
     id: "ag_06",
-    title: "Mental Health Awareness Month",
+    title: "정신건강 인식의 달",
     description: "May is Mental Health Month. How are you really doing?",
     category: "health",
     status: "active",
@@ -99,7 +99,7 @@ export const mockAgendas: Agenda[] = [
   },
   {
     id: "ag_07",
-    title: "US Election Primary Season",
+    title: "미국 대선 경선 시즌",
     description: "Primaries are underway. Political fatigue or genuine hope?",
     category: "politics",
     status: "active",

@@ -31,7 +31,7 @@ export default function LoginPage() {
     try {
       const user = await signIn(email, password);
       if (!user) {
-        setError("Invalid credentials. Please check your email and password.");
+        setError("이메일 또는 비밀번호가 올바르지 않습니다.");
         setLoading(false);
         return;
       }
@@ -39,8 +39,8 @@ export default function LoginPage() {
     } catch (err) {
       setError(
         err instanceof AuthConfigError
-          ? "Admin auth is not configured. Set ADMIN_EMAIL, ADMIN_PASSWORD_SHA256, and ADMIN_SESSION_SECRET."
-          : "An unexpected error occurred. Please try again."
+          ? "어드민 인증이 설정되지 않았습니다. .env.local에 ADMIN_EMAIL, ADMIN_PASSWORD_SHA256, ADMIN_SESSION_SECRET를 채워주세요."
+          : "예기치 못한 오류가 발생했습니다. 다시 시도해주세요."
       );
       setLoading(false);
     }
@@ -81,19 +81,19 @@ export default function LoginPage() {
             <h1 className="text-xl font-bold text-[#f4f4f6] tracking-tight">
               scoor admin
             </h1>
-            <p className="text-xs text-[#52526c] mt-1">Operations Control Center</p>
+            <p className="text-xs text-[#52526c] mt-1">운영 관리 센터</p>
           </div>
 
           {/* Status bar */}
           <div className="flex items-center justify-center gap-6 mb-8 py-3 px-4 bg-white/3 rounded-xl border border-white/6">
             <div className="flex flex-col items-center gap-1">
               <span className="text-base font-bold text-emerald-400 tabular-nums">24.9K</span>
-              <span className="text-[10px] text-[#52526c] uppercase tracking-wider">DAU</span>
+              <span className="text-[10px] text-[#52526c] tracking-wider">일간 활성 사용자</span>
             </div>
             <div className="w-px h-8 bg-white/8" />
             <div className="flex flex-col items-center gap-1">
               <span className="text-base font-bold text-[#f42525] tabular-nums">67.3</span>
-              <span className="text-[10px] text-[#52526c] uppercase tracking-wider">Avg Scoor</span>
+              <span className="text-[10px] text-[#52526c] tracking-wider">평균 스코어</span>
             </div>
             <div className="w-px h-8 bg-white/8" />
             <div className="flex flex-col items-center gap-1">
@@ -101,14 +101,14 @@ export default function LoginPage() {
                 <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                 <span className="text-base font-bold text-[#f4f4f6] tabular-nums">18</span>
               </div>
-              <span className="text-[10px] text-[#52526c] uppercase tracking-wider">Agendas</span>
+              <span className="text-[10px] text-[#52526c] tracking-wider">아젠다</span>
             </div>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Email"
+              label="이메일"
               type="email"
               placeholder="admin@scoor.app"
               value={email}
@@ -118,7 +118,7 @@ export default function LoginPage() {
             />
 
             <Input
-              label="Password"
+              label="비밀번호"
               type={showPass ? "text" : "password"}
               placeholder="••••••••"
               value={password}
@@ -153,13 +153,13 @@ export default function LoginPage() {
               size="lg"
               loading={loading}
             >
-              {loading ? "Authenticating…" : "Sign In"}
+              {loading ? "인증 중…" : "로그인"}
             </Button>
           </form>
 
           {/* Hint */}
           <p className="text-center text-[10px] text-[#52526c] mt-6">
-            Protected access · Scoor Admin v1.0
+            접근 제한 · Scoor 어드민 v1.0
           </p>
         </div>
       </div>

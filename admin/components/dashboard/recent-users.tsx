@@ -3,7 +3,7 @@
 import { Users, Smartphone, Monitor } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatRelativeTime, scoorToColor } from "@/lib/utils";
+import { formatRelativeTime, scoorToColor, statusLabel } from "@/lib/utils";
 import type { User } from "@/types";
 
 function UserRow({ user }: { user: User }) {
@@ -47,7 +47,7 @@ function UserRow({ user }: { user: User }) {
           }
           dot
         >
-          {user.status}
+          {statusLabel(user.status)}
         </Badge>
         {user.lastScoor !== null && (
           <span
@@ -72,9 +72,9 @@ export function RecentUsers({ users }: RecentUsersProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users className="h-4 w-4 text-[#a855f7]" />
-          Recent Users
+          최근 사용자
         </CardTitle>
-        <span className="text-xs text-[#52526c]">active today</span>
+        <span className="text-xs text-[#52526c]">오늘 활성</span>
       </CardHeader>
       <CardContent className="py-2">
         {users.map((user) => (

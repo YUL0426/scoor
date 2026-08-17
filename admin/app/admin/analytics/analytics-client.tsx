@@ -32,7 +32,7 @@ interface Props {
 export function AnalyticsClient({ trend }: Props) {
   const chartData = trend.map((d) => ({
     ...d,
-    label: new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    label: new Date(d.date).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" }),
   }));
 
   return (
@@ -40,15 +40,15 @@ export function AnalyticsClient({ trend }: Props) {
       {/* KPI Overview */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "30d Active Users", value: "142.4K", delta: "+8.2%", positive: true },
-          { label: "Avg Session Length", value: "3m 42s", delta: "+12s", positive: true },
-          { label: "Scoor Completion Rate", value: "91.4%", delta: "-0.8%", positive: false },
+          { label: "30일 활성 사용자", value: "142.4K", delta: "+8.2%", positive: true },
+          { label: "평균 세션 길이", value: "3분 42초", delta: "+12s", positive: true },
+          { label: "점수 기록 완료율", value: "91.4%", delta: "-0.8%", positive: false },
         ].map((m) => (
           <div key={m.label} className="bg-[#0d0d1f] border border-white/6 rounded-xl p-5">
             <p className="text-xs text-[#52526c] uppercase tracking-wider mb-2">{m.label}</p>
             <p className="text-3xl font-bold text-[#f4f4f6] mb-1 tabular-nums">{m.value}</p>
             <span className={`text-xs font-medium ${m.positive ? "text-emerald-400" : "text-red-400"}`}>
-              {m.delta} vs last month
+              전월 대비 {m.delta}
             </span>
           </div>
         ))}
@@ -57,15 +57,15 @@ export function AnalyticsClient({ trend }: Props) {
       {/* Scoor Trend */}
       <div className="bg-[#0d0d1f] border border-white/6 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-[#f4f4f6]">Global Scoor Trend (30d)</h3>
+          <h3 className="text-sm font-semibold text-[#f4f4f6]">글로벌 스코어 추이 (30일)</h3>
           <div className="flex gap-2 text-xs">
             <span className="flex items-center gap-1.5 text-[#8b8ba4]">
               <span className="w-4 h-0.5 bg-[#f42525] inline-block" />
-              Platform
+              플랫폼
             </span>
             <span className="flex items-center gap-1.5 text-[#8b8ba4]">
               <span className="w-4 h-0.5 bg-[#4f8ef7] inline-block opacity-60" />
-              Global
+              글로벌
             </span>
           </div>
         </div>
@@ -89,15 +89,15 @@ export function AnalyticsClient({ trend }: Props) {
               labelStyle={{ color: "#8b8ba4" }}
               itemStyle={{ color: "#f4f4f6" }}
             />
-            <Area type="monotone" dataKey="globalAvg" name="Global" stroke="#4f8ef7" strokeWidth={1} strokeDasharray="4 4" fill="url(#a2)" dot={false} strokeOpacity={0.5} />
-            <Area type="monotone" dataKey="avgScoor" name="Platform" stroke="#f42525" strokeWidth={2} fill="url(#a1)" dot={false} />
+            <Area type="monotone" dataKey="globalAvg" name="글로벌" stroke="#4f8ef7" strokeWidth={1} strokeDasharray="4 4" fill="url(#a2)" dot={false} strokeOpacity={0.5} />
+            <Area type="monotone" dataKey="avgScoor" name="플랫폼" stroke="#f42525" strokeWidth={2} fill="url(#a1)" dot={false} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
       {/* Retention */}
       <div className="bg-[#0d0d1f] border border-white/6 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-[#f4f4f6] mb-4">User Retention Cohorts (%)</h3>
+        <h3 className="text-sm font-semibold text-[#f4f4f6] mb-4">사용자 리텐션 코호트 (%)</h3>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={RETENTION_DATA}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />

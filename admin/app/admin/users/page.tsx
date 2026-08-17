@@ -1,24 +1,24 @@
 import { Header } from "@/components/admin/header";
 import { Badge } from "@/components/ui/badge";
 import { mockUsers } from "@/lib/mock/users";
-import { formatRelativeTime, scoorToColor } from "@/lib/utils";
+import { formatRelativeTime, scoorToColor, statusLabel } from "@/lib/utils";
 import { Smartphone, Monitor, Flame } from "lucide-react";
 
 export default function UsersPage() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <Header
-        title="Users"
-        subtitle={`${mockUsers.length} users tracked`}
+        title="사용자"
+        subtitle={`${mockUsers.length}명 추적 중`}
       />
       <div className="flex-1 overflow-y-auto p-6">
         {/* Stats bar */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           {[
-            { label: "Total Users", value: "142.4K", color: "#f42525" },
-            { label: "Active Today", value: "24.9K", color: "#22c55e" },
-            { label: "New This Week", value: "1,240", color: "#4f8ef7" },
-            { label: "Suspended", value: "38", color: "#f59e0b" },
+            { label: "전체 사용자", value: "142.4K", color: "#f42525" },
+            { label: "오늘 활성", value: "24.9K", color: "#22c55e" },
+            { label: "이번 주 신규", value: "1,240", color: "#4f8ef7" },
+            { label: "정지", value: "38", color: "#f59e0b" },
           ].map((s) => (
             <div
               key={s.label}
@@ -39,7 +39,7 @@ export default function UsersPage() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-white/6">
-                {["User", "Country", "Status", "Last Scoor", "Streak", "Device", "Last Active"].map(
+                {["사용자", "국가", "상태", "최근 점수", "연속", "기기", "최근 활동"].map(
                   (h) => (
                     <th
                       key={h}
@@ -88,7 +88,7 @@ export default function UsersPage() {
                         }
                         dot
                       >
-                        {user.status}
+                        {statusLabel(user.status)}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
@@ -108,7 +108,7 @@ export default function UsersPage() {
                         {user.streakDays > 30 && (
                           <Flame className="h-3 w-3 text-orange-400" />
                         )}
-                        {user.streakDays}d
+                        {user.streakDays}일
                       </span>
                     </td>
                     <td className="px-4 py-3 text-[#52526c]">

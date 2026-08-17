@@ -11,7 +11,7 @@ import type { AdminUser } from "@/types";
 
 export class AuthConfigError extends Error {
   constructor() {
-    super("Admin auth is not configured on this deployment.");
+    super("이 환경에는 어드민 인증이 설정되어 있지 않습니다.");
     this.name = "AuthConfigError";
   }
 }

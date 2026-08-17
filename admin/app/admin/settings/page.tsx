@@ -4,42 +4,42 @@ import { Shield, Bell, Globe, Database, Key, Users } from "lucide-react";
 const SETTINGS_SECTIONS = [
   {
     icon: Shield,
-    title: "Security",
+    title: "보안",
     color: "#f42525",
     items: [
-      { label: "Two-Factor Authentication", description: "Require 2FA for all admin accounts", enabled: true },
-      { label: "Session Timeout", description: "Auto-logout after 7 days of inactivity", enabled: true },
-      { label: "IP Allowlist", description: "Restrict access to trusted IPs only", enabled: false },
+      { label: "2단계 인증", description: "모든 어드민 계정에 2FA 필수", enabled: true },
+      { label: "세션 만료", description: "7일간 활동이 없으면 자동 로그아웃", enabled: true },
+      { label: "IP 허용 목록", description: "신뢰하는 IP에서만 접근 허용", enabled: false },
     ],
   },
   {
     icon: Bell,
-    title: "Notifications",
+    title: "알림",
     color: "#f59e0b",
     items: [
-      { label: "Report Alerts", description: "Notify when new reports arrive", enabled: true },
-      { label: "Emotional Spikes", description: "Alert on significant score anomalies", enabled: true },
-      { label: "Daily Digest", description: "Morning summary email at 09:00 UTC", enabled: true },
+      { label: "신고 알림", description: "새 신고가 접수되면 알림", enabled: true },
+      { label: "감정 급변", description: "점수 이상 징후 발생 시 알림", enabled: true },
+      { label: "일간 요약", description: "매일 오전 9시(UTC) 요약 메일 발송", enabled: true },
     ],
   },
   {
     icon: Globe,
-    title: "Platform",
+    title: "플랫폼",
     color: "#4f8ef7",
     items: [
-      { label: "World Agenda Publishing", description: "Allow automated agenda suggestions", enabled: false },
-      { label: "Global Feed Moderation", description: "Auto-hide content below threshold", enabled: true },
-      { label: "New User Geo-detection", description: "Auto-assign country on signup", enabled: true },
+      { label: "월드 아젠다 자동 발행", description: "아젠다 자동 추천 허용", enabled: false },
+      { label: "글로벌 피드 검열", description: "기준 미달 콘텐츠 자동 숨김", enabled: true },
+      { label: "신규 사용자 국가 감지", description: "가입 시 국가 자동 지정", enabled: true },
     ],
   },
   {
     icon: Database,
-    title: "Data",
+    title: "데이터",
     color: "#22c55e",
     items: [
-      { label: "Data Retention (scores)", description: "Keep raw score data for 2 years", enabled: true },
-      { label: "Anonymization Pipeline", description: "Strip PII from analytics exports", enabled: true },
-      { label: "GDPR Request Queue", description: "Process deletion requests within 72h", enabled: true },
+      { label: "데이터 보관 (점수)", description: "원본 점수 데이터를 2년간 보관", enabled: true },
+      { label: "익명화 파이프라인", description: "분석 내보내기에서 개인정보 제거", enabled: true },
+      { label: "GDPR 요청 큐", description: "삭제 요청을 72시간 내 처리", enabled: true },
     ],
   },
 ];
@@ -63,7 +63,7 @@ function Toggle({ enabled }: { enabled: boolean }) {
 export default function SettingsPage() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <Header title="Settings" subtitle="Platform configuration" />
+      <Header title="설정" subtitle="플랫폼 구성" />
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-2xl space-y-6">
           {SETTINGS_SECTIONS.map((section) => {
@@ -96,15 +96,15 @@ export default function SettingsPage() {
 
           {/* Danger zone */}
           <div className="bg-red-950/20 border border-red-500/20 rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-red-400 mb-3">Danger Zone</h3>
+            <h3 className="text-sm font-semibold text-red-400 mb-3">위험 구역</h3>
             <div className="space-y-2">
-              {["Clear All Reports", "Reset Platform Stats", "Export All Data"].map((action) => (
+              {["전체 신고 삭제", "플랫폼 통계 초기화", "전체 데이터 내보내기"].map((action) => (
                 <button
                   key={action}
                   className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg border border-red-500/20 hover:border-red-500/40 hover:bg-red-500/8 transition-all text-sm text-red-400"
                 >
                   {action}
-                  <span className="text-[10px] text-red-500/60 uppercase tracking-wider">Irreversible</span>
+                  <span className="text-[10px] text-red-500/60 uppercase tracking-wider">되돌릴 수 없음</span>
                 </button>
               ))}
             </div>

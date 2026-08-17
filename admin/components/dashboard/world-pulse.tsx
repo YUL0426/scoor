@@ -72,7 +72,7 @@ export function WorldPulse({ data }: WorldPulseProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>World Pulse</CardTitle>
+        <CardTitle>월드 펄스</CardTitle>
         <span className="text-xs text-[#52526c]">Live emotional climate</span>
       </CardHeader>
       <CardContent className="py-2">

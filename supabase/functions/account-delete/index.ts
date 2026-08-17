@@ -64,13 +64,12 @@ Deno.serve(async (req) => {
   const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
   // Apple 폐기를 먼저 시도한다. 유저 행이 사라진 뒤에는 토큰을 읽을 수 없다.
+  // auth 스키마는 PostgREST로 노출되지 않으므로 Admin API로 읽는다.
   try {
-    const { data: identities } = await admin
-      .from("auth.identities")
-      .select("provider, identity_data")
-      .eq("user_id", user.id);
-    const apple = identities?.find((i: { provider: string }) => i.provider === "apple");
-    await revokeAppleToken(apple?.identity_data?.refresh_token ?? null);
+    const { data } = await admin.auth.admin.getUserById(user.id);
+    const apple = data?.user?.identities?.find((i) => i.provider === "apple");
+    const identityData = apple?.identity_data as Record<string, unknown> | undefined;
+    await revokeAppleToken((identityData?.refresh_token as string) ?? null);
   } catch (_) {
     // 폐기 실패가 삭제를 막지는 않는다 — 사용자의 삭제 요청이 우선이다.
   }
