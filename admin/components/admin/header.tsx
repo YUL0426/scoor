@@ -35,7 +35,7 @@ export function Header({ title, subtitle }: HeaderProps) {
         <Search className="h-3.5 w-3.5 text-[#52526c] flex-shrink-0" />
         <input
           type="text"
-          placeholder="Search..."
+          placeholder="검색..."
           className="flex-1 bg-transparent text-xs text-[#f4f4f6] placeholder:text-[#52526c] outline-none min-w-0"
           onFocus={() => setSearchFocused(true)}
           onBlur={() => setSearchFocused(false)}
@@ -58,7 +58,7 @@ export function Header({ title, subtitle }: HeaderProps) {
         {/* Live badge */}
         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full ml-1">
           <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-          <span className="text-[10px] font-medium text-emerald-400">LIVE</span>
+          <span className="text-[10px] font-medium text-emerald-400">실시간</span>
         </div>
       </div>
     </header>

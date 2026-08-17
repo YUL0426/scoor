@@ -3,17 +3,17 @@
 import { Globe, Flame, Activity } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatRelativeTime, scoorToColor, formatNumber } from "@/lib/utils";
+import { formatRelativeTime, scoorToColor, formatNumber, statusLabel } from "@/lib/utils";
 import type { Agenda, AgendaCategory } from "@/types";
 
 const CATEGORY_LABELS: Record<AgendaCategory, string> = {
-  politics: "Politics",
-  culture: "Culture",
-  economy: "Economy",
-  environment: "Environment",
-  sports: "Sports",
-  technology: "Tech",
-  health: "Health",
+  politics: "정치",
+  culture: "문화",
+  economy: "경제",
+  environment: "환경",
+  sports: "스포츠",
+  technology: "테크",
+  health: "건강",
 };
 
 function AgendaRow({ agenda }: { agenda: Agenda }) {
@@ -45,7 +45,7 @@ function AgendaRow({ agenda }: { agenda: Agenda }) {
             }
             dot
           >
-            {agenda.status}
+            {statusLabel(agenda.status)}
           </Badge>
           <span className="text-[10px] text-[#52526c]">
             {CATEGORY_LABELS[agenda.category]}
@@ -83,9 +83,9 @@ export function RecentAgendas({ agendas }: RecentAgendasProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Globe className="h-4 w-4 text-[#4f8ef7]" />
-          Active Agendas
+          진행 중 아젠다
         </CardTitle>
-        <span className="text-xs text-[#52526c]">{agendas.length} running</span>
+        <span className="text-xs text-[#52526c]">{agendas.length}개 진행 중</span>
       </CardHeader>
       <CardContent className="py-2">
         {agendas.map((agenda) => (

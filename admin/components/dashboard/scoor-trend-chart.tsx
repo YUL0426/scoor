@@ -50,7 +50,7 @@ export function ScoorTrendChart({ data }: ScoorTrendChartProps) {
   return (
     <Card className="col-span-2">
       <CardHeader>
-        <CardTitle>Global Scoor Pulse — 30d</CardTitle>
+        <CardTitle>글로벌 스코어 추이 — 30일</CardTitle>
         <div className="flex items-center gap-4 text-xs">
           <span className="flex items-center gap-1.5 text-[#8b8ba4]">
             <span className="w-6 h-0.5 bg-[#f42525] inline-block rounded" />
@@ -94,7 +94,7 @@ export function ScoorTrendChart({ data }: ScoorTrendChartProps) {
             <Area
               type="monotone"
               dataKey="globalAvg"
-              name="Global"
+              name="글로벌"
               stroke="#4f8ef7"
               strokeWidth={1}
               strokeDasharray="4 4"
@@ -105,7 +105,7 @@ export function ScoorTrendChart({ data }: ScoorTrendChartProps) {
             <Area
               type="monotone"
               dataKey="avgScoor"
-              name="Platform"
+              name="플랫폼"
               stroke="#f42525"
               strokeWidth={2}
               fill="url(#scoorGrad)"

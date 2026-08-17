@@ -33,6 +33,22 @@ export const TOPIC_CATEGORIES = [
   "night",
 ] as const;
 
+/// 화면 표시용 한국어 라벨. 키(원시 값)는 iOS `WorldCategory`·DB check 제약과
+/// 묶여 있으므로 절대 바꾸지 않는다 — 번역은 표시 계층에서만 한다.
+export const TOPIC_CATEGORY_LABELS: Record<(typeof TOPIC_CATEGORIES)[number], string> = {
+  sports: "스포츠",
+  politics: "정치",
+  society: "사회",
+  entertainment: "연예",
+  stocks: "주식",
+  crypto: "코인",
+  tech: "테크",
+  love: "연애",
+  work: "직장",
+  students: "학생",
+  night: "밤",
+};
+
 export const TOPIC_STATUSES = ["draft", "live", "closed"] as const;
 
 export type TopicStatus = (typeof TOPIC_STATUSES)[number];

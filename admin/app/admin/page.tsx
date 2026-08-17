@@ -41,8 +41,8 @@ export default async function DashboardPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <Header
-        title="Dashboard"
-        subtitle={`Scoor Operations — ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}`}
+        title="대시보드"
+        subtitle={`Scoor 운영 — ${new Date().toLocaleDateString("ko-KR", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}`}
       />
 
       <div className="p-6 space-y-6">

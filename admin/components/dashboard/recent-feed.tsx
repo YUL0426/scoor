@@ -67,11 +67,11 @@ export function RecentFeed({ entries }: RecentFeedProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Rss className="h-4 w-4 text-[#06b6d4]" />
-          Live Feed
+          실시간 피드
         </CardTitle>
         <div className="flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-          <span className="text-[10px] text-emerald-400">live</span>
+          <span className="text-[10px] text-emerald-400">실시간</span>
         </div>
       </CardHeader>
       <CardContent className="py-2">

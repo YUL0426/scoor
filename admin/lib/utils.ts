@@ -26,17 +26,17 @@ export function formatRelativeTime(dateStr: string): string {
   const now = new Date();
   const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (diff < 60) return `${diff}초 전`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}일 전`;
+  return date.toLocaleDateString("ko-KR", { month: "long", day: "numeric" });
 }
 
 export function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
+  return new Date(dateStr).toLocaleDateString("ko-KR", {
     year: "numeric",
-    month: "short",
+    month: "long",
     day: "numeric",
   });
 }
@@ -84,4 +84,27 @@ export function generateSparkline(base: number, points = 8): number[] {
   return Array.from({ length: points }, () =>
     Math.max(0, Math.min(100, base + (Math.random() - 0.5) * 20))
   );
+}
+
+/// 화면 표시용 상태 라벨. 키는 목업/DB의 원시 값이므로 바꾸지 않는다 — 번역은
+/// 표시 계층에서만 한다. 모르는 값은 그대로 보여준다(빈 배지보다 낫다).
+const STATUS_LABELS: Record<string, string> = {
+  active: "활성",
+  suspended: "정지",
+  banned: "차단",
+  deleted: "삭제됨",
+  pending: "대기",
+  reviewed: "검토됨",
+  resolved: "처리 완료",
+  dismissed: "기각",
+  trending: "인기",
+  expired: "만료",
+  scheduled: "예약",
+  draft: "초안",
+  live: "공개",
+  closed: "마감",
+};
+
+export function statusLabel(raw: string): string {
+  return STATUS_LABELS[raw] ?? raw;
 }
