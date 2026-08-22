@@ -368,7 +368,7 @@ final class HomeViewModel: ObservableObject {
     static var freshUserTicker: [LiveFeedItem] {
         [
             LiveFeedItem(id: "pt-fresh-1", icon: "sparkles", text: String(localized: "This space fills with your own rhythm as you record days")),
-            LiveFeedItem(id: "pt-fresh-2", icon: "lock", text: String(localized: "Your scores stay on this device — community feed is coming soon")),
+            LiveFeedItem(id: "pt-fresh-2", icon: "lock", text: String(localized: "Your scores are saved on this device first")),
         ]
     }
 
