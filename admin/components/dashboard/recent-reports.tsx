@@ -3,15 +3,15 @@
 import { ShieldAlert, Clock } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, statusLabel } from "@/lib/utils";
 import type { Report, ReportReason } from "@/types";
 
 const REASON_LABELS: Record<ReportReason, string> = {
-  spam: "Spam",
-  hate_speech: "Hate Speech",
-  misinformation: "Misinformation",
-  harassment: "Harassment",
-  inappropriate: "Inappropriate",
+  spam: "스팸",
+  hate_speech: "혐오 발언",
+  misinformation: "허위 정보",
+  harassment: "괴롭힘",
+  inappropriate: "부적절한 콘텐츠",
 };
 
 function ReportRow({ report }: { report: Report }) {
@@ -31,7 +31,7 @@ function ReportRow({ report }: { report: Report }) {
             }
             dot
           >
-            {report.status}
+            {statusLabel(report.status)}
           </Badge>
           <span className="text-[10px] text-[#52526c]">
             {REASON_LABELS[report.reason]}
@@ -62,17 +62,17 @@ export function RecentReports({ reports }: RecentReportsProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ShieldAlert className="h-4 w-4 text-amber-400" />
-          Moderation Queue
+          신고 처리 대기
         </CardTitle>
         {pending.length > 0 && (
           <Badge variant="warning" dot>
-            {pending.length} pending
+            {pending.length}건 대기
           </Badge>
         )}
       </CardHeader>
       <CardContent className="py-2">
         {reports.length === 0 ? (
-          <p className="text-xs text-[#52526c] py-4 text-center">All clear ✓</p>
+          <p className="text-xs text-[#52526c] py-4 text-center">처리할 신고 없음 ✓</p>
         ) : (
           reports.map((r) => <ReportRow key={r.id} report={r} />)
         )}

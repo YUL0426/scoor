@@ -33,6 +33,22 @@ export const TOPIC_CATEGORIES = [
   "night",
 ] as const;
 
+/// 화면 표시용 한국어 라벨. 키(원시 값)는 iOS `WorldCategory`·DB check 제약과
+/// 묶여 있으므로 절대 바꾸지 않는다 — 번역은 표시 계층에서만 한다.
+export const TOPIC_CATEGORY_LABELS: Record<(typeof TOPIC_CATEGORIES)[number], string> = {
+  sports: "스포츠",
+  politics: "정치",
+  society: "사회",
+  entertainment: "연예",
+  stocks: "주식",
+  crypto: "코인",
+  tech: "테크",
+  love: "연애",
+  work: "직장",
+  students: "학생",
+  night: "밤",
+};
+
 export const TOPIC_STATUSES = ["draft", "live", "closed"] as const;
 
 export type TopicStatus = (typeof TOPIC_STATUSES)[number];
@@ -232,4 +248,53 @@ export interface PaginatedResponse<T> {
   page: number;
   pageSize: number;
   hasMore: boolean;
+}
+
+// ─────────────────────────────────────────────
+// Feed (spec-13 §3.3 — public.posts / feed_posts)
+// ─────────────────────────────────────────────
+
+/**
+ * `Mood` rawValue와 1:1로 맞춰야 한다 (iOS `Scoor/Models/FeedModels.swift`).
+ * 여기 없는 값을 넣으면 앱이 `.calm`으로 떨어뜨려 조용히 잘못된 태그가 붙는다.
+ */
+export const POST_MOODS = [
+  "happy", "burnout", "lonely", "calm", "healing",
+  "work", "love", "night", "students",
+] as const;
+
+export type PostMood = (typeof POST_MOODS)[number];
+
+export const POST_MOOD_LABELS: Record<PostMood, string> = {
+  happy: "행복",
+  burnout: "번아웃",
+  lonely: "외로움",
+  calm: "고요",
+  healing: "회복",
+  work: "일",
+  love: "사랑",
+  night: "새벽",
+  students: "학생",
+};
+
+/** `Weather` rawValue와 동일. */
+export const POST_WEATHERS = ["sunny", "cloudy", "rainy", "snowy", "night"] as const;
+
+export type PostWeather = (typeof POST_WEATHERS)[number];
+
+/** `public.feed_posts` 한 행 (어드민은 service_role이라 숨김·삭제 글도 본다). */
+export interface AdminPost {
+  id: string;
+  isOfficial: boolean;
+  score: number;
+  message: string;
+  primaryMood: string;
+  extraMoods: string[];
+  weather: string | null;
+  authorName: string | null;
+  isHidden: boolean;
+  deletedAt: string | null;
+  likesCount: number;
+  commentsCount: number;
+  createdAt: string;
 }

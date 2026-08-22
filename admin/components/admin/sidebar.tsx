@@ -23,25 +23,25 @@ import { useAuth } from "@/providers/auth-provider";
 /// another into the wrong section.
 const NAV_GROUPS = [
   {
-    title: "Operations",
+    title: "운영",
     items: [
-      { label: "Dashboard", href: "/admin", icon: LayoutDashboard, exact: true },
-      { label: "Users", href: "/admin/users", icon: Users },
-      { label: "World Topics", href: "/admin/topics", icon: ListChecks },
-      { label: "World Agenda", href: "/admin/agenda", icon: Globe },
-      { label: "Feed", href: "/admin/feed", icon: Rss },
+      { label: "대시보드", href: "/admin", icon: LayoutDashboard, exact: true },
+      { label: "사용자", href: "/admin/users", icon: Users },
+      { label: "월드 토픽", href: "/admin/topics", icon: ListChecks },
+      { label: "월드 아젠다", href: "/admin/agenda", icon: Globe },
+      { label: "피드", href: "/admin/feed", icon: Rss },
     ],
   },
   {
-    title: "Insights",
+    title: "지표",
     items: [
-      { label: "Notifications", href: "/admin/notifications", icon: Bell },
-      { label: "Analytics", href: "/admin/analytics", icon: BarChart2 },
+      { label: "알림", href: "/admin/notifications", icon: Bell },
+      { label: "분석", href: "/admin/analytics", icon: BarChart2 },
     ],
   },
   {
-    title: "System",
-    items: [{ label: "Settings", href: "/admin/settings", icon: Settings }],
+    title: "시스템",
+    items: [{ label: "설정", href: "/admin/settings", icon: Settings }],
   },
 ] as const;
 
@@ -132,7 +132,7 @@ export function Sidebar() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-[#f4f4f6] truncate">
-              {user?.name ?? "Admin"}
+              {user?.name ?? "관리자"}
             </p>
             <p className="text-[10px] text-[#52526c] truncate">
               {user?.email ?? "admin@scoor.app"}
@@ -141,7 +141,7 @@ export function Sidebar() {
           <button
             onClick={logout}
             className="text-[#52526c] hover:text-red-400 transition-colors p-1 rounded"
-            title="Sign out"
+            title="로그아웃"
           >
             <LogOut className="h-3.5 w-3.5" />
           </button>

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   const config = adminAuthConfig();
   if (!config) {
     return NextResponse.json(
-      { error: "Admin auth is not configured on this deployment." },
+      { error: "이 환경에는 어드민 인증이 설정되어 있지 않습니다." },
       { status: 503 }
     );
   }
@@ -25,20 +25,20 @@ export async function POST(request: Request) {
     email = (body.email ?? "").trim().toLowerCase();
     password = body.password ?? "";
   } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+    return NextResponse.json({ error: "요청 본문이 올바르지 않습니다." }, { status: 400 });
   }
 
   const passwordHash = await sha256Hex(password);
   const emailOk = timingSafeEqual(email, config.email);
   const passwordOk = timingSafeEqual(passwordHash, config.passwordSha256);
   if (!emailOk || !passwordOk) {
-    return NextResponse.json({ error: "Invalid credentials." }, { status: 401 });
+    return NextResponse.json({ error: "이메일 또는 비밀번호가 올바르지 않습니다." }, { status: 401 });
   }
 
   const user: AdminUser = {
     id: "admin_01",
     email: config.email,
-    name: "Admin",
+    name: "관리자",
     role: "super_admin",
     avatarUrl: null,
     lastLoginAt: new Date().toISOString(),

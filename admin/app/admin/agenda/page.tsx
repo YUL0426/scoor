@@ -1,7 +1,7 @@
 import { Header } from "@/components/admin/header";
 import { Badge } from "@/components/ui/badge";
 import { mockAgendas } from "@/lib/mock/agendas";
-import { formatRelativeTime, scoorToColor, formatNumber } from "@/lib/utils";
+import { formatRelativeTime, scoorToColor, formatNumber, statusLabel } from "@/lib/utils";
 import { Globe, Flame, Activity, Users } from "lucide-react";
 import type { AgendaCategory } from "@/types";
 
@@ -18,15 +18,15 @@ const CATEGORY_COLORS: Record<AgendaCategory, string> = {
 export default function AgendaPage() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <Header title="World Agenda" subtitle="Global emotional event management" />
+      <Header title="월드 아젠다" subtitle="글로벌 감정 이벤트 관리" />
       <div className="flex-1 overflow-y-auto p-6">
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           {[
-            { label: "Active", value: "18", color: "#22c55e" },
-            { label: "Trending", value: "4", color: "#f42525" },
-            { label: "Total Reactions", value: "142K", color: "#4f8ef7" },
-            { label: "Avg Engagement", value: "8.4K", color: "#a855f7" },
+            { label: "진행 중", value: "18", color: "#22c55e" },
+            { label: "인기", value: "4", color: "#f42525" },
+            { label: "전체 반응", value: "142K", color: "#4f8ef7" },
+            { label: "평균 참여", value: "8.4K", color: "#a855f7" },
           ].map((s) => (
             <div key={s.label} className="bg-[#0d0d1f] border border-white/6 rounded-xl px-5 py-4">
               <p className="text-xs text-[#52526c] uppercase tracking-wider mb-1">{s.label}</p>
@@ -70,7 +70,7 @@ export default function AgendaPage() {
                       }
                       dot
                     >
-                      {agenda.status}
+                      {statusLabel(agenda.status)}
                     </Badge>
                   </div>
                 </div>

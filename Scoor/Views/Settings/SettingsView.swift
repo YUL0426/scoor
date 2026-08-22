@@ -36,8 +36,10 @@ enum AppAppearance: String, CaseIterable, Identifiable {
 
 /// 스토어 제출에 필요한 법적 문서 링크 (랜딩 사이트에서 호스팅).
 enum LegalLinks {
-    static let privacyPolicy = URL(string: "https://scoor.app/privacy")!
-    static let termsOfService = URL(string: "https://scoor.app/terms")!
+    // 앱 UI가 한국어이고 국내 우선 출시이므로 한국어 문서를 가리킨다. 각 문서
+    // 상단에 English 링크가 있어 영어권 사용자도 한 번에 넘어갈 수 있다.
+    static let privacyPolicy = URL(string: "https://scoor.app/privacy/ko")!
+    static let termsOfService = URL(string: "https://scoor.app/terms/ko")!
 }
 
 struct SettingsView: View {
@@ -56,6 +58,7 @@ struct SettingsView: View {
     @State private var showSignOutConfirm = false
     @State private var showDeleteAccountConfirm = false
     @State private var isDeletingAccount = false
+    @State private var deleteAccountError: String?
     @State private var lastSyncedAt: Date?
     @State private var isSyncing = false
     @AppStorage(AppAppearance.storageKey) private var appearanceRaw = AppAppearance.system.rawValue
@@ -167,6 +170,13 @@ struct SettingsView: View {
                 Button("취소", role: .cancel) {}
             } message: {
                 Text("되돌릴 수 없습니다. 이 기기에 저장된 모든 기록(점수, 방명록, 소셜 활동)과 로그인 정보가 영구 삭제됩니다.")
+            }
+            .alert("계정을 삭제하지 못했습니다",
+                   isPresented: Binding(get: { deleteAccountError != nil },
+                                        set: { if !$0 { deleteAccountError = nil } })) {
+                Button("확인", role: .cancel) { deleteAccountError = nil }
+            } message: {
+                Text((deleteAccountError ?? "") + "\n\n기기의 기록은 그대로 있습니다. 잠시 후 다시 시도해 주세요.")
             }
             .disabled(isDeletingAccount)
         }
@@ -290,16 +300,28 @@ struct SettingsView: View {
         dismiss()
     }
 
-    /// 계정 삭제: 기기에 저장된 모든 사용자 데이터(점수/소셜/방명록/프로필)와
-    /// 자격 증명·세션을 제거하고 온보딩 처음으로 되돌린다.
+    /// 계정 삭제: 서버 계정을 먼저 지우고, 성공했을 때만 기기에 저장된 모든
+    /// 사용자 데이터(점수/소셜/방명록/프로필)와 자격 증명·세션을 제거한다.
+    ///
+    /// 순서가 핵심이다. 예전에는 로컬을 먼저 밀고 서버 호출을 fire-and-forget으로
+    /// 던져서, 서버 삭제가 실패해도 화면은 삭제 완료로 되돌아갔다. 그러면 사용자
+    /// 데이터는 서버에 남았는데 되돌릴 방법(로그인)은 이미 지워진 상태가 된다.
     private func deleteAccount() async {
         isDeletingAccount = true
         defer { isDeletingAccount = false }
+
+        do {
+            try await authService.deleteAccount()
+        } catch {
+            // 실패를 알리고 기기 데이터는 손대지 않는다 — 다시 시도할 수 있어야 한다.
+            deleteAccountError = error.localizedDescription
+            return
+        }
+
         try? await services.scoreService.deleteAllScores()
         try? await services.socialService.deleteAllLocalData()
         try? await services.guestbookService.deleteAllMessages()
         await services.notificationService.setEnabled(false)
-        authService.deleteAccount()
         await services.userService.signOutCurrentUser()
         coordinator.resetForDebug()
         dismiss()

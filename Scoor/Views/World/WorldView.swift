@@ -38,19 +38,18 @@ struct WorldView: View {
 
             VStack(spacing: 0) {
                 topHeader
-                // 토픽은 서버에서 오지만 아래 글 스트림은 아직 시드다(Phase 2에서
-                // 전환). 스트림이 가짜인 동안에는 배너를 유지해야 한다 — 진짜
-                // 토픽이 생겼다고 배너를 떼면 가짜 글이 진짜처럼 보인다(P0-1).
-                PreviewContentBanner()
-                    .padding(.top, 4)
-                // 펄스 티커도 시드 수치라 실데이터(/pulse) 연동 전까지 감춘다.
+                // 시드 글 스트림이 남아 있는 빌드에서만 배너와 가짜 펄스 티커를
+                // 붙인다. 토픽이 서버에서 오면 본문 자체를 토픽 목록으로 바꾸므로
+                // (§loadedStream) 가짜 글이 사라지고 배너도 필요 없어진다.
                 if !vm.topicsAreLive {
+                    PreviewContentBanner()
+                        .padding(.top, 4)
                     WorldPulseStrip(pulses: MockWorld.pulses)
                         .padding(.top, 6)
+                    sortTabs
+                        .padding(.top, 10)
+                    Divider().background(ScoorPalette.hairlineSoft)
                 }
-                sortTabs
-                    .padding(.top, 10)
-                Divider().background(ScoorPalette.hairlineSoft)
                 WorldCategoryFilter(selected: $vm.category)
                     .padding(.vertical, 10)
                 Divider().background(ScoorPalette.hairline)
@@ -190,7 +189,59 @@ struct WorldView: View {
         }
     }
 
+    @ViewBuilder
     private var loadedStream: some View {
+        if vm.topicsAreLive { liveTopicList } else { seededPostStream }
+    }
+
+    /// 실데이터 경로: 서버 토픽 목록. 사용자 글 스트림은 Phase 2에서 열린다 —
+    /// 그때까지 이 자리에 시드 글을 놓아 두면 실토픽 옆에서 그것만 가짜다.
+    private var liveTopicList: some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                WorldTrendingRow(topics: vm.trendingTopics,
+                                 onSelect: { selectedTopic = $0 })
+                    .padding(.top, 14)
+                    .padding(.bottom, 14)
+
+                Divider().background(ScoorPalette.hairline)
+
+                HStack {
+                    Text("전체 토픽")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(ScoorPalette.inkPrimary)
+                    Spacer()
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 16)
+                .padding(.bottom, 4)
+
+                ForEach(vm.trendingTopics) { topic in
+                    WorldTopicListRow(topic: topic, onSelect: { selectedTopic = topic })
+                    Divider().background(ScoorPalette.hairline)
+                }
+
+                if vm.trendingTopics.isEmpty { topicEmptyState }
+                bottomSpacer
+            }
+        }
+        .refreshable { await vm.refresh() }
+    }
+
+    private var topicEmptyState: some View {
+        VStack(spacing: 8) {
+            Text("이 카테고리엔 아직 토픽이 없어요.")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(ScoorPalette.inkSecondary)
+            Text("매일 새 토픽이 올라옵니다.")
+                .font(.system(size: 12))
+                .foregroundStyle(ScoorPalette.inkTertiary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 60)
+    }
+
+    private var seededPostStream: some View {
         ScrollView {
             LazyVStack(spacing: 0, pinnedViews: []) {
                 WorldTrendingRow(topics: vm.trendingTopics,

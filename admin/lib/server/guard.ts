@@ -21,7 +21,7 @@ export async function requireAdmin(): Promise<GuardResult> {
   if (!config) {
     return {
       ok: false,
-      response: NextResponse.json({ error: "Admin auth is not configured." }, { status: 503 }),
+      response: NextResponse.json({ error: "어드민 인증이 설정되지 않았습니다." }, { status: 503 }),
     };
   }
 
@@ -33,7 +33,7 @@ export async function requireAdmin(): Promise<GuardResult> {
   if (!payload) {
     return {
       ok: false,
-      response: NextResponse.json({ error: "Not authenticated." }, { status: 401 }),
+      response: NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 }),
     };
   }
 

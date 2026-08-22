@@ -11,23 +11,34 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, Plus, Eye, EyeOff, Archive, RefreshCw } from "lucide-react";
-import { TOPIC_CATEGORIES, type AdminTopic, type TopicStatus } from "@/types";
+import {
+  TOPIC_CATEGORIES,
+  TOPIC_CATEGORY_LABELS,
+  type AdminTopic,
+  type TopicStatus,
+} from "@/types";
+
+/// 카테고리는 DB에 원시 값으로 저장된다. 목록에 새 값이 생겨도 화면이 비지
+/// 않도록, 라벨이 없으면 원시 값을 그대로 보여준다.
+function categoryLabel(raw: string): string {
+  return (TOPIC_CATEGORY_LABELS as Record<string, string>)[raw] ?? raw;
+}
 
 const STATUS_STYLE: Record<TopicStatus, { label: string; color: string }> = {
-  draft: { label: "Draft", color: "#8b8ba4" },
-  live: { label: "Live", color: "#22c55e" },
-  closed: { label: "Closed", color: "#f59e0b" },
+  draft: { label: "초안", color: "#8b8ba4" },
+  live: { label: "공개", color: "#22c55e" },
+  closed: { label: "마감", color: "#f59e0b" },
 };
 
 async function fetchTopics(): Promise<AdminTopic[]> {
   const response = await fetch("/api/topics", { cache: "no-store" });
   const body = (await response.json()) as { topics?: AdminTopic[]; error?: string };
-  if (!response.ok) throw new Error(body.error ?? "Could not load topics.");
+  if (!response.ok) throw new Error(body.error ?? "토픽을 불러오지 못했습니다.");
   return body.topics ?? [];
 }
 
 function messageOf(error: unknown): string {
-  return error instanceof Error ? error.message : "Something went wrong.";
+  return error instanceof Error ? error.message : "문제가 발생했습니다.";
 }
 
 export function TopicsClient() {
@@ -80,12 +91,12 @@ export function TopicsClient() {
         body: JSON.stringify({ status }),
       });
       const body = (await response.json()) as { error?: string };
-      if (!response.ok) throw new Error(body.error ?? "Could not update the topic.");
+      if (!response.ok) throw new Error(body.error ?? "토픽을 수정하지 못했습니다.");
       setTopics((current) =>
         current.map((t) => (t.id === topic.id ? { ...t, status } : t))
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not update the topic.");
+      setError(e instanceof Error ? e.message : "토픽을 수정하지 못했습니다.");
     } finally {
       setPendingId(null);
     }
@@ -97,9 +108,9 @@ export function TopicsClient() {
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Live today", value: String(liveCount), color: liveCount >= 3 ? "#22c55e" : "#f59e0b" },
-          { label: "Drafts", value: String(topics.filter((t) => t.status === "draft").length), color: "#8b8ba4" },
-          { label: "Total", value: String(topics.length), color: "#4f8ef7" },
+          { label: "오늘 공개", value: String(liveCount), color: liveCount >= 3 ? "#22c55e" : "#f59e0b" },
+          { label: "초안", value: String(topics.filter((t) => t.status === "draft").length), color: "#8b8ba4" },
+          { label: "전체", value: String(topics.length), color: "#4f8ef7" },
         ].map((s) => (
           <div key={s.label} className="bg-[#0d0d1f] border border-white/6 rounded-xl px-5 py-4">
             <p className="text-xs text-[#52526c] uppercase tracking-wider mb-1">{s.label}</p>
@@ -112,7 +123,7 @@ export function TopicsClient() {
 
       {liveCount < 3 && !isLoading && (
         <p className="text-xs text-[#f59e0b]">
-          The plan calls for 3–5 live topics a day — {liveCount} live right now.
+          하루 3~5개 공개가 계획입니다 — 지금 공개 중인 토픽은 {liveCount}개입니다.
         </p>
       )}
 
@@ -126,13 +137,13 @@ export function TopicsClient() {
 
       <div className="bg-[#0d0d1f] border border-white/6 rounded-xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3 border-b border-white/6">
-          <h2 className="text-sm font-semibold text-[#f4f4f6]">Topics</h2>
+          <h2 className="text-sm font-semibold text-[#f4f4f6]">토픽 목록</h2>
           <button
             onClick={() => void load()}
             className="flex items-center gap-1.5 text-xs text-[#8b8ba4] hover:text-[#f4f4f6] transition-colors"
           >
             <RefreshCw className="h-3.5 w-3.5" />
-            Refresh
+            새로고침
           </button>
         </div>
 
@@ -142,9 +153,9 @@ export function TopicsClient() {
           </div>
         ) : topics.length === 0 ? (
           <div className="py-14 text-center">
-            <p className="text-sm text-[#8b8ba4]">No topics yet.</p>
+            <p className="text-sm text-[#8b8ba4]">아직 토픽이 없습니다.</p>
             <p className="text-xs text-[#52526c] mt-1">
-              Create one above — without a live topic the World tab has nothing to show.
+              위에서 하나 만들어주세요 — 공개된 토픽이 없으면 앱 월드 탭이 빈 화면이 됩니다.
             </p>
           </div>
         ) : (
@@ -160,7 +171,7 @@ export function TopicsClient() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[#f4f4f6] truncate">{topic.title}</p>
                     <p className="text-xs text-[#52526c] truncate">
-                      {topic.category}
+                      {categoryLabel(topic.category)}
                       {topic.subtitle ? ` · ${topic.subtitle}` : ""}
                     </p>
                   </div>
@@ -168,7 +179,7 @@ export function TopicsClient() {
                     <p className="text-sm font-semibold text-[#f4f4f6] tabular-nums">
                       {topic.postsCount > 0 ? topic.globalScore : "—"}
                     </p>
-                    <p className="text-[10px] text-[#52526c]">{topic.postsCount} scores</p>
+                    <p className="text-[10px] text-[#52526c]">점수 {topic.postsCount}개</p>
                   </div>
                   <span
                     className="text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md flex-shrink-0"
@@ -183,21 +194,21 @@ export function TopicsClient() {
                       <>
                         {topic.status !== "live" && (
                           <StatusButton
-                            title="Publish"
+                            title="공개"
                             onClick={() => void setStatus(topic, "live")}
                             icon={<Eye className="h-3.5 w-3.5" />}
                           />
                         )}
                         {topic.status === "live" && (
                           <StatusButton
-                            title="Unpublish (back to draft)"
+                            title="공개 해제 (초안으로)"
                             onClick={() => void setStatus(topic, "draft")}
                             icon={<EyeOff className="h-3.5 w-3.5" />}
                           />
                         )}
                         {topic.status !== "closed" && (
                           <StatusButton
-                            title="Close (read-only)"
+                            title="마감 (읽기 전용)"
                             onClick={() => void setStatus(topic, "closed")}
                             icon={<Archive className="h-3.5 w-3.5" />}
                           />
@@ -264,14 +275,14 @@ function CreateTopicForm({ onCreated }: { onCreated: () => Promise<void> }) {
         }),
       });
       const body = (await response.json()) as { error?: string };
-      if (!response.ok) throw new Error(body.error ?? "Could not create the topic.");
+      if (!response.ok) throw new Error(body.error ?? "토픽을 만들지 못했습니다.");
       setTitle("");
       setSubtitle("");
       setCoverEmoji("");
       setPublishNow(false);
       await onCreated();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not create the topic.");
+      setError(e instanceof Error ? e.message : "토픽을 만들지 못했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -282,11 +293,11 @@ function CreateTopicForm({ onCreated }: { onCreated: () => Promise<void> }) {
       onSubmit={submit}
       className="bg-[#0d0d1f] border border-white/6 rounded-xl p-5 space-y-4"
     >
-      <h2 className="text-sm font-semibold text-[#f4f4f6]">New topic</h2>
+      <h2 className="text-sm font-semibold text-[#f4f4f6]">새 토픽</h2>
 
       <div className="grid grid-cols-12 gap-3">
         <label className="col-span-2 flex flex-col gap-1.5">
-          <span className="text-[10px] uppercase tracking-wider text-[#52526c]">Emoji</span>
+          <span className="text-[10px] uppercase tracking-wider text-[#52526c]">이모지</span>
           <input
             value={coverEmoji}
             onChange={(e) => setCoverEmoji(e.target.value)}
@@ -297,7 +308,7 @@ function CreateTopicForm({ onCreated }: { onCreated: () => Promise<void> }) {
         </label>
 
         <label className="col-span-3 flex flex-col gap-1.5">
-          <span className="text-[10px] uppercase tracking-wider text-[#52526c]">Category</span>
+          <span className="text-[10px] uppercase tracking-wider text-[#52526c]">카테고리</span>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
@@ -305,7 +316,7 @@ function CreateTopicForm({ onCreated }: { onCreated: () => Promise<void> }) {
           >
             {TOPIC_CATEGORIES.map((c) => (
               <option key={c} value={c}>
-                {c}
+                {TOPIC_CATEGORY_LABELS[c]}
               </option>
             ))}
           </select>
@@ -313,7 +324,7 @@ function CreateTopicForm({ onCreated }: { onCreated: () => Promise<void> }) {
 
         <label className="col-span-7 flex flex-col gap-1.5">
           <span className="text-[10px] uppercase tracking-wider text-[#52526c]">
-            Title <span className="text-[#52526c]/70">({title.trim().length}/80)</span>
+            제목 <span className="text-[#52526c]/70">({title.trim().length}/80)</span>
           </span>
           <input
             value={title}
@@ -326,7 +337,7 @@ function CreateTopicForm({ onCreated }: { onCreated: () => Promise<void> }) {
 
         <label className="col-span-12 flex flex-col gap-1.5">
           <span className="text-[10px] uppercase tracking-wider text-[#52526c]">
-            Subtitle <span className="text-[#52526c]/70">(optional)</span>
+            부제 <span className="text-[#52526c]/70">(선택)</span>
           </span>
           <input
             value={subtitle}
@@ -348,7 +359,7 @@ function CreateTopicForm({ onCreated }: { onCreated: () => Promise<void> }) {
             onChange={(e) => setPublishNow(e.target.checked)}
             className="accent-[#f42525]"
           />
-          Publish immediately (visible in the app)
+          즉시 공개 (앱에 노출)
         </label>
 
         <button
@@ -361,7 +372,7 @@ function CreateTopicForm({ onCreated }: { onCreated: () => Promise<void> }) {
           ) : (
             <Plus className="h-4 w-4" />
           )}
-          Create
+          만들기
         </button>
       </div>
     </form>

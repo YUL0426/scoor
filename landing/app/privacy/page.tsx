@@ -3,39 +3,57 @@ import { LegalPage, LegalSection } from "@/components/layout/LegalPage";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  alternates: { canonical: "/privacy" },
+  alternates: { canonical: "/privacy", languages: { ko: "/privacy/ko" } },
 };
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacy Policy" updated="July 17, 2026">
+    <LegalPage
+      title="Privacy Policy"
+      updated="August 22, 2026"
+      altHref="/privacy/ko"
+      altLabel="한국어"
+    >
       <LegalSection heading="Overview">
-        Scoor lets you score your day (0–100, with a reason) and explore how the
-        world feels. This policy explains what information the Scoor iOS app and
-        the scoor.app website handle, and where it lives.
+        Scoor lets you score your day (0–100, with a reason) and see how others
+        feel about shared topics. This policy explains what the Scoor iOS app
+        and the scoor.app website handle, and where it lives.
       </LegalSection>
 
-      <LegalSection heading="Data stored on your device">
-        Your scores, notes, guestbook messages, profile (nickname, avatar, bio),
-        theme and reminder preferences are stored locally on your device. Scoor
-        does not currently operate a backend service: this content is not
-        uploaded to Scoor servers and is not visible to other users.
+      <LegalSection heading="What stays on your device">
+        Scoor is local-first. Your scores, notes, guestbook messages, profile,
+        theme and reminder preferences are written to your device first, and the
+        app keeps working with no network. Sign-in tokens are held in the iOS
+        Keychain.
+      </LegalSection>
+
+      <LegalSection heading="What is sent to our servers">
+        When you are signed in, Scoor backs up and syncs your daily scores
+        (score, optional reason, date) and your profile (nickname, avatar emoji,
+        bio) so they follow you across devices. Anything you post publicly — a
+        World topic score with its optional comment, a feed comment, a like — is
+        stored on our servers by design, since other people read it. Reports and
+        blocks you submit are stored so we can act on them. Our backend runs on
+        Supabase (managed PostgreSQL) in the Seoul region.
       </LegalSection>
 
       <LegalSection heading="Sign-in">
-        When you sign in with Apple or Google, authentication happens directly
-        with that provider. Scoor receives your account identifier, and — if you
-        choose to share them — your email address and name, which are stored
-        only on your device (tokens in the iOS Keychain). If you create an
-        email account, your password is never stored in plain text: only a
-        salted cryptographic hash is kept in the Keychain on your device.
+        Authentication happens directly with Apple, Google, or by email. Scoor
+        receives an account identifier and, if you choose to share it, your
+        email address. Email passwords are never stored in plain text.
+      </LegalSection>
+
+      <LegalSection heading="Location">
+        Scoor does not use GPS and does not request location permission. A
+        country shown next to a post comes from a setting you choose yourself.
       </LegalSection>
 
       <LegalSection heading="Account deletion">
-        You can delete your account and all associated data at any time from
-        Settings → Account → Delete Account in the app. This permanently
-        removes your scores, messages, profile, credentials, and sign-in
-        session from the device.
+        Settings → Account → Delete Account deletes your account. This is a real
+        server-side deletion: your profile, scores, posts, comments, likes,
+        reports, and blocks are removed, and your Apple sign-in token is revoked
+        with Apple. Your device copy is erased at the same time. Deletion is
+        permanent and cannot be undone.
       </LegalSection>
 
       <LegalSection heading="Notifications">
@@ -44,14 +62,14 @@ export default function PrivacyPage() {
       </LegalSection>
 
       <LegalSection heading="Analytics and tracking">
-        The app does not include third-party analytics, advertising SDKs, or
-        cross-app tracking.
+        The app contains no third-party analytics, advertising SDKs, or
+        cross-app tracking, and does not ask for the App Tracking Transparency
+        permission.
       </LegalSection>
 
       <LegalSection heading="Changes and contact">
-        If Scoor introduces online features (such as a shared social feed), this
-        policy will be updated before those features launch. Questions:
-        privacy@scoor.app.
+        Material changes will be posted here before they take effect.
+        Questions: privacy@scoor.app.
       </LegalSection>
     </LegalPage>
   );

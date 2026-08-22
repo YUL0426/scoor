@@ -94,11 +94,20 @@ actor SupabaseAuthClient {
     /// Routed through an Edge Function because deletion needs the service-role key
     /// — which must never ship in the app — and because Apple requires the
     /// provider token to be revoked server-side, not just locally.
-    func deleteAccount(accessToken: String) async throws {
+    /// - Parameter appleAuthorizationCode: a freshly issued Apple authorization
+    ///   code, when the account signed in with Apple. The function exchanges it
+    ///   for a refresh token and revokes that. It cannot be derived server-side:
+    ///   the native `signInWithIdToken` grant never gives Supabase an Apple
+    ///   refresh token, so `identities.identity_data` holds nothing to revoke.
+    func deleteAccount(accessToken: String,
+                       appleAuthorizationCode: String? = nil) async throws {
         var request = URLRequest(url: config.functionsURL.appendingPathComponent("account-delete"))
         request.httpMethod = "POST"
         request.setValue(config.anonKey, forHTTPHeaderField: "apikey")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body = appleAuthorizationCode.map { ["apple_authorization_code": $0] } ?? [:]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
         let (data, response) = try await send(request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             throw Self.error(from: data, status: (response as? HTTPURLResponse)?.statusCode ?? -1)

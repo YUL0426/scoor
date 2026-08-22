@@ -22,6 +22,11 @@ struct CommentsSheet: View {
     /// 헤더에 보여줄 원문 미리보기(선택).
     var headerPreview: String? = nil
     let service: SocialServiceProtocol
+    /// 서버 댓글. 있으면 이쪽이 진실의 원천이고, `service`는 손대지 않는다.
+    var remote: RemoteFeedService? = nil
+    /// 신고·차단·가이드라인 동의. UGC 화면에는 반드시 붙어야 한다
+    /// (App Store Guideline 1.2) — 댓글은 서버에 공개되는 사용자 콘텐츠다.
+    var moderationService: RemoteModerationService? = nil
     var currentUserName: String = "나"
     var currentUserSeed: Int = 1
     /// 댓글 추가/수정/삭제 후 호출 — 상위(피드)에서 카운트 갱신.
@@ -32,6 +37,11 @@ struct CommentsSheet: View {
     @State private var draft: String = ""
     @State private var editingId: UUID? = nil
     @State private var errorMessage: String? = nil
+    @State private var reportTarget: SocialComment? = nil
+    @State private var hiddenCommentIds: Set<UUID> = []
+    @State private var showGuidelines = false
+    /// 가이드라인 동의 시트를 띄우느라 미뤄 둔 댓글 본문.
+    @State private var pendingCommentText: String? = nil
     @FocusState private var inputFocused: Bool
 
     var body: some View {
@@ -50,6 +60,23 @@ struct CommentsSheet: View {
         }
         .environment(\.colorScheme, .dark)
         .task { await reload() }
+        .sheet(item: $reportTarget) { comment in
+            ReportSheet(
+                targetType: .comment,
+                targetId: comment.id,
+                authorId: nil,
+                service: moderationService,
+                onCompleted: { hiddenCommentIds.insert(comment.id) }
+            )
+        }
+        .sheet(isPresented: $showGuidelines) {
+            CommunityGuidelinesSheet(service: moderationService) {
+                if let text = pendingCommentText {
+                    pendingCommentText = nil
+                    Task { await postComment(text) }
+                }
+            }
+        }
     }
 
     // MARK: - Header
@@ -114,7 +141,7 @@ struct CommentsSheet: View {
         case .loaded:
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    ForEach(comments) { comment in
+                    ForEach(comments.filter { !hiddenCommentIds.contains($0.id) }) { comment in
                         commentRow(comment)
                         Divider().background(ScoorPalette.hairlineSoft)
                     }
@@ -160,12 +187,18 @@ struct CommentsSheet: View {
                             .foregroundStyle(ScoorPalette.inkTertiary)
                     }
                     Spacer()
-                    if comment.isMine {
+                    if comment.isMine || moderationService != nil {
                         Menu {
-                            Button { beginEdit(comment) } label: { Label("수정", systemImage: "pencil") }
-                            Button(role: .destructive) {
-                                Task { await delete(comment) }
-                            } label: { Label("삭제", systemImage: "trash") }
+                            if comment.isMine {
+                                Button { beginEdit(comment) } label: { Label("수정", systemImage: "pencil") }
+                                Button(role: .destructive) {
+                                    Task { await delete(comment) }
+                                } label: { Label("삭제", systemImage: "trash") }
+                            } else {
+                                Button(role: .destructive) {
+                                    reportTarget = comment
+                                } label: { Label("신고하기", systemImage: "flag") }
+                            }
                         } label: {
                             Image(systemName: "ellipsis")
                                 .font(.system(size: 14, weight: .bold))
@@ -258,19 +291,50 @@ struct CommentsSheet: View {
     // MARK: - Actions
 
     private func reload() async {
-        let list = await service.comments(for: postId)
-        comments = list
-        phase = list.isEmpty ? .empty : .loaded
+        do {
+            let list: [SocialComment]
+            if let remote {
+                list = try await remote.comments(for: postId)
+            } else {
+                list = await service.comments(for: postId)
+            }
+            comments = list
+            phase = list.isEmpty ? .empty : .loaded
+        } catch {
+            comments = []
+            phase = .error((error as? LocalizedError)?.errorDescription ?? "댓글을 불러오지 못했어요.")
+        }
     }
 
+    /// 첫 게시 전에 커뮤니티 가이드라인 동의를 한 번 받는다 (spec-13 §9).
+    /// World의 점수 제출과 같은 게이트다 — 댓글도 똑같이 공개되는 콘텐츠다.
     private func submit() async {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
+
+        if editingId == nil, let moderation = moderationService {
+            if await moderation.hasAcceptedGuidelines() == false {
+                pendingCommentText = text
+                showGuidelines = true
+                return
+            }
+        }
+        await postComment(text)
+    }
+
+    private func postComment(_ text: String) async {
         errorMessage = nil
         haptic()
         do {
             if let editId = editingId {
-                try await service.editComment(id: editId, newText: text)
+                if let remote {
+                    try await remote.editComment(id: editId, newText: text)
+                } else {
+                    try await service.editComment(id: editId, newText: text)
+                }
+            } else if let remote {
+                // 작성자는 서버가 세션에서 정한다 — 이름/시드를 보내지 않는다.
+                try await remote.addComment(postId: postId, text: text)
             } else {
                 try await service.addComment(postId: postId, text: text,
                                              authorName: currentUserName, authorSeed: currentUserSeed)
@@ -300,7 +364,11 @@ struct CommentsSheet: View {
     private func delete(_ comment: SocialComment) async {
         haptic()
         do {
-            try await service.deleteComment(id: comment.id)
+            if let remote {
+                try await remote.deleteComment(id: comment.id)
+            } else {
+                try await service.deleteComment(id: comment.id)
+            }
             if editingId == comment.id { cancelEdit() }
             await reload()
             onChange()
