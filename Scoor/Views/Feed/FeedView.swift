@@ -17,15 +17,20 @@ struct FeedView: View {
     @StateObject private var vm: FeedViewModel
 
     private let socialService: SocialServiceProtocol
+    private let feedService: RemoteFeedService?
 
     @State private var commentTarget: FeedEntry? = nil
+    @State private var reportTarget: FeedEntry? = nil
+    /// 신고한 글은 검토 전에도 신고자 화면에서 즉시 사라진다 (World와 같은 규칙).
+    @State private var hiddenEntryIds: Set<UUID> = []
     @State private var showDiscover = false
     @State private var myName: String = "나"
     private let mySeed = 1
 
-    init(socialService: SocialServiceProtocol) {
+    init(socialService: SocialServiceProtocol, feedService: RemoteFeedService? = nil) {
         self.socialService = socialService
-        _vm = StateObject(wrappedValue: FeedViewModel(service: socialService))
+        self.feedService = feedService
+        _vm = StateObject(wrappedValue: FeedViewModel(service: socialService, remote: feedService))
     }
 
     // MARK: - Body
@@ -36,10 +41,14 @@ struct FeedView: View {
 
             VStack(spacing: 0) {
                 topHeader
-                PreviewContentBanner()
-                    .padding(.top, 4)
-                LivePulseView(pulses: MockFeed.pulses)
-                    .padding(.top, 6)
+                // 시드 경로에서만 남는 두 가지: "예시 콘텐츠" 배너와, 수치가
+                // 전부 가짜인 펄스 티커. 서버 피드에서는 둘 다 거짓말이 된다.
+                if !vm.isLive {
+                    PreviewContentBanner()
+                        .padding(.top, 4)
+                    LivePulseView(pulses: MockFeed.pulses)
+                        .padding(.top, 6)
+                }
                 sortTabs
                     .padding(.top, 10)
                 Divider().background(ScoorPalette.hairlineSoft)
@@ -64,12 +73,23 @@ struct FeedView: View {
                 postId: entry.id,
                 headerPreview: entry.message,
                 service: socialService,
+                remote: feedService,
+                moderationService: appServices.moderationService,
                 currentUserName: myName,
                 currentUserSeed: mySeed,
                 onChange: { Task { await vm.reloadOverlays() } }
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $reportTarget) { entry in
+            ReportSheet(
+                targetType: .post,
+                targetId: entry.id,
+                authorId: entry.authorId,
+                service: appServices.moderationService,
+                onCompleted: { hiddenEntryIds.insert(entry.id) }
+            )
         }
         .sheet(isPresented: $showDiscover) {
             DiscoverView(socialService: socialService)
@@ -87,6 +107,7 @@ struct FeedView: View {
 
             Spacer()
 
+            if !vm.isLive {
             HStack(spacing: 6) {
                 Text("오늘")
                     .font(.system(size: 11, weight: .medium))
@@ -101,7 +122,12 @@ struct FeedView: View {
                     .foregroundStyle(ScoorPalette.accent)
                     .monospacedDigit()
             }
+            }
 
+            // 탐색(Discover)은 팔로우할 실사용자가 생기는 Phase 3 전까지 시드
+            // 프로필만 보여준다. 나머지 화면이 실데이터로 바뀐 뒤에도 여기만
+            // 가짜로 남으면, 배너 없이 조용히 가짜인 유일한 화면이 된다.
+            if !vm.isLive {
             Button { showDiscover = true } label: {
                 Image(systemName: "person.2.fill")
                     .font(.system(size: 14, weight: .semibold))
@@ -113,6 +139,7 @@ struct FeedView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("사용자 탐색")
             .accessibilityIdentifier("feed.discoverButton")
+            }
         }
         .padding(.horizontal, 18)
         .padding(.top, 10)
@@ -171,19 +198,24 @@ struct FeedView: View {
     private var loadedStream: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
-                ForEach(vm.visible) { entry in
+                ForEach(vm.visible.filter { !hiddenEntryIds.contains($0.id) }) { entry in
                     if let binding = vm.binding(for: entry.id) {
                         FeedCardView(
                             entry: binding,
                             onLikeToggle: { liked in vm.persistLike(entryId: entry.id, nowLiked: liked) },
-                            onCommentTap: { commentTarget = entry }
+                            onCommentTap: { commentTarget = entry },
+                            onReportTap: appServices.moderationService == nil
+                                ? nil
+                                : { reportTarget = entry }
                         )
                         .onAppear { Task { await vm.loadMoreIfNeeded(currentItem: entry) } }
                         Divider().background(ScoorPalette.hairline)
                     }
                 }
 
-                if vm.visible.isEmpty { emptyState.padding(.top, 60) }
+                if vm.visible.allSatisfy({ hiddenEntryIds.contains($0.id) }) {
+                    emptyState.padding(.top, 60)
+                }
                 if vm.isLoadingMore { loadMoreSpinner }
                 bottomSpacer
             }

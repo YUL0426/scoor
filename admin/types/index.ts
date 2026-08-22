@@ -249,3 +249,52 @@ export interface PaginatedResponse<T> {
   pageSize: number;
   hasMore: boolean;
 }
+
+// ─────────────────────────────────────────────
+// Feed (spec-13 §3.3 — public.posts / feed_posts)
+// ─────────────────────────────────────────────
+
+/**
+ * `Mood` rawValue와 1:1로 맞춰야 한다 (iOS `Scoor/Models/FeedModels.swift`).
+ * 여기 없는 값을 넣으면 앱이 `.calm`으로 떨어뜨려 조용히 잘못된 태그가 붙는다.
+ */
+export const POST_MOODS = [
+  "happy", "burnout", "lonely", "calm", "healing",
+  "work", "love", "night", "students",
+] as const;
+
+export type PostMood = (typeof POST_MOODS)[number];
+
+export const POST_MOOD_LABELS: Record<PostMood, string> = {
+  happy: "행복",
+  burnout: "번아웃",
+  lonely: "외로움",
+  calm: "고요",
+  healing: "회복",
+  work: "일",
+  love: "사랑",
+  night: "새벽",
+  students: "학생",
+};
+
+/** `Weather` rawValue와 동일. */
+export const POST_WEATHERS = ["sunny", "cloudy", "rainy", "snowy", "night"] as const;
+
+export type PostWeather = (typeof POST_WEATHERS)[number];
+
+/** `public.feed_posts` 한 행 (어드민은 service_role이라 숨김·삭제 글도 본다). */
+export interface AdminPost {
+  id: string;
+  isOfficial: boolean;
+  score: number;
+  message: string;
+  primaryMood: string;
+  extraMoods: string[];
+  weather: string | null;
+  authorName: string | null;
+  isHidden: boolean;
+  deletedAt: string | null;
+  likesCount: number;
+  commentsCount: number;
+  createdAt: string;
+}

@@ -89,26 +89,32 @@ final class ScoorSprint3SocialUITests: XCTestCase {
         XCTAssertTrue(app.scrollViews.firstMatch.waitForExistence(timeout: 6), "Feed scroll missing")
 
         // --- 사용자 탐색 진입 ---
+        //
+        // 탐색은 백엔드가 붙지 않은 빌드에서만 나타난다. 팔로우할 실사용자가
+        // 생기는 Phase 3 전까지 이 화면이 보여줄 수 있는 것은 시드 프로필뿐이라,
+        // 피드가 실데이터로 바뀐 빌드에서는 진입점을 숨긴다(FeedView 참조).
+        // 그래서 여기서는 존재를 단정하지 않고, 있으면 그 경로를 검증한다.
         let discover = app.buttons["feed.discoverButton"]
-        XCTAssertTrue(discover.waitForExistence(timeout: 6), "Discover entry button missing")
-        discover.tap()
-        sleep(1)
-        XCTAssertTrue(app.staticTexts["탐색"].waitForExistence(timeout: 6), "Discover sheet did not open")
-        snap("02-discover")
-
-        // 첫 팔로우 버튼 토글(낙관적 → 영속).
-        let follow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'discover.follow.'")).firstMatch
-        if follow.waitForExistence(timeout: 6) {
-            let label = follow.label
-            follow.tap()
+        if discover.waitForExistence(timeout: 4) {
+            discover.tap()
             sleep(1)
-            // 토글 후 같은 버튼이 "팔로잉"으로 바뀌었는지 확인(영속 반영).
-            XCTAssertNotEqual(follow.label, label, "팔로우 버튼 상태가 토글되어야 한다")
-            snap("03-discover-followed")
+            XCTAssertTrue(app.staticTexts["탐색"].waitForExistence(timeout: 6), "Discover sheet did not open")
+            snap("02-discover")
+
+            // 첫 팔로우 버튼 토글(낙관적 → 영속).
+            let follow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'discover.follow.'")).firstMatch
+            if follow.waitForExistence(timeout: 6) {
+                let label = follow.label
+                follow.tap()
+                sleep(1)
+                // 토글 후 같은 버튼이 "팔로잉"으로 바뀌었는지 확인(영속 반영).
+                XCTAssertNotEqual(follow.label, label, "팔로우 버튼 상태가 토글되어야 한다")
+                snap("03-discover-followed")
+            }
+            // 시트를 닫기 버튼으로 확실히 닫는다.
+            XCTAssertTrue(tapIfExists(app.buttons["discover.closeButton"], 6), "Discover close button missing")
+            XCTAssertTrue(waitForGone(app.staticTexts["탐색"], 6), "Discover sheet did not dismiss")
         }
-        // 시트를 닫기 버튼으로 확실히 닫는다.
-        XCTAssertTrue(tapIfExists(app.buttons["discover.closeButton"], 6), "Discover close button missing")
-        XCTAssertTrue(waitForGone(app.staticTexts["탐색"], 6), "Discover sheet did not dismiss")
 
         // --- World 토픽 피드 ---
         XCTAssertTrue(tapIfExists(app.buttons["World"], 8), "World tab missing")

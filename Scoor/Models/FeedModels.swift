@@ -104,6 +104,12 @@ struct FeedEntry: Identifiable, Hashable {
     let extraTags: [Mood]
     let weather: Weather?
     var reactions: PostReactions
+    /// 어드민이 등록한 공식 글. 앱은 "Scoor" 이름 옆에 배지를 붙여, 운영자가 쓴
+    /// 글이 일반 사용자 글로 읽히지 않게 한다 (0007_feed.sql 참조).
+    var isOfficial: Bool = false
+    /// 작성자 계정. 신고 시트가 "이 사람 차단"까지 제안하는 데 쓴다. 익명 글과
+    /// 공식 글, 그리고 시드 경로에서는 nil이다.
+    var authorId: UUID? = nil
 
     static func == (lhs: FeedEntry, rhs: FeedEntry) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }

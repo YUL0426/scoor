@@ -244,11 +244,14 @@ struct SupabaseRequest {
                        columns: String = "*",
                        filters: [String: String] = [:],
                        order: String? = nil,
-                       limit: Int? = nil) -> SupabaseRequest {
+                       limit: Int? = nil,
+                       offset: Int? = nil) -> SupabaseRequest {
         var query = filters
         query["select"] = columns
         if let order { query["order"] = order }
         if let limit { query["limit"] = String(limit) }
+        // 0은 굳이 보내지 않는다 — 첫 페이지 요청이 캐시 관점에서 다른 URL이 된다.
+        if let offset, offset > 0 { query["offset"] = String(offset) }
         return SupabaseRequest(method: .get, path: table, query: query)
     }
 

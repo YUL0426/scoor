@@ -57,7 +57,8 @@ struct ContentView: View {
                 onRequestScoreSheet: { showScoreSheet = true }
             )
         case .feed:
-            FeedView(socialService: appServices.socialService)
+            FeedView(socialService: appServices.socialService,
+                     feedService: appServices.feedService)
         case .world:
             WorldView(socialService: appServices.socialService,
                       worldService: appServices.worldService)

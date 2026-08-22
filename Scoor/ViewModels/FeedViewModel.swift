@@ -26,12 +26,29 @@ final class FeedViewModel: ObservableObject {
     @Published var transientError: String? = nil
 
     private let service: SocialServiceProtocol
+    /// 서버 피드. nil이면 백엔드가 없는 빌드이고, 그때만 로컬 시드 경로를 쓴다.
+    private let remote: RemoteFeedService?
     private let pageSize: Int
     private var loadedPages = 0
 
-    init(service: SocialServiceProtocol, pageSize: Int = 8) {
+    /// 이 화면이 실데이터를 보여주고 있는지. 뷰가 "예시 콘텐츠" 배너와 시드
+    /// 티커를 감출지 결정하는 데 쓴다 — 실글 위에 그 배너가 남아 있으면 이번엔
+    /// 반대 방향으로 거짓말을 하게 된다.
+    var isLive: Bool { remote != nil }
+
+    init(service: SocialServiceProtocol,
+         remote: RemoteFeedService? = nil,
+         pageSize: Int = 8) {
         self.service = service
+        self.remote = remote
         self.pageSize = pageSize
+    }
+
+    /// 한 페이지 로드. 서버 경로에서는 실패를 그대로 위로 던진다 — 시드로
+    /// 폴백하면 "불러오지 못함"이 "가짜 글 20개"로 둔갑한다.
+    private func fetch(page: Int) async throws -> [FeedEntry] {
+        if let remote { return try await remote.loadFeed(page: page, pageSize: pageSize) }
+        return await service.loadFeed(page: page, pageSize: pageSize)
     }
 
     // MARK: - Derived
@@ -63,18 +80,26 @@ final class FeedViewModel: ObservableObject {
         phase = .loading
         loadedPages = 0
         canLoadMore = true
-        let page = await service.loadFeed(page: 0, pageSize: pageSize)
-        entries = page
-        loadedPages = 1
-        phase = page.isEmpty ? .empty : .loaded
+        await loadFirstPage()
     }
 
     func refresh() async {
-        let page = await service.loadFeed(page: 0, pageSize: pageSize)
-        entries = page
-        loadedPages = 1
-        canLoadMore = true
-        phase = page.isEmpty ? .empty : .loaded
+        await loadFirstPage()
+    }
+
+    private func loadFirstPage() async {
+        do {
+            let page = try await fetch(page: 0)
+            entries = page
+            loadedPages = 1
+            canLoadMore = true
+            phase = page.isEmpty ? .empty : .loaded
+        } catch {
+            entries = []
+            loadedPages = 0
+            canLoadMore = false
+            phase = .error(error.localizedDescription)
+        }
     }
 
     func loadMoreIfNeeded(currentItem: FeedEntry) async {
@@ -88,9 +113,10 @@ final class FeedViewModel: ObservableObject {
     func loadMore() async {
         guard canLoadMore, !isLoadingMore else { return }
         isLoadingMore = true
-        let next = await service.loadFeed(page: loadedPages, pageSize: pageSize)
-        // 무한 합성을 막기 위한 상한(예: 6페이지).
-        if next.isEmpty || loadedPages >= 6 {
+        let next = (try? await fetch(page: loadedPages)) ?? []
+        // 시드 경로는 페이지를 무한히 합성하므로 상한이 필요했다. 서버 경로는
+        // 글이 떨어지면 빈 페이지가 오니 그쪽이 먼저 멈춘다.
+        if next.isEmpty || (!isLive && loadedPages >= 6) {
             canLoadMore = false
         } else {
             // 중복 id 방지(결정적 합성이라 이론상 없지만 안전망).
@@ -106,7 +132,8 @@ final class FeedViewModel: ObservableObject {
         guard loadedPages > 0 else { return }
         var rebuilt: [FeedEntry] = []
         for page in 0..<loadedPages {
-            rebuilt.append(contentsOf: await service.loadFeed(page: page, pageSize: pageSize))
+            guard let fetched = try? await fetch(page: page) else { return }
+            rebuilt.append(contentsOf: fetched)
         }
         // 기존 순서(좋아요 등 사용자 조작 반영) 유지하며 교체.
         let byId = Dictionary(rebuilt.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
@@ -130,7 +157,11 @@ final class FeedViewModel: ObservableObject {
     func persistLike(entryId: UUID, nowLiked: Bool) {
         Task {
             do {
-                try await service.setLike(postId: entryId, liked: nowLiked)
+                if let remote {
+                    try await remote.setLike(postId: entryId, liked: nowLiked)
+                } else {
+                    try await service.setLike(postId: entryId, liked: nowLiked)
+                }
             } catch {
                 // 롤백
                 if let idx = entries.firstIndex(where: { $0.id == entryId }) {

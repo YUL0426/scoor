@@ -28,6 +28,8 @@ final class AppServices: ObservableObject {
     private(set) var remoteScoreService: RemoteScoreService?
     private(set) var worldService: RemoteWorldService?
     private(set) var moderationService: RemoteModerationService?
+    /// 서버 피드 (spec-13 §3.3). nil이면 Feed 탭은 로컬 시드 경로로 남는다.
+    private(set) var feedService: RemoteFeedService?
 
     /// Whether this build syncs to a backend at all — drives the Settings sync row.
     var isBackendBacked: Bool { remoteScoreService != nil }
@@ -46,7 +48,8 @@ final class AppServices: ObservableObject {
         moodAnalyzer: MoodAnalyzing = DisabledMoodAnalyzer(),
         remoteScoreService: RemoteScoreService? = nil,
         worldService: RemoteWorldService? = nil,
-        moderationService: RemoteModerationService? = nil
+        moderationService: RemoteModerationService? = nil,
+        feedService: RemoteFeedService? = nil
     ) {
         self.scoreService = scoreService
         self.userService = userService
@@ -57,6 +60,7 @@ final class AppServices: ObservableObject {
         self.remoteScoreService = remoteScoreService
         self.worldService = worldService
         self.moderationService = moderationService
+        self.feedService = feedService
     }
 
     /// Production init — backs scores, guestbook, and social interactions with the
@@ -75,6 +79,7 @@ final class AppServices: ObservableObject {
         var remoteScores: RemoteScoreService?
         var world: RemoteWorldService?
         var moderation: RemoteModerationService?
+        var feed: RemoteFeedService?
         var httpClient: SupabaseHTTPClient?
 
         if let config = SupabaseConfig.current, let authService {
@@ -88,6 +93,7 @@ final class AppServices: ObservableObject {
             }
             world = RemoteWorldService(client: client, currentUserID: currentUserID)
             moderation = RemoteModerationService(client: client, currentUserID: currentUserID)
+            feed = RemoteFeedService(client: client, currentUserID: currentUserID)
         }
 
         let guestbook = SwiftDataGuestbookService(modelContext: modelContext)
@@ -98,7 +104,8 @@ final class AppServices: ObservableObject {
             socialService: SwiftDataSocialService(modelContext: modelContext),
             remoteScoreService: remoteScores,
             worldService: world,
-            moderationService: moderation
+            moderationService: moderation,
+            feedService: feed
         )
         self.accountMigrator = AccountMigrator(
             scoreService: scoreService,
