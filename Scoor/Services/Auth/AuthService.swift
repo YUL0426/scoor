@@ -32,7 +32,7 @@ protocol AuthServiceProtocol: AnyObject {
     func signInWithEmail(email: String, password: String) async throws -> AuthenticatedIdentity
     func restoreSession()
     func signOut()
-    func deleteAccount()
+    func deleteAccount() async throws
 }
 
 @MainActor
@@ -206,24 +206,42 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
     ///
     /// With a backend this calls the `account-delete` Edge Function, which holds
     /// the service-role key and revokes the Apple token — neither of which can
-    /// happen in the client. The local footprint is cleared either way, so the
-    /// user is signed out even if the server call fails.
-    func deleteAccount() {
+    /// happen in the client.
+    ///
+    /// **The server call is awaited and its failure is rethrown.** It used to be
+    /// fired into a detached `Task` whose error was swallowed, so a request that
+    /// never landed still cleared the device and looked like success: the account
+    /// survived on the server while the user was told it was gone. 5.1.1(v) asks
+    /// for deletion, not for a sign-out that resembles one.
+    func deleteAccount() async throws {
         if let supabase, let token = supabaseSession?.accessToken {
-            Task {
-                do {
-                    try await supabase.deleteAccount(accessToken: token)
-                } catch {
-                    #if DEBUG
-                    print("[Scoor] server account deletion failed: \(error.localizedDescription)")
-                    #endif
-                }
-            }
+            try await supabase.deleteAccount(
+                accessToken: token,
+                appleAuthorizationCode: await freshAppleAuthorizationCode()
+            )
         }
         if let session = currentSession, session.providerKind == .email {
             EmailCredentialStore.removeAccount(email: session.providerUserID)
         }
         signOut()
+    }
+
+    /// A *newly issued* Apple authorization code, for server-side token revocation.
+    ///
+    /// Re-authorizing looks redundant — we already had a code at sign-in — but
+    /// Apple's codes are single-use and expire in five minutes, so a stored one is
+    /// worthless by the time anyone deletes their account. Apple's own guidance is
+    /// to request a fresh code at deletion time.
+    ///
+    /// Returns nil for non-Apple accounts and when the user dismisses the prompt.
+    /// A missing code must not block deletion: the user asked to leave, and
+    /// refusing to delete because a token could not be revoked would trade one
+    /// 5.1.1(v) violation for another.
+    private func freshAppleAuthorizationCode() async -> String? {
+        guard currentSession?.providerKind == .apple else { return nil }
+        // UI 테스트는 시스템 Apple 시트를 띄울 수 없다 — 로그인 경로와 같은 바이패스.
+        guard !UITestSupport.wantsCleanState else { return nil }
+        return try? await apple.signIn().accessToken
     }
 
     // MARK: - Persistence
