@@ -15,9 +15,9 @@ export function Card({
 }: CardProps) {
   const variants = {
     default:
-      "bg-[#0d0d1f] border border-white/6 rounded-xl",
+      "bg-[#191a1d] border border-white/6 rounded-xl",
     elevated:
-      "bg-[#13131f] border border-white/8 rounded-xl",
+      "bg-[#202124] border border-white/8 rounded-xl",
     ghost:
       "bg-transparent border border-white/6 rounded-xl",
   };
@@ -58,7 +58,7 @@ export function CardTitle({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={cn("text-sm font-semibold text-[#f4f4f6] tracking-tight", className)}
+      className={cn("text-sm font-semibold text-[#ededee] tracking-tight", className)}
       {...props}
     >
       {children}

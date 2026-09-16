@@ -121,14 +121,14 @@ enum ScoorType {
 enum RelativeTime {
     static func short(from date: Date, now: Date = Date()) -> String {
         let s = Int(now.timeIntervalSince(date))
-        if s < 60       { return "\(max(s, 1))초" }
+        if s < 60       { return String(localized: "time.short.seconds", defaultValue: "\(max(s, 1))s") }
         let m = s / 60
-        if m < 60       { return "\(m)분" }
+        if m < 60       { return String(localized: "time.short.minutes", defaultValue: "\(m)m") }
         let h = m / 60
-        if h < 24       { return "\(h)시간" }
+        if h < 24       { return String(localized: "time.short.hours", defaultValue: "\(h)h") }
         let d = h / 24
-        if d < 7        { return "\(d)일" }
-        return "\(d / 7)주"
+        if d < 7        { return String(localized: "time.short.days", defaultValue: "\(d)d") }
+        return String(localized: "time.short.weeks", defaultValue: "\(d / 7)w")
     }
 }
 

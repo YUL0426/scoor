@@ -4,8 +4,7 @@
 //
 //  앱 진입 흐름의 단일 상태 머신.
 //
-//  Splash → Signup(Welcome → Login → Nickname → Complete) →
-//  Onboarding Tour → First Scoor (Prompt → Success) → Main.
+//  Splash → Social sign-in → Main. Profile customization is optional in settings.
 //
 //  - 각 단계는 `Stage` enum 한 케이스.
 //  - 마지막 도달 단계를 UserDefaults에 저장해 두므로,
@@ -91,7 +90,10 @@ final class AppFlowCoordinator: ObservableObject {
         let raw = UserDefaults.standard.string(forKey: stageKey) ?? Stage.signupWelcome.rawValue
         let resume = Stage(rawValue: raw) ?? .signupWelcome
         // splash 자체는 저장하지 않음 — 매번 짧게 보여준다.
-        animate { self.stage = (resume == .splash ? .signupWelcome : resume) }
+        let obsoleteSignupSteps: [Stage] = [.signupNickname, .signupComplete, .tour, .firstScoor, .firstScoorSuccess]
+        animate {
+            self.stage = obsoleteSignupSteps.contains(resume) ? .main : (resume == .splash ? .signupWelcome : resume)
+        }
     }
 
     // MARK: - 단계 진행
@@ -106,7 +108,8 @@ final class AppFlowCoordinator: ObservableObject {
         if let email, !email.isEmpty {
             UserDefaults.standard.set(email, forKey: authEmailKey)
         }
-        advance(to: .signupNickname)
+        UserDefaults.standard.set(true, forKey: legacyKey)
+        advance(to: .main)
     }
 
     func continueFromNickname(_ name: String, avatar: String?) {

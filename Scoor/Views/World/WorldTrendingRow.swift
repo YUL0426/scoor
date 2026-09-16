@@ -18,12 +18,9 @@ struct WorldTrendingRow: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("지금 뜨거운 토픽")
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(ScoorPalette.inkPrimary)
                 Spacer()
-                Text("더 보기")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(ScoorPalette.inkTertiary)
             }
             .padding(.horizontal, 18)
 
@@ -94,9 +91,9 @@ private struct TopicMiniCard: View {
                 // CompactCount는 0을 빈 문자열로 낸다. 시드에서는 모든 토픽이
                 // 수천 건이라 드러나지 않았지만, 실제 서비스의 새 토픽은 전부
                 // 0에서 시작해 "글"만 덩그러니 남는다.
-                Text(topic.postsCount > 0
-                     ? "\(CompactCount.format(topic.postsCount))글"
-                     : "아직 반응 없음")
+                Text(topic.postsCount == 1 ? String(localized: "1 post") : topic.postsCount > 0
+                     ? String(localized: "\(CompactCount.format(topic.postsCount))글")
+                     : String(localized: "아직 반응 없음"))
                     .font(.system(size: 10.5, weight: .medium))
                     .foregroundStyle(ScoorPalette.inkTertiary)
             }

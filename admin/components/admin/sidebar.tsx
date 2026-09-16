@@ -1,152 +1,263 @@
 "use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import {
-  LayoutDashboard,
-  Users,
-  Globe,
-  Rss,
-  Bell,
-  BarChart2,
+  Search,
   Settings,
+  ChevronsUpDown,
   LogOut,
-  Zap,
-  ChevronRight,
-  ListChecks,
+  ArrowUpRight,
+  X,
+  CornerDownLeft,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
-
-/// Grouped by a field rather than by index slices: the previous form hard-coded
-/// `slice(0, 4)` / `slice(4, 6)` / `[6]`, so adding one item silently moved
-/// another into the wrong section.
-const NAV_GROUPS = [
-  {
-    title: "운영",
-    items: [
-      { label: "대시보드", href: "/admin", icon: LayoutDashboard, exact: true },
-      { label: "사용자", href: "/admin/users", icon: Users },
-      { label: "월드 토픽", href: "/admin/topics", icon: ListChecks },
-      { label: "월드 아젠다", href: "/admin/agenda", icon: Globe },
-      { label: "피드", href: "/admin/feed", icon: Rss },
-    ],
-  },
-  {
-    title: "지표",
-    items: [
-      { label: "알림", href: "/admin/notifications", icon: Bell },
-      { label: "분석", href: "/admin/analytics", icon: BarChart2 },
-    ],
-  },
-  {
-    title: "시스템",
-    items: [{ label: "설정", href: "/admin/settings", icon: Settings }],
-  },
-] as const;
-
-function NavItem({
-  href,
-  label,
-  icon: Icon,
-  exact,
-}: {
-  href: string;
-  label: string;
-  icon: React.ElementType;
-  exact?: boolean;
-}) {
-  const pathname = usePathname();
-  const isActive = exact ? pathname === href : pathname.startsWith(href);
-
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 relative",
-        isActive
-          ? "bg-[#f42525]/12 text-[#f42525]"
-          : "text-[#8b8ba4] hover:text-[#f4f4f6] hover:bg-white/5"
-      )}
-    >
-      {isActive && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#f42525] rounded-r-full" />
-      )}
-      <Icon
-        className={cn(
-          "h-4 w-4 flex-shrink-0 transition-colors",
-          isActive ? "text-[#f42525]" : "text-[#52526c] group-hover:text-[#8b8ba4]"
-        )}
-      />
-      <span>{label}</span>
-      {isActive && (
-        <ChevronRight className="ml-auto h-3.5 w-3.5 text-[#f42525]/60" />
-      )}
-    </Link>
-  );
-}
+import { navigation } from "./navigation";
 
 export function Sidebar() {
-  const { logout, user } = useAuth();
-
+  const pathname = usePathname(),
+    router = useRouter();
+  const { user, logout, error } = useAuth();
+  const [mobile, setMobile] = useState(false),
+    [open, setOpen] = useState(false),
+    [query, setQuery] = useState("");
+  const [selected, setSelected] = useState(0);
+  const searchTrigger = useRef<HTMLButtonElement>(null);
+  const results = navigation.filter(
+    (n) =>
+      n.label.includes(query.trim()) ||
+      n.href.includes(query.trim().toLowerCase()),
+  );
+  useEffect(() => {
+    const search = () => {
+      setOpen(true);
+      setQuery("");
+      setSelected(0);
+    };
+    const menu = () => setMobile((v) => !v);
+    const key = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        search();
+      }
+      if (e.key === "Escape") setMobile(false);
+    };
+    window.addEventListener("keydown", key);
+    window.addEventListener("scoor:search", search);
+    window.addEventListener("scoor:menu", menu);
+    return () => {
+      window.removeEventListener("keydown", key);
+      window.removeEventListener("scoor:search", search);
+      window.removeEventListener("scoor:menu", menu);
+    };
+  }, []);
+  function navigate(href: string) {
+    setOpen(false);
+    setMobile(false);
+    router.push(href);
+  }
   return (
-    <aside className="flex flex-col h-full w-56 bg-[#060610] border-r border-white/6">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-4 h-14 border-b border-white/6 flex-shrink-0">
-        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#f42525] shadow-[0_0_12px_rgba(244,37,37,0.35)]">
-          <Zap className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
-        </div>
-        <div className="flex flex-col">
-          <span className="text-sm font-bold text-[#f4f4f6] tracking-tight leading-none">
-            scoor
+    <>
+      {mobile && (
+        <button
+          aria-label="메뉴 닫기"
+          className="fixed inset-0 z-40 bg-black/60 md:hidden"
+          onClick={() => setMobile(false)}
+        />
+      )}
+      <aside
+        aria-label="워크스페이스 탐색"
+        className={`fixed inset-y-0 left-0 z-50 flex w-[232px] shrink-0 flex-col border-r border-white/6 bg-[#111214] transition-transform md:relative md:translate-x-0 ${mobile ? "translate-x-0 visible" : "-translate-x-full invisible md:visible"}`}
+      >
+        <div className="flex h-16 items-center gap-2.5 px-5">
+          <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-brand text-lg font-bold text-white">
+            s
           </span>
-          <span className="text-[10px] text-[#52526c] font-medium uppercase tracking-widest">
-            admin
+          <span className="flex-1 font-semibold tracking-tight">
+            Scoor{" "}
+            <span className="ml-1 text-xs font-normal text-text-tertiary">
+              워크스페이스
+            </span>
           </span>
+          <ChevronsUpDown size={13} className="text-text-tertiary" />
         </div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
-        {NAV_GROUPS.map((group, index) => (
-          <div key={group.title}>
-            <div className={cn("px-2 mb-2", index > 0 && "mt-4")}>
-              <span className="text-[10px] font-semibold text-[#52526c] uppercase tracking-widest">
-                {group.title}
-              </span>
+        <button
+          ref={searchTrigger}
+          onClick={() => {
+            setQuery("");
+            setSelected(0);
+            setOpen(true);
+          }}
+          className="mx-3 mb-5 flex h-8 items-center gap-2 rounded-md border border-white/8 px-2.5 text-xs text-text-secondary hover:bg-white/5"
+          aria-label="페이지 검색"
+        >
+          <Search size={13} />
+          <span className="flex-1 text-left">빠른 이동</span>
+          <kbd className="text-[10px] text-text-tertiary">⌘ K</kbd>
+        </button>
+        <nav className="flex-1 overflow-y-auto px-3" aria-label="주 메뉴">
+          {["워크스페이스", "콘텐츠", "미리보기"].map((group) => (
+            <div key={group} className="mb-6">
+              <p className="mb-2 px-2 text-[11px] text-text-tertiary">
+                {group}
+              </p>
+              {navigation
+                .filter(
+                  (n) => n.group === group && n.href !== "/admin/settings",
+                )
+                .map((n) => (
+                  <Link
+                    key={n.href}
+                    href={n.href}
+                    onClick={() => setMobile(false)}
+                    aria-current={pathname === n.href ? "page" : undefined}
+                    className={`my-0.5 flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] ${pathname === n.href ? "bg-white/7 text-text-primary" : "text-text-secondary hover:bg-white/4 hover:text-text-primary"}`}
+                  >
+                    <n.icon size={15} strokeWidth={1.7} />
+                    <span>{n.label}</span>
+                    {n.preview && (
+                      <span className="ml-auto text-[10px] text-text-tertiary">
+                        샘플
+                      </span>
+                    )}
+                  </Link>
+                ))}
             </div>
-            <div className="space-y-0.5">
-              {group.items.map((item) => (
-                <NavItem key={item.href} {...item} />
-              ))}
-            </div>
-          </div>
-        ))}
-      </nav>
-
-      {/* User area */}
-      <div className="flex-shrink-0 border-t border-white/6 p-3">
-        <div className="flex items-center gap-2.5 px-2 py-2 rounded-lg">
-          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-[#f42525] to-[#ff8a80] text-white text-xs font-bold flex-shrink-0">
-            {user?.name?.[0]?.toUpperCase() ?? "A"}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-[#f4f4f6] truncate">
-              {user?.name ?? "관리자"}
-            </p>
-            <p className="text-[10px] text-[#52526c] truncate">
-              {user?.email ?? "admin@scoor.app"}
+          ))}
+        </nav>
+        <div className="space-y-1 px-3 pb-4">
+          <Link
+            href="/admin/settings"
+            onClick={() => setMobile(false)}
+            aria-current={pathname === "/admin/settings" ? "page" : undefined}
+            className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-text-secondary hover:bg-white/5"
+          >
+            <Settings size={15} />
+            설정
+          </Link>
+          <a
+            href="https://scoor.app"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-between px-2.5 py-2 text-xs text-text-tertiary hover:text-text-primary"
+          >
+            Scoor 웹사이트
+            <ArrowUpRight size={13} />
+          </a>
+        </div>
+        {error && (
+          <p role="alert" className="mx-4 mb-2 text-xs text-red-300">
+            {error}
+          </p>
+        )}
+        <div className="flex items-center gap-2.5 border-t border-white/6 px-4 py-4">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xs">
+            {user?.name?.[0] ?? "S"}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs">{user?.name ?? "관리자"}</p>
+            <p className="truncate text-[10px] text-text-tertiary">
+              {user?.email ?? "세션 확인 중"}
             </p>
           </div>
           <button
             onClick={logout}
-            className="text-[#52526c] hover:text-red-400 transition-colors p-1 rounded"
+            className="ui-icon"
+            aria-label="로그아웃"
             title="로그아웃"
           >
-            <LogOut className="h-3.5 w-3.5" />
+            <LogOut size={14} />
           </button>
         </div>
-      </div>
-    </aside>
+      </aside>
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="dialog-overlay" />
+          <Dialog.Content
+            className="dialog-content command-dialog"
+            onCloseAutoFocus={(e) => {
+              e.preventDefault();
+              searchTrigger.current?.focus();
+            }}
+          >
+            <Dialog.Title className="sr-only">페이지 빠른 이동</Dialog.Title>
+            <Dialog.Description className="sr-only">
+              페이지 이름으로 검색하고 위아래 방향키와 Enter로 이동하세요.
+            </Dialog.Description>
+            <div className="flex items-center gap-3 border-b border-white/10 p-4">
+              <Search size={17} className="text-text-tertiary" />
+              <input
+                autoFocus
+                role="combobox"
+                aria-expanded={true}
+                aria-controls="command-results"
+                aria-activedescendant={
+                  results[selected] ? `command-${selected}` : undefined
+                }
+                aria-label="페이지 이름 검색"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setSelected(0);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setSelected((v) => Math.min(v + 1, results.length - 1));
+                  }
+                  if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setSelected((v) => Math.max(v - 1, 0));
+                  }
+                  if (e.key === "Enter" && results[selected]) {
+                    e.preventDefault();
+                    navigate(results[selected].href);
+                  }
+                }}
+                placeholder="어디로 이동할까요?"
+                className="flex-1 bg-transparent outline-none"
+              />
+              <Dialog.Close className="ui-icon" aria-label="검색 닫기">
+                <X size={15} />
+              </Dialog.Close>
+            </div>
+            <div
+              className="p-2"
+              id="command-results"
+              role="listbox"
+              aria-label="이동할 페이지"
+            >
+              {results.map((n, i) => (
+                <button
+                  key={n.href}
+                  id={`command-${i}`}
+                  role="option"
+                  aria-selected={selected === i}
+                  onClick={() => navigate(n.href)}
+                  onMouseEnter={() => setSelected(i)}
+                  className={`flex w-full items-center gap-3 rounded-md px-3 py-3 text-sm ${selected === i ? "bg-white/7" : ""}`}
+                >
+                  <n.icon size={16} />
+                  <span>{n.label}</span>
+                  <span className="ml-auto text-xs text-text-tertiary">
+                    {n.preview ? "샘플 화면" : n.group}
+                  </span>
+                  {selected === i && <CornerDownLeft size={12} />}
+                </button>
+              ))}
+              {!results.length && (
+                <p className="p-8 text-center text-text-tertiary">
+                  일치하는 페이지가 없습니다.
+                </p>
+              )}
+            </div>
+            <div className="border-t border-white/8 px-4 py-2.5 text-[11px] text-text-tertiary">
+              ↑ ↓ 선택 <span className="mx-3">↵ 이동</span> esc 닫기
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </>
   );
 }

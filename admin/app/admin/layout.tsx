@@ -1,15 +1,20 @@
 import { Sidebar } from "@/components/admin/sidebar";
 import { AuthProvider } from "@/providers/auth-provider";
 import type { ReactNode } from "react";
-
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
-      <div className="flex h-screen overflow-hidden bg-[#060610]">
+      <div className="flex h-dvh overflow-hidden bg-bg-base">
+        <a
+          href="#admin-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:z-[100] focus:bg-bg-overlay focus:p-3"
+        >
+          본문으로 이동
+        </a>
         <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <main id="admin-content" className="workspace-content" tabIndex={-1}>
           {children}
-        </div>
+        </main>
       </div>
     </AuthProvider>
   );

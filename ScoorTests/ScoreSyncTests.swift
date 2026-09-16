@@ -9,6 +9,7 @@
 //
 
 import XCTest
+import SwiftData
 @testable import Scoor
 
 final class ScoreSyncQueueTests: XCTestCase {
@@ -97,7 +98,7 @@ final class ScoreSyncQueueTests: XCTestCase {
         XCTAssertEqual(ops.first?.value, 42)
     }
 
-    func testPoisonOperationIsDroppedAfterRepeatedFailures() async {
+    func testOfflineOperationSurvivesRepeatedFailuresAndRelaunch() async {
         let defaults = makeDefaults()
         let queue = ScoreSyncQueue(defaults: defaults)
         await queue.enqueue(.upsert(score(50, day: Date(), user: UUID())))
@@ -105,12 +106,13 @@ final class ScoreSyncQueueTests: XCTestCase {
             return XCTFail("expected a queued operation")
         }
 
-        // An operation the server will never accept must not retry forever and
-        // block everything behind it.
-        for _ in 0..<8 { await queue.recordFailure(id) }
+        // Repeated offline launches must not discard unsynced data.
+        for _ in 0..<20 { await queue.recordFailure(id) }
 
-        let count = await queue.count
-        XCTAssertEqual(count, 0)
+        let reloaded = ScoreSyncQueue(defaults: defaults)
+        let operations = await reloaded.operations
+        XCTAssertEqual(operations.count, 1)
+        XCTAssertEqual(operations.first?.id, id)
     }
 
     func testRemoveAllClearsQueueAndWatermark() async {
@@ -248,5 +250,203 @@ final class APIErrorTests: XCTestCase {
         XCTAssertFalse(APIError.unauthorized.isRetryable)
         XCTAssertFalse(APIError.server(status: 400, message: nil).isRetryable)
         XCTAssertFalse(APIError.updateRequired.isRetryable)
+    }
+}
+
+// Deterministic HTTP regressions; no production writes or real credentials.
+final class ReleaseAuditURLProtocol: URLProtocol {
+    static var handler: ((URLRequest) throws -> (Int, Data))?
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        do {
+            let (status, data) = try Self.handler!(request)
+            let response = HTTPURLResponse(url: request.url!, statusCode: status,
+                                           httpVersion: nil, headerFields: nil)!
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: data)
+            client?.urlProtocolDidFinishLoading(self)
+        } catch { client?.urlProtocol(self, didFailWithError: error) }
+    }
+    override func stopLoading() {}
+    static func session() -> URLSession {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [ReleaseAuditURLProtocol.self]
+        return URLSession(configuration: config)
+    }
+}
+
+@MainActor
+final class ReleaseBlockerRegressionTests: XCTestCase {
+    private let config = SupabaseConfig(baseURL: URL(string: "https://audit.invalid")!, anonKey: "test-public-key")
+
+    func testProviderExchangeFailureDoesNotCreateLocalSession() async {
+        ReleaseAuditURLProtocol.handler = { _ in (401, Data("{}".utf8)) }
+        let auth = AuthService(config: config, session: ReleaseAuditURLProtocol.session())
+        auth.signOut()
+        do {
+            _ = try await auth.finish(AuthenticatedIdentity(provider: .apple,
+                providerUserID: "audit", identityToken: "invalid"), providerName: "apple")
+            XCTFail("Rejected provider tokens must fail sign-in")
+        } catch { XCTAssertEqual(error as? APIError, .unauthorized) }
+        XCTAssertFalse(auth.isSignedIn)
+    }
+
+    private func seedExpiredSession(user: UUID) throws {
+        let stored = SupabaseSession(accessToken: "expired", refreshToken: "refresh-old",
+            expiresAt: Date(timeIntervalSince1970: 0), userId: user, email: "audit@example.invalid")
+        XCTAssertTrue(KeychainStore.set(String(data: try JSONEncoder().encode(stored), encoding: .utf8),
+                                        for: "scoor.auth.supabaseSession"))
+        let identity = AuthSession(provider: "email", providerUserID: "audit@example.invalid",
+            email: "audit@example.invalid", userID: user, signedInAt: Date())
+        UserDefaults.standard.set(try JSONEncoder().encode(identity), forKey: "scoor.authSession")
+    }
+
+    func testDeletionRefreshesExpiredTokenBeforeSendingRequest() async throws {
+        let user = UUID()
+        try seedExpiredSession(user: user)
+        var sawRefresh = false, sawDelete = false
+        ReleaseAuditURLProtocol.handler = { request in
+            if request.url!.path == "/auth/v1/token" {
+                sawRefresh = true
+                return (200, Data("{\"access_token\":\"fresh\",\"refresh_token\":\"refresh-new\",\"expires_in\":3600,\"user\":{\"id\":\"\(user.uuidString)\"}}".utf8))
+            }
+            if request.url!.path == "/functions/v1/account-delete" {
+                sawDelete = true
+                XCTAssertTrue(sawRefresh)
+                XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer fresh")
+            }
+            return (200, Data("{}".utf8))
+        }
+        let auth = AuthService(config: config, session: ReleaseAuditURLProtocol.session())
+        defer { auth.signOut() }
+        try await auth.deleteAccount()
+        XCTAssertTrue(sawDelete)
+        XCTAssertFalse(auth.isSignedIn)
+    }
+
+    func testTemporaryRefreshFailureKeepsRestorableSession() async throws {
+        try seedExpiredSession(user: UUID())
+        ReleaseAuditURLProtocol.handler = { _ in (503, Data("{}".utf8)) }
+        let auth = AuthService(config: config, session: ReleaseAuditURLProtocol.session())
+        let token = await auth.currentAccessToken()
+        XCTAssertNil(token)
+        XCTAssertTrue(auth.isSignedIn)
+        XCTAssertNotNil(KeychainStore.get("scoor.auth.supabaseSession"))
+        auth.signOut()
+    }
+
+    func testBackendDeletionWithoutTokenFailsInsteadOfReportingSuccess() async {
+        let auth = AuthService(config: config, session: ReleaseAuditURLProtocol.session())
+        auth.signOut()
+        do {
+            try await auth.deleteAccount()
+            XCTFail("Missing backend session cannot mean deletion succeeded")
+        } catch { XCTAssertEqual(error as? APIError, .unauthorized) }
+    }
+
+    func testDeletingOneAccountPreservesOtherAccountsOfflineRecords() async throws {
+        let a = UUID(), b = UUID()
+        let queue = ScoreSyncQueue(defaults: UserDefaults(suiteName: UUID().uuidString)!)
+        let local = MockScoreService()
+        for user in [a, b] {
+            let score = Score(userId: user, value: 71, date: Date())
+            try await local.saveScore(score)
+            await queue.enqueue(.upsert(score))
+        }
+        let client = SupabaseHTTPClient(config: config, tokenProvider: nil)
+        let remote = RemoteScoreService(local: local, client: client, queue: queue)
+        try await remote.deleteLocalScores(userId: a)
+        let aRows = await local.getScoreHistory(userId: a, limit: 100)
+        let bRows = await local.getScoreHistory(userId: b, limit: 100)
+        let pending = await queue.operations
+        XCTAssertTrue(aRows.isEmpty)
+        XCTAssertEqual(bRows.count, 1)
+        XCTAssertEqual(pending.map(\.userId), [b])
+    }
+
+    func testSwiftDataAccountDeletionKeepsOtherOwnersScoresAndGuestbook() async throws {
+        let container = try ModelContainer(for: ScoreModel.self, GuestbookRecord.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let scores = SwiftDataScoreService(modelContext: container.mainContext)
+        let messages = SwiftDataGuestbookService(modelContext: container.mainContext)
+        let a = UUID(), b = UUID()
+        for user in [a, b] {
+            try await scores.saveScore(Score(userId: user, value: 63, date: Date()))
+            try await messages.postMessage(authorId: user, recipientId: user, content: "private", isPrivate: true)
+        }
+        try await scores.deleteLocalScores(userId: a)
+        try await messages.deleteMessages(userId: a)
+        let remainingScores = await scores.getScoreHistory(userId: b, limit: 100)
+        let remainingMessages = await messages.getMessages(recipientId: b, includePrivate: true)
+        let removedMessages = await messages.getMessages(recipientId: a, includePrivate: true)
+        XCTAssertEqual(remainingScores.count, 1)
+        XCTAssertEqual(remainingMessages.count, 1)
+        XCTAssertTrue(removedMessages.isEmpty)
+    }
+
+    func testCommentOwnerReachesBlockAction() {
+        let owner = UUID()
+        let row = CommentRow(id: UUID(), postId: UUID(), authorId: owner,
+                             text: "comment", isAnonymous: false, createdAt: Date(),
+                             editedAt: nil, profiles: .init(username: "user"))
+        XCTAssertEqual(row.toDomain(currentUserID: nil).authorId, owner)
+    }
+
+    func testAccountSwitchOnlyUploadsCurrentOwnersOperations() async {
+        let a = UUID(), b = UUID()
+        let queue = ScoreSyncQueue(defaults: UserDefaults(suiteName: UUID().uuidString)!)
+        await queue.enqueue(.upsert(Score(userId: a, value: 10, date: Date())))
+        await queue.enqueue(.upsert(Score(userId: b, value: 20, date: Date())))
+        var requests = 0
+        ReleaseAuditURLProtocol.handler = { request in
+            requests += 1
+            return (204, Data())
+        }
+        let client = SupabaseHTTPClient(config: config, tokenProvider: nil,
+                                       session: ReleaseAuditURLProtocol.session())
+        let remote = RemoteScoreService(local: MockScoreService(), client: client,
+                                        queue: queue, currentUserID: { b })
+        await remote.push()
+        let remaining = await queue.operations
+        XCTAssertEqual(requests, 1)
+        XCTAssertEqual(remaining.map(\.userId), [a])
+    }
+
+    func testUnauthorizedUploadRemainsQueuedForReauthentication() async {
+        let user = UUID()
+        let queue = ScoreSyncQueue(defaults: UserDefaults(suiteName: UUID().uuidString)!)
+        await queue.enqueue(.upsert(Score(userId: user, value: 40, date: Date())))
+        ReleaseAuditURLProtocol.handler = { _ in (401, Data("{}".utf8)) }
+        let client = SupabaseHTTPClient(config: config, tokenProvider: nil,
+                                       session: ReleaseAuditURLProtocol.session())
+        let remote = RemoteScoreService(local: MockScoreService(), client: client,
+                                        queue: queue, currentUserID: { user })
+        await remote.push()
+        let count = await queue.count
+        XCTAssertEqual(count, 1)
+    }
+
+    func testPullIncludesLateOfflineRecordsDespitePreviousAccountWatermark() async throws {
+        let user = UUID()
+        let queue = ScoreSyncQueue(defaults: UserDefaults(suiteName: UUID().uuidString)!)
+        await queue.markSynced(at: Date())
+        let row = ScoreRow(userId: user, day: "2026-08-01", value: 73, reason: "offline",
+                           mood: nil, clientUpdatedAt: Date(timeIntervalSince1970: 1000), deletedAt: nil)
+        let data = try SupabaseHTTPClient.encoder.encode([row])
+        ReleaseAuditURLProtocol.handler = { request in
+            let query = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!.queryItems!
+            XCTAssertFalse(query.contains { $0.name == "client_updated_at" })
+            XCTAssertTrue(query.contains { $0.name == "user_id" && $0.value == "eq." + user.uuidString.lowercased() })
+            return (200, data)
+        }
+        let local = MockScoreService()
+        let client = SupabaseHTTPClient(config: config, tokenProvider: nil,
+                                       session: ReleaseAuditURLProtocol.session())
+        let remote = RemoteScoreService(local: local, client: client, queue: queue, currentUserID: { user })
+        await remote.pull(userId: user)
+        let records = await local.getScoresForDate(userId: user, date: ScoreSyncFormat.date(fromDay: "2026-08-01")!)
+        XCTAssertEqual(records.first?.value, 73)
+        XCTAssertEqual(records.first?.reason, "offline")
     }
 }

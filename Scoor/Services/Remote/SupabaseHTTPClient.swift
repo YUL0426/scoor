@@ -143,10 +143,10 @@ actor SupabaseHTTPClient {
 
         case 403:
             // RLS denial. Not retryable: the policy will reject it identically next time.
-            throw APIError.rejected(Self.message(from: data) ?? "권한이 없습니다.")
+            throw APIError.rejected(Self.message(from: data) ?? String(localized: "권한이 없습니다."))
 
         case 409:
-            throw APIError.rejected(Self.message(from: data) ?? "이미 존재하는 데이터입니다.")
+            throw APIError.rejected(Self.message(from: data) ?? String(localized: "이미 존재하는 데이터입니다."))
 
         case 429:
             throw APIError.rateLimited

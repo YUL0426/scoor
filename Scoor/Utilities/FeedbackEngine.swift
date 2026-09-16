@@ -27,32 +27,31 @@ enum FeedbackEngine {
 
         // 1. First ever entry
         if withoutToday.isEmpty {
-            return FeedbackResult(message: "Welcome! Your Scoor journey begins today. 🎉", type: .positive)
+            return FeedbackResult(message: String(localized: "Welcome! Your Scoor journey begins today. 🎉"), type: .positive)
         }
 
         // 1b. Edge values — a flawless 100 / a rock-bottom 0 always get their own
         // moment, ahead of comparative copy.
         if currentScore >= 100 {
-            return FeedbackResult(message: "A flawless 100! Soak it in 💯", type: .positive)
+            return FeedbackResult(message: String(localized: "A flawless 100! Soak it in 💯"), type: .positive)
         }
         if currentScore <= 0 {
-            return FeedbackResult(message: "A zero day. Be gentle with yourself — tomorrow resets 🌱", type: .encouragement)
+            return FeedbackResult(message: String(localized: "A zero day. Be gentle with yourself — tomorrow resets 🌱"), type: .encouragement)
         }
 
         // 1c. Consecutive-logging streak milestone (연속 기록 갱신). Celebrated only
         // on milestone days so it doesn't drown out the comparative feedback.
         let logged = loggingStreak(sorted)
         if Self.streakMilestones.contains(logged) {
-            return FeedbackResult(message: "\(logged) days in a row! Keep the streak alive 🔥", type: .positive)
+            return FeedbackResult(message: String(localized: "\(logged) days in a row! Keep the streak alive 🔥"), type: .positive)
         }
 
         // 2. Same day last week
         if let lastWeekSameDay = sameDayLastWeek(from: sorted) {
             let diff = currentScore - lastWeekSameDay.value
-            let direction = diff >= 0 ? "higher" : "lower"
             let pts = abs(diff)
             return FeedbackResult(
-                message: "\(pts) points \(direction) than last week!",
+                message: diff >= 0 ? String(localized: "\(pts) points higher than last week!") : String(localized: "\(pts) points lower than last week!"),
                 type: diff >= 0 ? .positive : .encouragement
             )
         }
@@ -62,39 +61,38 @@ enum FeedbackEngine {
         if thisMonth.count >= 2 {
             let avg = Double(thisMonth.map(\.value).reduce(0, +)) / Double(thisMonth.count)
             let diff = Double(currentScore) - avg
-            let direction = diff >= 0 ? "above" : "below"
             let pts = Int(abs(diff).rounded())
             return FeedbackResult(
-                message: "\(pts) points \(direction) your monthly average!",
+                message: diff >= 0 ? String(localized: "\(pts) points above your monthly average!") : String(localized: "\(pts) points below your monthly average!"),
                 type: .neutral
             )
         }
 
         // 4. Upward streak (3+ days)
         if let streak = upwardStreak(sorted), streak >= 3 {
-            return FeedbackResult(message: "\(streak)-day upward streak! 🔥", type: .positive)
+            return FeedbackResult(message: String(localized: "\(streak)-day upward streak! 🔥"), type: .positive)
         }
 
         // 5. Downward streak
         if let streak = downwardStreak(sorted), streak >= 3 {
             return FeedbackResult(
-                message: "You've been trending down for \(streak) days. Hang in there 💪",
+                message: String(localized: "You've been trending down for \(streak) days. Hang in there 💪"),
                 type: .encouragement
             )
         }
 
         // 6. High score
         if currentScore >= 90 {
-            return FeedbackResult(message: "What an amazing day! 🌟", type: .positive)
+            return FeedbackResult(message: String(localized: "What an amazing day! 🌟"), type: .positive)
         }
 
         // 7. Low score
         if currentScore <= 10 {
-            return FeedbackResult(message: "Tough day. Tomorrow is a new start 🌅", type: .encouragement)
+            return FeedbackResult(message: String(localized: "Tough day. Tomorrow is a new start 🌅"), type: .encouragement)
         }
 
         // 8. Fallback
-        return FeedbackResult(message: "Score recorded! Keep tracking. 📝", type: .neutral)
+        return FeedbackResult(message: String(localized: "Score recorded! Keep tracking. 📝"), type: .neutral)
     }
 
     /// Logging-streak milestones worth a callout.

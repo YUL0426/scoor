@@ -1,3 +1,4 @@
+import "server-only";
 /**
  * Service-role access to the Scoor backend — server-only.
  *
@@ -26,7 +27,7 @@ export function supabaseAdminConfig(): SupabaseAdminConfig | null {
 export class SupabaseRestError extends Error {
   constructor(
     message: string,
-    readonly status: number
+    readonly status: number,
   ) {
     super(message);
   }
@@ -48,7 +49,7 @@ interface RestOptions {
 export async function supabaseRest<T>(
   config: SupabaseAdminConfig,
   table: string,
-  { method = "GET", query, body, returning = false }: RestOptions = {}
+  { method = "GET", query, body, returning = false }: RestOptions = {},
 ): Promise<T | null> {
   const url = `${config.url}/rest/v1/${table}${query ? `?${query}` : ""}`;
 
@@ -65,6 +66,7 @@ export async function supabaseRest<T>(
     body: body === undefined ? undefined : JSON.stringify(body),
     // Ops data must never be served stale from a build-time cache.
     cache: "no-store",
+    signal: AbortSignal.timeout(10_000),
   });
 
   const text = await response.text();
@@ -76,7 +78,10 @@ export async function supabaseRest<T>(
     } catch {
       // Non-JSON error body — use it as-is.
     }
-    throw new SupabaseRestError(message || `HTTP ${response.status}`, response.status);
+    throw new SupabaseRestError(
+      message || `HTTP ${response.status}`,
+      response.status,
+    );
   }
 
   if (!text) return null;

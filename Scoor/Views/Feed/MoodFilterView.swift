@@ -17,7 +17,7 @@ struct MoodFilterView: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
-                chip(label: "전체", isOn: selected == nil) {
+                chip(label: String(localized: "전체"), isOn: selected == nil) {
                     withAnimation(.easeInOut(duration: 0.18)) { selected = nil }
                 }
                 ForEach(Mood.allCases) { mood in

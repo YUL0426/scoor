@@ -1,6 +1,5 @@
 import { Header } from "@/components/admin/header";
-import { Bell, AlertTriangle, Info, Zap } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { AlertTriangle, Info } from "lucide-react";
 
 const MOCK_NOTIFICATIONS = [
   {
@@ -51,8 +50,10 @@ const MOCK_NOTIFICATIONS = [
 ];
 
 function NotificationIcon({ severity }: { severity: string }) {
-  if (severity === "critical") return <AlertTriangle className="h-4 w-4 text-red-400" />;
-  if (severity === "warning") return <AlertTriangle className="h-4 w-4 text-amber-400" />;
+  if (severity === "critical")
+    return <AlertTriangle className="h-4 w-4 text-red-400" />;
+  if (severity === "warning")
+    return <AlertTriangle className="h-4 w-4 text-amber-400" />;
   return <Info className="h-4 w-4 text-blue-400" />;
 }
 
@@ -69,8 +70,8 @@ export default function NotificationsPage() {
               key={n.id}
               className={`flex items-start gap-4 p-4 rounded-xl border transition-all ${
                 n.isRead
-                  ? "bg-[#0d0d1f]/50 border-white/4"
-                  : "bg-[#0d0d1f] border-white/8"
+                  ? "bg-[#191a1d]/50 border-white/4"
+                  : "bg-[#191a1d] border-white/8"
               }`}
             >
               <div
@@ -78,8 +79,8 @@ export default function NotificationsPage() {
                   n.severity === "critical"
                     ? "bg-red-500/12"
                     : n.severity === "warning"
-                    ? "bg-amber-500/12"
-                    : "bg-blue-500/12"
+                      ? "bg-amber-500/12"
+                      : "bg-blue-500/12"
                 }`}
               >
                 <NotificationIcon severity={n.severity} />
@@ -88,18 +89,18 @@ export default function NotificationsPage() {
                 <div className="flex items-center gap-2 mb-1">
                   <p
                     className={`text-sm font-medium ${
-                      n.isRead ? "text-[#8b8ba4]" : "text-[#f4f4f6]"
+                      n.isRead ? "text-[#a2a4ac]" : "text-[#ededee]"
                     }`}
                   >
                     {n.title}
                   </p>
                   {!n.isRead && (
-                    <span className="w-1.5 h-1.5 bg-[#f42525] rounded-full flex-shrink-0" />
+                    <span className="w-1.5 h-1.5 bg-[#e36b59] rounded-full flex-shrink-0" />
                   )}
                 </div>
-                <p className="text-xs text-[#52526c]">{n.body}</p>
+                <p className="text-xs text-[#8b8e98]">{n.body}</p>
               </div>
-              <div className="flex-shrink-0 text-[10px] text-[#52526c] whitespace-nowrap">
+              <div className="flex-shrink-0 text-[10px] text-[#8b8e98] whitespace-nowrap">
                 {new Date(n.createdAt).toLocaleTimeString("en-US", {
                   hour: "2-digit",
                   minute: "2-digit",

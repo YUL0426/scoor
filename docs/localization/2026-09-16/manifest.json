@@ -1,0 +1,13 @@
+{
+  "catalog_keys": 654,
+  "locales": [
+    "ja",
+    "fr",
+    "pt-BR"
+  ],
+  "review": "AI translation and linguistic review; human native-speaker review not performed",
+  "legal_version": "2026-09-16.1",
+  "original_sha256": "67b17e8f2ed8aabe0fd7b9b44b3b28656879305b3173deb2993a72a35cd6ee11",
+  "translation_sha256": "fd93042d6b7527a2c3709ed865ebc3786fe779f8b01cef492506050d42f38f23",
+  "production_migration": "20260916000002"
+}

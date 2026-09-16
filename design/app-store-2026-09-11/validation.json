@@ -1,0 +1,62 @@
+{
+  "date": "2026-09-11",
+  "status": "passed",
+  "file_count": 5,
+  "files": [
+    {
+      "file": "upload/ko-KR/iphone-6.9/01-score.png",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 252371,
+      "sha256": "f627732d2b19362fbfe718fb4cfce05fa86da6a21a6e348b074cfc8ca6552010"
+    },
+    {
+      "file": "upload/ko-KR/iphone-6.9/02-world.png",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 439572,
+      "sha256": "60671cfd6ed25fa5a42e94d2cbb26654ed02f8528adc68adb99fed1c7d806470"
+    },
+    {
+      "file": "upload/ko-KR/iphone-6.9/03-perspectives.png",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 849471,
+      "sha256": "aceaf96f6b234f155342bebf8c88d5db4d0c4fb526cf8f64f1b96a1f887e7dff"
+    },
+    {
+      "file": "upload/ko-KR/iphone-6.9/04-connection.png",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 536456,
+      "sha256": "4f24ec156ece7479f66f5a9fbd203fc528a2e47663763cae288f0fad371737b1"
+    },
+    {
+      "file": "upload/ko-KR/iphone-6.9/05-records.png",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 313910,
+      "sha256": "e59427b0f4b3dcdcd39a406706a8e73095f0c78f26d804fa37d767b88b430929"
+    }
+  ]
+}

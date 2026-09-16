@@ -49,7 +49,7 @@ export const TOPIC_CATEGORY_LABELS: Record<(typeof TOPIC_CATEGORIES)[number], st
   night: "밤",
 };
 
-export const TOPIC_STATUSES = ["draft", "live", "closed"] as const;
+export const TOPIC_STATUSES = ["draft", "live", "closed", "hidden"] as const;
 
 export type TopicStatus = (typeof TOPIC_STATUSES)[number];
 

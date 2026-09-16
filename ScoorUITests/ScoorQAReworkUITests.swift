@@ -33,28 +33,8 @@ final class ScoorQAReworkUITests: XCTestCase {
     }
 
     private func reachMain(username: String) {
-        let apple = app.buttons["Continue with Apple"]
-        if apple.waitForExistence(timeout: 8) {
-            apple.tap()
-            let field = app.textFields.firstMatch
-            if field.waitForExistence(timeout: 8) {
-                field.tap(); field.typeText(username)
-                let claim = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Claim'")).firstMatch
-                if claim.waitForExistence(timeout: 6) {
-                    expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: claim)
-                    waitForExpectations(timeout: 8)
-                    claim.tap()
-                }
-            }
-            sleep(1)
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-            tapIfExists(app.buttons["Next"], 6)
-            tapIfExists(app.buttons["Try your first Scoor"], 6)
-            // "Skip"은 현지화되어 ko에선 "건너뛰기" — 둘 다 시도.
-            if !tapIfExists(app.buttons["Skip"], 6) {
-                tapIfExists(app.buttons["건너뛰기"], 6)
-            }
-        }
+        let apple = app.buttons["signup-apple"]
+        if apple.waitForExistence(timeout: 8) { apple.tap() }
         XCTAssertTrue(app.buttons["Home"].waitForExistence(timeout: 12), "Main tab bar never appeared")
     }
 

@@ -38,6 +38,9 @@ struct SocialComment: Identifiable, Hashable {
     let createdAt: Date
     var editedAt: Date?
 
+    /// Backend owner used by the report sheet's block action.
+    var authorId: UUID? = nil
+
     var isEdited: Bool { editedAt != nil }
 }
 
@@ -108,9 +111,9 @@ enum SocialError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .emptyComment:            return "내용을 입력해주세요."
-        case .notFound:                return "대상을 찾을 수 없어요."
-        case .persistenceFailed(let m): return "저장 중 문제가 발생했어요. (\(m))"
+        case .emptyComment:            return String(localized: "내용을 입력해주세요.")
+        case .notFound:                return String(localized: "대상을 찾을 수 없어요.")
+        case .persistenceFailed(let m): return String(localized: "저장 중 문제가 발생했어요. (\(m))")
         }
     }
 }

@@ -22,6 +22,9 @@ final class RemoteScoreService: ScoreServiceProtocol {
     private let local: ScoreServiceProtocol
     private let client: SupabaseHTTPClient
     private let queue: ScoreSyncQueue
+    private let currentUserID: () -> UUID?
+    var consentAllowsSync: (UUID) -> Bool = { _ in true }
+    private var isPushing = false
     private let calendar: Calendar
 
     /// Guards against overlapping syncs — foreground + sign-in can fire together.
@@ -30,11 +33,13 @@ final class RemoteScoreService: ScoreServiceProtocol {
     init(local: ScoreServiceProtocol,
          client: SupabaseHTTPClient,
          queue: ScoreSyncQueue = ScoreSyncQueue(),
-         calendar: Calendar = .current) {
+         calendar: Calendar = .current,
+         currentUserID: @escaping () -> UUID? = { nil }) {
         self.local = local
         self.client = client
         self.queue = queue
         self.calendar = calendar
+        self.currentUserID = currentUserID
     }
 
     // MARK: - Writes (local first, then queue)
@@ -62,6 +67,11 @@ final class RemoteScoreService: ScoreServiceProtocol {
         await queue.removeAll()
     }
 
+    func deleteLocalScores(userId: UUID) async throws {
+        try await local.deleteLocalScores(userId: userId)
+        await queue.removeAll(userId: userId)
+    }
+
     /// Adopt records written before sign-in (spec-13 §7). The local re-key is what
     /// makes the history visible again; queueing the moved rows is what gets them
     /// to the server. Each keeps its original write time so last-write-wins stays
@@ -72,6 +82,7 @@ final class RemoteScoreService: ScoreServiceProtocol {
         for score in moved {
             await queue.enqueue(.upsert(score, calendar: calendar, clientUpdatedAt: score.createdAt))
         }
+        if oldUserId != newUserId { await queue.removeAll(userId: oldUserId) }
         return moved
     }
 
@@ -106,11 +117,11 @@ final class RemoteScoreService: ScoreServiceProtocol {
     /// Call on foreground and after sign-in. Never throws — callers are UI paths
     /// that must not react to sync outcomes.
     func sync(userId: UUID) {
-        guard syncTask == nil else { return }
+        guard syncTask == nil, consentAllowsSync(userId) else { return }
         syncTask = Task { [weak self] in
             guard let self else { return }
             await self.push()
-            await self.pull(userId: userId)
+            if self.consentAllowsSync(userId) { await self.pull(userId: userId) }
             self.syncTask = nil
         }
     }
@@ -127,13 +138,18 @@ final class RemoteScoreService: ScoreServiceProtocol {
     /// Upload queued operations oldest-first. Stops on the first retryable error
     /// (offline) so we don't burn attempts on a dead connection; drops operations
     /// the server will never accept.
-    private func push() async {
-        for operation in await queue.operations {
+    func push() async {
+        guard !isPushing, let userID = currentUserID(), consentAllowsSync(userID) else { return }
+        isPushing = true
+        defer { isPushing = false }
+        for operation in await queue.operations where operation.userId == userID {
+            guard currentUserID() == userID, consentAllowsSync(userID) else { return }
             do {
                 try await upload(operation)
                 await queue.remove(operation.id)
             } catch let error as APIError {
-                if error.isRetryable {
+                guard currentUserID() == userID, consentAllowsSync(userID) else { return }
+                if error.isRetryable || error == .unauthorized || error == .updateRequired || error.isConsentRejection {
                     await queue.recordFailure(operation.id)
                     return
                 }
@@ -182,25 +198,26 @@ final class RemoteScoreService: ScoreServiceProtocol {
     }
 
     /// Pull rows changed since the last sync and merge them into the local store.
-    private func pull(userId: UUID) async {
-        let since = await queue.lastSyncedAt
-        var filters: [String: String] = ["user_id": SupabaseRequest.eq(userId.uuidString.lowercased())]
-        if let since {
-            filters["client_updated_at"] = "gt.\(ISO8601DateFormatter().string(from: since))"
-        }
-
-        // Pull starts now, but stamp the watermark from *before* the request so a
-        // row written while it was in flight is picked up next time instead of
-        // being skipped.
+    func pull(userId: UUID) async {
+        guard currentUserID() == userId else { return }
+        let filters = ["user_id": SupabaseRequest.eq(userId.uuidString.lowercased())]
+        // Client timestamps cannot be used as a server cursor: an offline edit
+        // may arrive much later. Fetch all pages, scoped to this account.
         let startedAt = Date()
-
+        let pageSize = 500
+        var offset = 0
         do {
-            let rows: [ScoreRow] = try await client.send(
-                .select("scores", filters: filters, order: "client_updated_at.asc"),
-                as: [ScoreRow].self
-            )
-            for row in rows {
-                await merge(row, userId: userId)
+            while true {
+                let rows: [ScoreRow] = try await client.send(
+                    .select("scores", filters: filters, order: "day.asc", limit: pageSize, offset: offset),
+                    as: [ScoreRow].self
+                )
+                guard currentUserID() == userId else { return }
+                for row in rows where row.userId == userId {
+                    await merge(row, userId: userId)
+                }
+                if rows.count < pageSize { break }
+                offset += rows.count
             }
             await queue.markSynced(at: startedAt)
         } catch {

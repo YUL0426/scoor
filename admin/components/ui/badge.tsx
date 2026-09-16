@@ -26,24 +26,24 @@ export function Badge({
     "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium tabular-nums";
 
   const variants: Record<BadgeVariant, string> = {
-    default: "bg-white/8 text-[#8b8ba4] border border-white/6",
+    default: "bg-white/8 text-[#a2a4ac] border border-white/6",
     success: "bg-emerald-500/12 text-emerald-400 border border-emerald-500/20",
     warning: "bg-amber-500/12 text-amber-400 border border-amber-500/20",
     danger: "bg-red-500/12 text-red-400 border border-red-500/20",
     info: "bg-blue-500/12 text-blue-400 border border-blue-500/20",
-    neutral: "bg-white/6 text-[#8b8ba4] border border-white/8",
+    neutral: "bg-white/6 text-[#a2a4ac] border border-white/8",
     trending:
-      "bg-[#f42525]/12 text-[#f42525] border border-[#f42525]/20 font-semibold",
+      "bg-[#e36b59]/12 text-[#e36b59] border border-[#e36b59]/20 font-semibold",
   };
 
   const dotColors: Record<BadgeVariant, string> = {
-    default: "bg-[#8b8ba4]",
+    default: "bg-[#a2a4ac]",
     success: "bg-emerald-400",
     warning: "bg-amber-400",
     danger: "bg-red-400",
     info: "bg-blue-400",
-    neutral: "bg-[#8b8ba4]",
-    trending: "bg-[#f42525] animate-pulse",
+    neutral: "bg-[#a2a4ac]",
+    trending: "bg-[#e36b59] animate-pulse",
   };
 
   return (

@@ -23,11 +23,11 @@ export function Button({
 
   const variants = {
     primary:
-      "bg-[#f42525] hover:bg-[#d41f1f] active:bg-[#bf1c1c] text-white shadow-sm focus-visible:ring-[#f42525] focus-visible:ring-offset-[#060610]",
+      "bg-[#b84e3e] hover:bg-[#a64335] active:bg-[#963b30] text-white shadow-sm focus-visible:ring-[#e36b59] focus-visible:ring-offset-[#111214]",
     ghost:
-      "bg-transparent hover:bg-white/5 active:bg-white/8 text-[#8b8ba4] hover:text-[#f4f4f6]",
+      "bg-transparent hover:bg-white/5 active:bg-white/8 text-[#a2a4ac] hover:text-[#ededee]",
     outline:
-      "border border-white/10 hover:border-white/20 bg-transparent hover:bg-white/4 text-[#f4f4f6]",
+      "border border-white/10 hover:border-white/20 bg-transparent hover:bg-white/4 text-[#ededee]",
     danger:
       "bg-red-900/30 hover:bg-red-800/40 border border-red-500/30 text-red-400",
   };

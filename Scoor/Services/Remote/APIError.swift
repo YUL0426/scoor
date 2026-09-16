@@ -32,22 +32,30 @@ enum APIError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .offline:
-            return "네트워크에 연결되어 있지 않습니다."
+            return String(localized: "네트워크에 연결되어 있지 않습니다.")
         case .notConfigured:
-            return "서버가 설정되지 않았습니다."
+            return String(localized: "서버가 설정되지 않았습니다.")
         case .unauthorized:
-            return "로그인이 필요합니다."
+            return String(localized: "로그인이 필요합니다.")
         case .rejected(let m):
-            return "요청이 거부되었습니다: \(m)"
+            return String(localized: "요청이 거부되었습니다: \(m)")
         case .rateLimited:
-            return "너무 자주 시도했습니다. 잠시 후 다시 시도해 주세요."
+            return String(localized: "너무 자주 시도했습니다. 잠시 후 다시 시도해 주세요.")
         case .updateRequired:
-            return "앱을 최신 버전으로 업데이트해 주세요."
-        case .server(let status, let message):
-            return message.map { "서버 오류(\(status)): \($0)" } ?? "서버 오류(\(status))가 발생했습니다."
+            return String(localized: "앱을 최신 버전으로 업데이트해 주세요.")
+        case .server(let status, _):
+            return String(localized: "서버 오류(\(status))가 발생했습니다.")
         case .decoding:
-            return "서버 응답을 처리하지 못했습니다."
+            return String(localized: "서버 응답을 처리하지 못했습니다.")
         }
+    }
+
+    /// A later explicit agreement can make this write valid. Never discard the
+    /// local outbox merely because another device withdrew account consent.
+    var isConsentRejection: Bool {
+        guard case .rejected(let message) = self else { return false }
+        return message.contains("Required agreements must be accepted") ||
+               message.contains("Publication agreement must be accepted")
     }
 
     /// Whether retrying later could plausibly succeed. The SyncQueue keeps work

@@ -20,20 +20,20 @@ enum WorldCategory: String, CaseIterable, Identifiable, Hashable {
 
     var id: String { rawValue }
 
-    /// 한국어 라벨.
+    /// Localized category label.
     var label: String {
         switch self {
-        case .sports:        return "스포츠"
-        case .politics:      return "정치"
-        case .society:       return "사회"
-        case .entertainment: return "연예"
-        case .stocks:        return "주식"
-        case .crypto:        return "코인"
-        case .tech:          return "테크"
-        case .love:          return "연애"
-        case .work:          return "직장"
-        case .students:      return "학생"
-        case .night:         return "새벽"
+        case .sports:        return String(localized: "스포츠")
+        case .politics:      return String(localized: "정치")
+        case .society:       return String(localized: "사회")
+        case .entertainment: return String(localized: "연예")
+        case .stocks:        return String(localized: "주식")
+        case .crypto:        return String(localized: "코인")
+        case .tech:          return String(localized: "테크")
+        case .love:          return String(localized: "연애")
+        case .work:          return String(localized: "직장")
+        case .students:      return String(localized: "학생")
+        case .night:         return String(localized: "새벽")
         }
     }
 
@@ -66,11 +66,11 @@ enum TopicHeat: String, Hashable {
 
     var label: String {
         switch self {
-        case .hot:     return "🔥 활발히 토론 중"
-        case .rising:  return "↑ 감정 상승"
-        case .falling: return "↓ 감정 하락"
-        case .fresh:   return "✨ 새 토픽"
-        case .calm:    return "잔잔"
+        case .hot:     return String(localized: "🔥 활발히 토론 중")
+        case .rising:  return String(localized: "↑ 감정 상승")
+        case .falling: return String(localized: "↓ 감정 하락")
+        case .fresh:   return String(localized: "✨ 새 토픽")
+        case .calm:    return String(localized: "잔잔")
         }
     }
 }
@@ -87,6 +87,14 @@ struct WorldTopic: Identifiable, Hashable {
     let postsCount: Int        // 누적 글 수
     let lastActivityAt: Date
     let heat: TopicHeat
+    var subtitle: String? = nil
+    var status: String = "live"
+    var origin: String = "admin"
+    var proposedBy: UUID? = nil
+    var proposerName: String? = nil
+    var sourceURL: String? = nil
+    var lowLabel: String = "부정적"
+    var highLabel: String = "긍정적"
 }
 
 // MARK: - WorldPost (개인 반응)
@@ -120,12 +128,12 @@ enum WorldRegion: String, CaseIterable, Identifiable, Hashable {
 
     var label: String {
         switch self {
-        case .global: return "Global"
-        case .korea:  return "Korea"
-        case .japan:  return "Japan"
-        case .usa:    return "USA"
-        case .europe: return "Europe"
-        case .sea:    return "SEA"
+        case .global: return String(localized: "GLOBAL")
+        case .korea:  return String(localized: "Korea")
+        case .japan:  return String(localized: "Japan")
+        case .usa:    return String(localized: "USA")
+        case .europe: return String(localized: "Europe")
+        case .sea:    return String(localized: "SEA")
         }
     }
 
@@ -188,7 +196,7 @@ enum ScoorTarget: Hashable, Identifiable {
 
     func label(detail: TopicDetail?) -> String {
         switch self {
-        case .match: return "Match"
+        case .match: return String(localized: "Match")
         case .team(let abbr):
             return detail?.sports?.home.abbr == abbr ? (detail?.sports?.home.abbr ?? abbr)
                  : (detail?.sports?.away.abbr ?? abbr)

@@ -1,0 +1,26 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "C671A78B-E9A1-46F7-8E56-11462026FEA9",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "D53F471B-0EFC-4A1F-91D4-0E16666D7D1E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "World single empty state_0_6D592183-8497-40A1-884C-AACE298A95ED.png",
+        "timestamp" : 1788679835.262
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "C671A78B-E9A1-46F7-8E56-11462026FEA9",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "C390F897-D556-452E-884D-14B826666D1F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Compact My Page_0_6268ADD4-0813-4AB7-80A5-1B8EB0240A42.png",
+        "timestamp" : 1788679833.422
+      }
+    ],
+    "testIdentifier" : "ScoorSprint1UITests/testCompactProfileAndBackNavigation()",
+    "testIdentifierURL" : "test://com.apple.xcode/Scoor/ScoorUITests/ScoorSprint1UITests/testCompactProfileAndBackNavigation"
+  }
+]

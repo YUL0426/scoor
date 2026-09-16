@@ -1,0 +1,278 @@
+{
+  "version": "2026-09-16.1",
+  "sourceSHA256": "67b17e8f2ed8aabe0fd7b9b44b3b28656879305b3173deb2993a72a35cd6ee11",
+  "terms": {
+    "ja": {
+      "title": "利用規約",
+      "sections": [
+        {
+          "title": "運営者と適用範囲",
+          "body": "ScoorはYUL HEOが運営しています。連絡先：officialscoor@gmail.com。本規約は、アプリ内の個人記録、アカウント同期、公開コミュニティ機能に適用されます。"
+        },
+        {
+          "title": "登録と規約への同意",
+          "body": "登録画面の案内とリンク先の規約を確認し、Apple、Googleまたはメールで続けることを選択して認証を完了すると、本規約への同意と、案内された登録資格を満たすことの確認が記録されます。ログイン済みの利用者は案内画面の「続ける」で同意できます。必須のチェックボックスは別途設けません。文書の閲覧、アプリの起動、ログインのキャンセルだけでは同意は記録されません。重要な規約変更は内容と適用日をお知らせし、必要に応じて改めて同意を求めます。新しい規約に同意しなくても、アカウント管理、ログアウト、削除の依頼は可能です。"
+        },
+        {
+          "title": "年齢とアカウント",
+          "body": "14歳以上であり、お住まいの国における有効な同意およびサービス利用のための年齢・行為能力の要件を満たす必要があります。保護者の許可を取得する手続きには対応していないため、保護者の許可が必要な方は登録できません。すべての国の法定年齢が14歳という意味ではありません。他人へのなりすましや、他人のアカウントの不正利用をしないでください。"
+        },
+        {
+          "title": "個人記録と共有",
+          "body": "個人記録は公開投稿と区別されます。ログイン中の記録はサーバーに同期される場合があります。ホームへの共有を有効にしたり、ワールドやコメントなどの公開領域に投稿したりすると、その内容はほかの利用者に表示されます。匿名投稿は表示名を変更するもので、運用上のアカウントとの関連付けを解除するものではありません。"
+        },
+        {
+          "title": "権利の帰属と限定的な利用許諾",
+          "body": "コンテンツの権利は、利用者または正当な権利者に帰属します。利用者は、サービス提供に必要な範囲で、Scoorがコンテンツを保存、複製、送信し、公開を選択したコンテンツをサービス内で表示し、表示形式を調整し、機能のために集計することを非独占的に許諾します。必要な処理委託先も、これらのサービス提供目的に限って処理できます。"
+        },
+        {
+          "title": "利用許諾の制限と終了",
+          "body": "この許諾には、サービス外の広告、コンテンツの販売、外部AIの学習のための包括的な再利用は含まれません。別の用途には、必要な許可を別途取得します。コンテンツの削除またはアカウントの終了によりサービスの利用許諾も終了します。ただし、削除処理、バックアップの期限到来、法令上必要な保存のための限定的な処理を除きます。ほかの利用者がすでに作成したコピーを回収できるとは限りません。"
+        },
+        {
+          "title": "投稿する権利と禁止行為",
+          "body": "自分で作成した内容、または必要な利用権限がある内容のみ投稿してください。著作権やプライバシーの侵害、許可のない個人情報の公開、違法な性的コンテンツ、嫌がらせ、差別表現、脅迫、スパム、自傷を促す内容は禁止します。運営者が作成したトピックと利用者の投稿は区別されます。"
+        },
+        {
+          "title": "通報・ブロック・制限",
+          "body": "問題がある場合は、アプリ内の通報・ブロック機能を利用するか、officialscoor@gmail.comまでご連絡ください。公開前に禁止表現を確認し、通報を審査して、違反するコンテンツの制限・削除やアカウントの利用制限を行う場合があります。誤った措置については、同じ連絡先から異議を申し立てることができます。"
+        },
+        {
+          "title": "サービス停止・削除と責任",
+          "body": "設定の「利用案内と任意の同意」でアカウントサービスを停止すると、新たなサーバー送信と投稿が停止します。既存のコンテンツは自動削除されません。コンテンツの削除、共有の解除、アカウントとデータの削除は別途依頼できます。機微情報などに関する任意の同意の撤回は、基本的なアカウント利用とは別のものです。本規約は、運営者の故意・過失による責任や、強行法規に基づく利用者の権利を制限しません。"
+        },
+        {
+          "title": "個人情報と個別の許可",
+          "body": "個人情報の項目、目的、保有期間、権利は、プライバシーに関するお知らせと収集・利用の案内で説明します。コンテンツの利用許諾を、機微情報、マーケティング、第三者への提供など、別途許可が必要な処理への包括的な同意として使用することはありません。"
+        }
+      ]
+    },
+    "fr": {
+      "title": "Conditions d’utilisation",
+      "sections": [
+        {
+          "title": "Responsable et champ d’application",
+          "body": "Scoor est exploité par YUL HEO. Contact : officialscoor@gmail.com. Ces conditions régissent le journal privé, la synchronisation du compte et les fonctionnalités publiques de la communauté dans l’app."
+        },
+        {
+          "title": "Inscription et acceptation",
+          "body": "Après avoir consulté les informations d’inscription et les conditions accessibles par lien, choisir Continuer avec Apple, Google ou un e-mail et terminer l’authentification enregistre votre acceptation des présentes conditions ainsi que votre confirmation de remplir les critères d’inscription indiqués. Les personnes déjà connectées peuvent accepter en choisissant Continuer sur l’écran d’information. Aucune case obligatoire supplémentaire n’est utilisée. Consulter un document, ouvrir l’app ou annuler la connexion n’enregistre aucune acceptation. Les modifications importantes sont annoncées avec leur date d’application et font l’objet d’une nouvelle acceptation si nécessaire. La gestion du compte, la déconnexion et la suppression restent accessibles sans accepter de nouvelles conditions."
+        },
+        {
+          "title": "Âge et comptes",
+          "body": "Vous devez avoir au moins 14 ans et remplir les conditions d’âge et de capacité de votre pays pour consentir valablement et utiliser le service. Nous ne proposons pas de procédure d’autorisation parentale : ne vous inscrivez pas si vous avez besoin de cette autorisation. Cela ne signifie pas que le seuil légal est de 14 ans dans tous les pays. N’usurpez pas l’identité d’autrui et n’utilisez pas son compte sans autorisation."
+        },
+        {
+          "title": "Entrées privées et partage",
+          "body": "Les entrées privées sont distinctes des publications publiques. Les entrées d’un compte connecté peuvent être synchronisées avec le serveur. Activer le partage dans Accueil ou envoyer du contenu dans Monde ou les commentaires le rend visible aux autres. La publication anonyme change le nom affiché, sans supprimer le lien avec votre compte nécessaire au fonctionnement du service."
+        },
+        {
+          "title": "Propriété et licence limitée sur les contenus",
+          "body": "Vous, ou le titulaire légitime des droits, conservez la propriété des contenus. Vous accordez à Scoor une licence non exclusive, limitée à la fourniture du service, pour stocker, reproduire et transmettre vos contenus, afficher dans le service ceux que vous choisissez de publier, adapter leur présentation et les agréger pour les fonctionnalités du service. Les prestataires nécessaires ne peuvent les traiter qu’à ces fins."
+        },
+        {
+          "title": "Limites et fin de la licence",
+          "body": "Cette licence ne couvre ni la publicité hors du service, ni la vente de contenus, ni leur réutilisation générale pour entraîner des IA externes. Toute autre utilisation nécessite les autorisations distinctes appropriées. La licence prend fin lors de la suppression du contenu ou de la fermeture du compte, sous réserve des traitements limités nécessaires à la suppression, à l’expiration des sauvegardes et à la conservation légalement obligatoire. Les copies déjà réalisées par d’autres personnes ne peuvent pas toujours être récupérées."
+        },
+        {
+          "title": "Droits de publication et comportements interdits",
+          "body": "Publiez uniquement des contenus que vous avez créés ou que vous avez le droit d’utiliser. Sont interdits : les atteintes aux droits d’auteur ou à la vie privée, la divulgation non autorisée de données personnelles, les contenus sexuels illégaux, le harcèlement, la haine, les menaces, le spam et l’incitation à l’automutilation. Les sujets créés par l’exploitant sont distincts des publications des utilisateurs."
+        },
+        {
+          "title": "Signalements, blocages et restrictions",
+          "body": "Utilisez les fonctions de signalement et de blocage de l’app ou contactez officialscoor@gmail.com. Nous vérifions les expressions interdites avant publication, examinons les signalements et pouvons restreindre ou supprimer les contenus ou comptes en infraction. Vous pouvez contester une décision erronée à cette même adresse."
+        },
+        {
+          "title": "Arrêt des services, suppression et responsabilité",
+          "body": "L’arrêt des services du compte dans les réglages Conditions et consentements facultatifs suspend les nouveaux envois au serveur et les publications. Il ne supprime pas automatiquement les contenus existants. Vous pouvez séparément supprimer du contenu, cesser de le partager ou demander la suppression du compte et des données. Le retrait d’un consentement facultatif, notamment pour les données sensibles, est distinct de l’utilisation de base du compte. Ces conditions n’excluent pas notre responsabilité en cas de faute et ne limitent pas les droits que les dispositions impératives de la loi vous accordent."
+        },
+        {
+          "title": "Confidentialité et autorisations distinctes",
+          "body": "Notre politique de confidentialité et les informations sur la collecte expliquent les données, finalités, durées de conservation et droits. La licence sur les contenus ne vaut pas consentement général au traitement de données sensibles, au marketing, à la communication à des tiers ou à tout autre traitement nécessitant une autorisation distincte."
+        }
+      ]
+    },
+    "pt-BR": {
+      "title": "Termos de Uso",
+      "sections": [
+        {
+          "title": "Responsável e abrangência",
+          "body": "O Scoor é operado por YUL HEO. Contato: officialscoor@gmail.com. Estes termos se aplicam ao diário privado, à sincronização da conta e às funcionalidades públicas da comunidade no app."
+        },
+        {
+          "title": "Cadastro e aceitação",
+          "body": "Após ler as informações da tela de entrada e os termos vinculados, escolher Continuar com a Apple, Google ou e-mail e concluir a autenticação registra a aceitação destes termos e a confirmação de que você atende aos requisitos de cadastro informados. Quem já está conectado pode aceitar pelo botão Continuar na tela de informações. Não há caixas de seleção obrigatórias adicionais. Abrir um documento, iniciar o app ou cancelar o login não registra aceitação. Alterações importantes serão informadas com a data de vigência, e uma nova aceitação será solicitada quando necessário. A gestão da conta, a saída e a exclusão continuam disponíveis sem aceitar novos termos."
+        },
+        {
+          "title": "Idade e contas",
+          "body": "Você deve ter pelo menos 14 anos e atender aos requisitos de idade e capacidade do seu país para consentir validamente e usar o serviço. Não oferecemos um procedimento de autorização dos responsáveis; não se cadastre se você precisar dessa autorização. Isso não significa que o limite legal seja de 14 anos em todos os países. Não se passe por outras pessoas nem use suas contas indevidamente."
+        },
+        {
+          "title": "Registros privados e compartilhamento",
+          "body": "Registros privados são diferentes de publicações públicas. Registros de uma conta conectada podem ser sincronizados com o servidor. Ativar o compartilhamento no Início ou enviar conteúdo para Mundo ou comentários torna esse conteúdo visível a outras pessoas. A publicação anônima muda o nome exibido, mas não remove o vínculo operacional com sua conta."
+        },
+        {
+          "title": "Propriedade e licença limitada de conteúdo",
+          "body": "Você ou o titular legítimo dos direitos mantém a propriedade do conteúdo. Você concede ao Scoor uma licença não exclusiva, limitada à prestação do serviço, para armazenar, reproduzir e transmitir seu conteúdo, exibir no serviço o conteúdo que você decidir publicar, adaptar sua apresentação e agregá-lo para as funcionalidades do serviço. Os prestadores necessários só podem tratar esse conteúdo para essas finalidades."
+        },
+        {
+          "title": "Limites e término da licença",
+          "body": "Esta licença não abrange publicidade fora do serviço, venda de conteúdo ou reutilização ampla para treinamento de IA externa. Outros usos exigem as autorizações específicas necessárias. A licença termina com a exclusão do conteúdo ou o encerramento da conta, ressalvados os tratamentos limitados necessários à exclusão, à expiração de backups e à retenção exigida por lei. Pode não ser possível recuperar cópias já feitas por outras pessoas."
+        },
+        {
+          "title": "Direitos de publicação e condutas proibidas",
+          "body": "Publique apenas conteúdo que você criou ou tem os direitos necessários para usar. É proibido violar direitos autorais ou a privacidade, divulgar dados pessoais sem permissão ou publicar conteúdo sexual ilegal, assédio, discurso de ódio, ameaças, spam ou incentivo à automutilação. Os assuntos criados pelo operador são diferenciados das publicações de usuários."
+        },
+        {
+          "title": "Denúncias, bloqueios e restrições",
+          "body": "Use as funções de denúncia e bloqueio no app ou entre em contato pelo e-mail officialscoor@gmail.com. Verificamos expressões proibidas antes da publicação, analisamos denúncias e podemos restringir ou remover conteúdo ou contas que violem as regras. Você pode contestar uma decisão incorreta pelo mesmo contato."
+        },
+        {
+          "title": "Interrupção, exclusão e responsabilidade",
+          "body": "Interromper os serviços da conta em Termos e consentimentos opcionais, nos ajustes, pausa novos envios ao servidor e publicações. Isso não exclui automaticamente o conteúdo existente. Você pode excluir conteúdo, deixar de compartilhá-lo ou solicitar a exclusão da conta e dos dados separadamente. A retirada de consentimentos opcionais, como o de dados sensíveis, é independente do uso básico da conta. Estes termos não excluem a responsabilidade por nossa culpa nem limitam seus direitos previstos em normas legais obrigatórias."
+        },
+        {
+          "title": "Privacidade e autorizações específicas",
+          "body": "Nossa política de privacidade e o aviso de coleta explicam os dados, as finalidades, a retenção e os direitos. A licença de conteúdo não é um consentimento geral para dados sensíveis, marketing, divulgação a terceiros ou outros tratamentos que exijam autorização específica."
+        }
+      ]
+    }
+  },
+  "privacy": {
+    "ja": {
+      "title": "プライバシーに関するお知らせ",
+      "sections": [
+        {
+          "title": "運営者と連絡先",
+          "body": "運営者：YUL HEO · officialscoor@gmail.com。本お知らせは、Scoorのアカウント、記録、公開の場への参加に関する情報の取り扱いを説明します。"
+        },
+        {
+          "title": "アカウントのための処理と法的根拠",
+          "body": "アカウントID、ログイン提供者から受け取るメールアドレス・認証情報・氏名、ニックネーム、規約のバージョン・同意操作・時刻を、ログイン、アカウント提供、契約記録の管理に使用します。この範囲の処理は、個別の収集・利用への同意ではなく、韓国の個人情報保護法第15条第1項第4号に基づくサービス契約の締結・履行の必要性を根拠とします。処理は、提供者から受け取る情報のうち、要求された機能に必要な範囲に限ります。AppleやGoogleのパスワードは受け取りません。本お知らせの閲覧を任意の同意として記録することはありません。"
+        },
+        {
+          "title": "利用者が選ぶ機能と情報",
+          "body": "スコアと日付、任意のメモ、自己紹介・アバター、手動で選択した国、公開投稿、コメント、ワールドへの参加、いいね、提案、通報、ブロック、お問い合わせ内容は、利用者が求める機能の提供・管理に必要な範囲でのみ処理します。通常の情報の処理は、そのサービス契約の履行に基づきます。基本アカウントには、任意のメモ、自己紹介、写真は不要です。機微情報など個別の同意が必要な処理については、機能の利用時に対象情報、目的、保有期間、拒否の選択肢を説明し、同意を求めます。登録操作によってこうした任意の同意が与えられることはありません。"
+        },
+        {
+          "title": "端末・サーバー・公開範囲",
+          "body": "記録と設定は端末に保存し、認証トークンはキーチェーンに保存します。ログイン中の記録はSupabaseと同期されます。端末にある既存の記録は、利用者が登録の操作を選択し、認証と規約への同意の記録を完了した後にのみ、アカウントへ移行・送信されます。公開を選択した内容だけがほかの利用者に表示されます。個人の日記は、ホームへの共有や公開投稿と区別されます。"
+        },
+        {
+          "title": "サービス提供者と所在地",
+          "body": "認証、データベース、APIにはSupabase Pte. Ltd.を利用しています（個人情報に関する連絡先：privacy@supabase.io）。主データベースは韓国のソウルにあります。サポート、セキュリティ、再委託先による処理が韓国内に限定されるとは限りません。お問い合わせのメールアドレスと本文はGoogle Gmailで受信・返信します。Apple・Googleでのログインには各社の方針も適用されます。アカウントサービスと、利用者が選んだ公開機能に必要な情報を処理します。利用者の記録を広告販売や外部AIの学習のために提供しません。"
+        },
+        {
+          "title": "保有と削除",
+          "body": "アカウントとコンテンツは、その機能の提供中に保有します。記録を削除すると、関連するホーム投稿の共有も解除されます。サーバーに削除が反映されると、削除された本文、スコア、気分の内容は消去されます。古い端末から削除済みの記録が復元されないよう、アカウントID、記録日、削除時刻など最小限の同期用情報はアカウントの存続中に保持します。削除済みの投稿・コメントの関連情報と、取り下げ・却下された提案は30日以内に整理します。退会時には、関連する記録、投稿、承認済みトピックを削除します。Appleトークンの失効に失敗した場合は、アクセスを制限した処理待ちキューで再試行します。ほかの人が保存したコピーや端末のバックアップは、同時に削除されない場合があります。"
+        },
+        {
+          "title": "機微情報は個別に扱います",
+          "body": "日常のスコアは、医療上の診断や、自動的に健康情報となるものではありません。政治的見解などの機微情報が明らかになる指定トピックでは、別途任意の同意が必要です。スコア、コメント、アカウントIDを意見の公開と結果の集計に使用し、参加履歴の削除、同意撤回、退会まで保有します。匿名表示でもサーバー上ではアカウントと関連付けられます。設定で同意を撤回すると、該当トピックへの参加履歴も削除されます。同意がなくても日記や通常のトピックを利用できます。ほかの入力欄に機微情報や他人の個人情報を入力しないでください。"
+        },
+        {
+          "title": "任意の同意と利用者の権利",
+          "body": "アカウントに必要な処理は、個別の同意ではなく契約の履行に基づきます。この処理を希望しない場合は、登録しない、アカウントサービスを停止する、ログアウトする、アカウントを削除するという選択肢があります。機微情報など個別に取得した任意の同意は設定で撤回できます。拒否または撤回しても、基本アカウント、日記、通常のトピックは利用できます。閲覧、訂正、削除、処理の制限は運営者に依頼できます。サービス停止だけでは、過去に公開した内容は削除されません。以前の同意・撤回記録は当時のバージョンのまま保持し、新しい任意の同意に変換しません。"
+        },
+        {
+          "title": "追跡・権限・変更",
+          "body": "現在のアプリは、広告SDKやアプリ間追跡の同意を登録手続きに組み込んでいません。通知は、登録時ではなく利用者が機能を有効にするときに、iOSの権限を別途求めます。写真へのアクセスなど任意の権限も、その機能の利用時に求めます。プライバシー方針の変更は内容と適用日をお知らせし、個別の同意が必要な新しい処理は同意を得てから開始します。個人情報に関するお問い合わせ先はofficialscoor@gmail.comです。"
+        },
+        {
+          "title": "アクセス・診断ログ",
+          "body": "Supabaseは、セキュリティと問題解決のためにアクセス・認証ログを保管します。ログには、時刻、リクエストのパスと応答状態、アプリ・OS情報、IPアドレス、アカウント識別子が含まれる場合があります。広告追跡には使用しません。保有期間は、運用サービスの設定とセキュリティ上の必要性に従います。"
+        }
+      ]
+    },
+    "fr": {
+      "title": "Notice de confidentialité",
+      "sections": [
+        {
+          "title": "Responsable et contact",
+          "body": "Responsable : YUL HEO · officialscoor@gmail.com. Cette notice décrit les traitements liés aux comptes, aux entrées et aux participations publiques dans Scoor."
+        },
+        {
+          "title": "Traitement du compte et base juridique",
+          "body": "Les identifiants de compte, l’e-mail, les données d’authentification et les noms fournis par le prestataire de connexion, les pseudonymes, ainsi que la version des conditions, l’action d’acceptation et son horodatage servent à la connexion, à la fourniture du compte et à la tenue des registres contractuels. Ce traitement repose sur sa nécessité pour conclure ou exécuter le contrat de service, conformément à l’article 15, paragraphe 1, point 4 de la loi coréenne sur la protection des informations personnelles, plutôt que sur un consentement distinct à la collecte et à l’utilisation pour ce périmètre. Le traitement se limite aux informations du prestataire nécessaires aux fonctionnalités demandées. Nous ne recevons pas les mots de passe Apple ou Google. La consultation de cette notice n’est pas enregistrée comme un consentement facultatif."
+        },
+        {
+          "title": "Fonctionnalités et informations choisies",
+          "body": "Les scores et dates, notes facultatives, bio et avatar, pays choisi manuellement, publications publiques, commentaires, participations dans Monde, réactions, propositions, signalements, blocages et messages d’assistance ne sont traités que dans la mesure nécessaire à la fonctionnalité que vous demandez. Le traitement des données ordinaires repose sur l’exécution du contrat de service demandé. Les notes, bios et photos facultatives ne sont pas nécessaires au compte de base. Les traitements exigeant un consentement distinct, notamment ceux portant sur des données sensibles, sont expliqués et soumis à votre accord lors de l’utilisation de la fonctionnalité concernée, avec les données, finalités, durées et possibilités de refus. L’inscription ne vaut pas ce consentement facultatif."
+        },
+        {
+          "title": "Appareil, serveur et visibilité publique",
+          "body": "Les entrées et réglages sont stockés sur l’appareil ; les jetons d’authentification sont stockés dans le trousseau. Les entrées d’un compte connecté sont synchronisées avec Supabase. Les entrées déjà présentes sur l’appareil ne sont transférées vers le compte et envoyées qu’après le choix d’une action d’inscription, l’authentification et l’enregistrement de l’acceptation des conditions. Seul le contenu que vous choisissez de publier est montré aux autres. Le journal privé est distinct du partage dans Accueil et des publications publiques."
+        },
+        {
+          "title": "Prestataires et lieux de traitement",
+          "body": "L’authentification, les bases de données et les API utilisent Supabase Pte. Ltd. (contact confidentialité : privacy@supabase.io). La base principale se trouve à Séoul, en Corée du Sud. Les opérations d’assistance, de sécurité et des sous-traitants ne sont pas nécessairement limitées à la Corée. Les adresses et messages de demande d’assistance sont reçus et traités via Google Gmail. La connexion Apple ou Google est aussi soumise à leurs politiques. Nous traitons les données nécessaires au compte et aux fonctionnalités publiques choisies ; les entrées ne sont pas fournies pour la vente publicitaire ou l’entraînement d’IA externes."
+        },
+        {
+          "title": "Conservation et suppression",
+          "body": "Les comptes et contenus sont conservés pendant la fourniture de leurs fonctionnalités. Supprimer une entrée désactive aussi le partage de la publication Accueil liée. Une fois la suppression transmise au serveur, les textes, scores et contenus d’humeur supprimés sont effacés. Des marqueurs minimaux de synchronisation (identifiant de compte, date de l’entrée et horodatage de suppression) sont conservés tant que le compte existe pour empêcher d’anciens appareils de restaurer des entrées supprimées. Les marqueurs de relation des publications et commentaires supprimés ainsi que les propositions retirées ou refusées sont effacés sous 30 jours. La suppression du compte supprime les entrées, publications et sujets approuvés associés. Les révocations de jetons Apple qui échouent sont réessayées via une file d’attente à accès restreint. Les copies enregistrées par d’autres personnes ou les sauvegardes d’appareils peuvent ne pas disparaître simultanément."
+        },
+        {
+          "title": "Traitement distinct des données sensibles",
+          "body": "Un score quotidien n’est ni un diagnostic médical ni automatiquement une donnée de santé. Les sujets désignés révélant des données sensibles, comme les opinions politiques, nécessitent un consentement facultatif distinct. Scores, commentaires et identifiants de compte servent à publier les opinions et à agréger les résultats jusqu’à la suppression de la participation, au retrait du consentement ou à la fermeture du compte. L’affichage anonyme reste lié au compte sur le serveur. Le retrait dans les réglages supprime aussi les participations à ces sujets. Le journal et les sujets ordinaires restent accessibles sans ce consentement. N’inscrivez pas de données sensibles ou de données personnelles d’autrui dans les autres champs."
+        },
+        {
+          "title": "Consentements facultatifs et droits",
+          "body": "Le traitement indispensable au compte repose sur l’exécution du contrat, et non sur un consentement distinct. Si vous ne souhaitez pas ce traitement, ne vous inscrivez pas, ou arrêtez les services du compte, déconnectez-vous ou supprimez votre compte. Les consentements facultatifs obtenus séparément, notamment pour les données sensibles, peuvent être retirés dans les réglages. Leur refus ou retrait n’empêche pas l’accès au compte de base, au journal et aux sujets ordinaires. Contactez le responsable pour demander l’accès, la rectification, l’effacement ou la limitation du traitement. L’arrêt des services seul ne supprime pas les contenus déjà publiés. Les anciens consentements et retraits conservent leur version d’origine et ne sont pas convertis en nouveaux consentements facultatifs."
+        },
+        {
+          "title": "Suivi, autorisations et modifications",
+          "body": "L’app actuelle n’intègre pas de SDK publicitaire ni de consentement au suivi entre apps dans l’inscription. Les notifications demandent une autorisation iOS distincte lorsque vous activez la fonctionnalité, et non pendant l’inscription. Les autorisations facultatives, comme l’accès aux photos, sont demandées au moment de l’utilisation. Les modifications de confidentialité sont annoncées avec leur date d’application ; tout nouveau traitement exigeant un consentement distinct ne commence qu’après son obtention. Pour toute question : officialscoor@gmail.com."
+        },
+        {
+          "title": "Journaux d’accès et de diagnostic",
+          "body": "Supabase conserve des journaux d’accès et d’authentification pour la sécurité et le dépannage. Ils peuvent comprendre les horodatages, chemins de requête et statuts de réponse, informations sur l’app et le système, adresses IP et identifiants de compte. Ils ne servent pas au suivi publicitaire. La durée de conservation dépend des réglages du service et des besoins de sécurité."
+        }
+      ]
+    },
+    "pt-BR": {
+      "title": "Aviso de Privacidade",
+      "sections": [
+        {
+          "title": "Responsável e contato",
+          "body": "Responsável: YUL HEO · officialscoor@gmail.com. Este aviso descreve o tratamento de dados de contas, registros e participações públicas no Scoor."
+        },
+        {
+          "title": "Tratamento da conta e fundamento legal",
+          "body": "IDs de conta, e-mail, dados de autenticação e nomes fornecidos pelo provedor de login, apelidos, versão dos termos, ação de aceitação e horário são usados para login, serviços da conta e registros contratuais. Esse tratamento se baseia na necessidade de celebrar ou executar o contrato de serviço, conforme o artigo 15(1)(4) da Lei de Proteção de Informações Pessoais da Coreia, em vez de um consentimento separado para coleta e uso nesse escopo. O tratamento se limita às informações do provedor necessárias às funcionalidades solicitadas. Não recebemos senhas da Apple ou do Google. A leitura deste aviso não é registrada como consentimento opcional."
+        },
+        {
+          "title": "Funcionalidades e informações que você escolhe",
+          "body": "Notas e datas, anotações opcionais, bio e avatar, país escolhido manualmente, publicações públicas, comentários, participações em Mundo, curtidas, sugestões, denúncias, bloqueios e mensagens de suporte são tratados apenas conforme necessário para fornecer e gerenciar a funcionalidade solicitada. O tratamento de dados comuns se baseia na execução desse contrato de serviço. Anotações, bios e fotos opcionais não são necessárias para a conta básica. Tratamentos que exigem consentimento específico, incluindo dados sensíveis, são explicados e solicitados ao usar a funcionalidade, com os dados, a finalidade, a retenção e as opções de recusa. O cadastro não fornece esse consentimento opcional."
+        },
+        {
+          "title": "Aparelho, servidor e visibilidade pública",
+          "body": "Registros e ajustes ficam no aparelho; os tokens de autenticação ficam nas Chaves. Registros de contas conectadas são sincronizados com o Supabase. Os registros existentes no aparelho só são migrados para a conta e enviados depois que você escolhe uma ação de entrada, se autentica e conclui o registro de aceitação dos termos. Somente o conteúdo que você escolhe publicar é exibido a outras pessoas. O diário privado é separado do compartilhamento no Início e dos envios públicos."
+        },
+        {
+          "title": "Prestadores e locais",
+          "body": "Autenticação, bancos de dados e APIs usam a Supabase Pte. Ltd. (contato de privacidade: privacy@supabase.io). O banco principal fica em Seul, Coreia do Sul. Suporte, segurança e suboperadores não estão necessariamente limitados à Coreia. Endereços de e-mail e mensagens de atendimento são recebidos e respondidos pelo Google Gmail. O login com Apple ou Google também está sujeito às políticas dessas empresas. Tratamos os dados necessários à conta e às funcionalidades públicas que você escolhe; os registros não são fornecidos para venda publicitária ou treinamento de IA externa."
+        },
+        {
+          "title": "Retenção e exclusão",
+          "body": "Contas e conteúdo são mantidos enquanto suas funcionalidades são fornecidas. Excluir um registro também remove o compartilhamento da publicação vinculada no Início. Quando a exclusão chega ao servidor, o texto, as notas e o conteúdo de humor excluídos são apagados. Marcadores mínimos de sincronização (ID da conta, data do registro e horário da exclusão) permanecem enquanto a conta existir, para impedir que aparelhos antigos restaurem registros excluídos. Marcadores de relação de publicações e comentários excluídos e sugestões retiradas ou rejeitadas são removidos em até 30 dias. A exclusão da conta remove registros, publicações e assuntos aprovados associados. Revogações de tokens da Apple que falharem são tentadas novamente por uma fila de acesso restrito. Cópias salvas por outras pessoas ou backups de aparelhos podem não desaparecer ao mesmo tempo."
+        },
+        {
+          "title": "Dados sensíveis são tratados separadamente",
+          "body": "Uma nota do dia a dia não é um diagnóstico médico nem é automaticamente uma informação de saúde. Assuntos designados que revelem dados sensíveis, como opiniões políticas, exigem consentimento opcional específico. Notas, comentários e IDs de conta são usados para publicar opiniões e agregar resultados até a exclusão da participação, retirada do consentimento ou encerramento da conta. A exibição anônima continua vinculada à conta no servidor. Retirar o consentimento nos ajustes também exclui as participações nesses assuntos. O diário e os assuntos comuns continuam disponíveis sem esse consentimento. Não insira dados sensíveis nem dados pessoais de outras pessoas nos demais campos."
+        },
+        {
+          "title": "Consentimentos opcionais e seus direitos",
+          "body": "O tratamento essencial à conta se baseia na execução do contrato, e não em consentimento separado. Se não quiser esse tratamento, não se cadastre, ou interrompa os serviços da conta, saia ou exclua sua conta. Consentimentos opcionais obtidos separadamente, incluindo o de dados sensíveis, podem ser retirados nos ajustes; recusar ou retirar esses consentimentos não impede o uso da conta básica, do diário e dos assuntos comuns. Entre em contato com o responsável para solicitar acesso, correção, exclusão ou restrição do tratamento. A interrupção dos serviços, por si só, não exclui conteúdo já publicado. Registros anteriores de consentimento e retirada mantêm a versão original e não são convertidos em novos consentimentos opcionais."
+        },
+        {
+          "title": "Rastreamento, permissões e alterações",
+          "body": "O app atual não inclui SDK de publicidade nem consentimento de rastreamento entre apps no cadastro. As notificações solicitam uma permissão separada do iOS quando você ativa essa função, e não durante o cadastro. Permissões opcionais, como acesso a fotos, são solicitadas no momento do uso. Mudanças de privacidade são comunicadas com a data de vigência; novos tratamentos que exijam consentimento específico só começam após sua obtenção. Dúvidas sobre privacidade: officialscoor@gmail.com."
+        },
+        {
+          "title": "Registros de acesso e diagnóstico",
+          "body": "O Supabase mantém logs de acesso e autenticação para segurança e solução de problemas. Eles podem incluir horários, caminhos de requisição e status de resposta, informações do app e do sistema, endereços IP e identificadores da conta. Não são usados para rastreamento publicitário. A retenção depende dos ajustes operacionais do serviço e das necessidades de segurança."
+        }
+      ]
+    }
+  }
+}

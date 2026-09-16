@@ -22,6 +22,7 @@ struct SignupLoginOptionsView: View {
     @State private var password = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var document: EntryDocument?
     @FocusState private var focusedField: Field?
 
     private enum Field {
@@ -30,7 +31,7 @@ struct SignupLoginOptionsView: View {
     }
 
     private var canContinue: Bool {
-        email.contains("@") && email.contains(".") && password.count >= 6 && !isLoading
+        email.contains("@") && email.contains(".") && password.count >= 6 && !isLoading && LegalPolicy.isAvailable
     }
 
     var body: some View {
@@ -85,6 +86,8 @@ struct SignupLoginOptionsView: View {
                             .transition(.opacity.combined(with: .move(edge: .top)))
                     }
 
+                    AccountEntryNotice { document = EntryDocument(kind: $0) }
+
                     Button {
                         Task { await submitEmail() }
                     } label: {
@@ -137,6 +140,7 @@ struct SignupLoginOptionsView: View {
         }
         .environment(\.colorScheme, .light) // Light canvas — keep text dark-on-light (BUG-003)
         .onTapGesture { focusedField = nil }
+        .sheet(item: $document) { LegalDocumentView(kind: $0.kind) }
     }
 
     private func authField(
@@ -148,15 +152,15 @@ struct SignupLoginOptionsView: View {
         isSecure: Bool
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title)
+            Text(LocalizedStringKey(title))
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(Color.black.opacity(0.48))
 
             Group {
                 if isSecure {
-                    SecureField(placeholder, text: text)
+                    SecureField(LocalizedStringKey(placeholder), text: text)
                 } else {
-                    TextField(placeholder, text: text)
+                    TextField(LocalizedStringKey(placeholder), text: text)
                 }
             }
             .font(.system(size: 17, weight: .semibold))
@@ -191,7 +195,7 @@ struct SignupLoginOptionsView: View {
             HStack(spacing: 8) {
                 Image(systemName: systemImage)
                     .font(.system(size: 15, weight: .semibold))
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.system(size: 14, weight: .bold))
             }
             .foregroundStyle(DesignTokens.textPrimary)

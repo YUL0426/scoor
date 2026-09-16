@@ -2,7 +2,6 @@
 
 import { Plus, ShieldAlert, BarChart2, Download, Bell, Globe } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 interface QuickAction {
   label: string;
@@ -47,7 +46,7 @@ const ACTIONS: QuickAction[] = [
     label: "관리자 추가",
     description: "팀원 초대",
     icon: Plus,
-    color: "#f42525",
+    color: "#e36b59",
   },
 ];
 
@@ -69,8 +68,8 @@ function ActionItem({ action }: { action: QuickAction }) {
         />
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-medium text-[#f4f4f6] truncate">{action.label}</p>
-        <p className="text-[10px] text-[#52526c] truncate">{action.description}</p>
+        <p className="text-xs font-medium text-[#ededee] truncate">{action.label}</p>
+        <p className="text-[10px] text-[#8b8e98] truncate">{action.description}</p>
       </div>
     </button>
   );

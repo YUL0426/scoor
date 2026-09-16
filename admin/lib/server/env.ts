@@ -1,3 +1,4 @@
+import "server-only";
 /**
  * Admin auth configuration — server-only, sourced from environment variables.
  * See .env.example. When any variable is missing, auth fails closed (503):
@@ -15,6 +16,17 @@ export function adminAuthConfig(): AdminAuthConfig | null {
   const email = process.env.ADMIN_EMAIL;
   const passwordSha256 = process.env.ADMIN_PASSWORD_SHA256;
   const sessionSecret = process.env.ADMIN_SESSION_SECRET;
-  if (!email || !passwordSha256 || !sessionSecret) return null;
-  return { email: email.toLowerCase(), passwordSha256: passwordSha256.toLowerCase(), sessionSecret };
+  if (
+    !email ||
+    !passwordSha256 ||
+    !sessionSecret ||
+    !/^[a-f0-9]{64}$/i.test(passwordSha256) ||
+    sessionSecret.length < 32
+  )
+    return null;
+  return {
+    email: email.toLowerCase(),
+    passwordSha256: passwordSha256.toLowerCase(),
+    sessionSecret,
+  };
 }

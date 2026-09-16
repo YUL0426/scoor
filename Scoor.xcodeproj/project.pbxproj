@@ -199,6 +199,7 @@
 				"zh-Hans",
 				de,
 				fr,
+				"pt-BR",
 				es,
 			);
 			mainGroup = 43395CE22F5BDEBF00F3C1FB;

@@ -27,8 +27,13 @@ struct TopicScoreSheet: View {
     var onSubmit: (Int, String?) -> Void
 
     @State private var keypadInput: String = ""
+    @FocusState private var commentFocused: Bool
 
-    private var detail: TopicDetail { MockWorld.detail(for: topic) }
+    private var detail: TopicDetail {
+        if isAnonymous == nil { return MockWorld.detail(for: topic) }
+        return TopicDetail(source: topic.category.label, summary: topic.subtitle ?? "", coverHue: 0.58,
+                           globalParticipants: topic.postsCount, regional: [], sports: nil, recent: [])
+    }
     private var tone: ScoreTone { .from(score: Int(keypadInput) ?? 0) }
 
     var body: some View {
@@ -37,42 +42,54 @@ struct TopicScoreSheet: View {
 
             VStack(spacing: 0) {
                 header
-                if detail.sports != nil { targetSelector }
+                ScrollView {
+                    VStack(spacing: 0) {
+                        if isAnonymous != nil {
+                            Text("0: \(topic.lowLabel) · 100: \(topic.highLabel)").font(.caption).foregroundStyle(ScoorPalette.accent).padding(.horizontal, 22)
+                        }
+                        if detail.sports != nil { targetSelector }
 
-                Spacer(minLength: 0)
+                        Spacer(minLength: 0)
 
-                bigNumber
-                    .padding(.vertical, 8)
+                        bigNumber
+                            .padding(.vertical, 8)
 
-                quickPresets
-                    .padding(.top, 6)
+                        commentFieldSection
+                            .padding(.horizontal, 22)
+                            .padding(.top, 16)
 
-                commentFieldSection
-                    .padding(.horizontal, 22)
-                    .padding(.top, 16)
+                        if let isAnonymous {
+                            anonymousToggle(isAnonymous)
+                                .padding(.horizontal, 22)
+                                .padding(.top, 12)
+                        }
 
-                if let isAnonymous {
-                    anonymousToggle(isAnonymous)
-                        .padding(.horizontal, 22)
-                        .padding(.top, 12)
+                    }
+                    .padding(.bottom, 16)
+                    .frame(maxWidth: .infinity)
                 }
+                .scrollDismissesKeyboard(.interactively)
 
-                Spacer(minLength: 8)
-
-                ScoorKeypadView(
-                    inputText: $keypadInput,
-                    onDone: {
-                        haptic(strong: true)
-                        let value = min(100, max(0, Int(keypadInput) ?? 0))
-                        let trimmed = comment.trimmingCharacters(in: .whitespacesAndNewlines)
-                        onSubmit(value, trimmed.isEmpty ? nil : trimmed)
-                        dismiss()
-                    },
-                    doneLabel: "Submit \(keypadInput.isEmpty ? "—" : keypadInput)",
-                    isDoneDisabled: keypadInput.isEmpty
-                )
-                .padding(.horizontal, 12)
-                .padding(.bottom, 22)
+                if !commentFocused {
+                    ScoorKeypadView(
+                        inputText: $keypadInput,
+                        onDone: {
+                            haptic(strong: true)
+                            let value = min(100, max(0, Int(keypadInput) ?? 0))
+                            let trimmed = comment.trimmingCharacters(in: .whitespacesAndNewlines)
+                            onSubmit(value, trimmed.isEmpty ? nil : trimmed)
+                            dismiss()
+                        },
+                        doneLabel: "Submit \(keypadInput.isEmpty ? "—" : keypadInput)",
+                        isDoneDisabled: keypadInput.isEmpty
+                    )
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 12)
+                    .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Button("완료") { commentFocused = false }
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
             }
         }
         .environment(\.colorScheme, .dark)
@@ -192,58 +209,12 @@ struct TopicScoreSheet: View {
 
     private var toneLabel: String {
         switch tone {
-        case .glow: return "PEAK"
-        case .warm: return "WARM"
-        case .soft: return "STEADY"
-        case .dim:  return "DIM"
-        case .deep: return "DEEP"
+        case .glow: return String(localized: "PEAK")
+        case .warm: return String(localized: "WARM")
+        case .soft: return String(localized: "STEADY")
+        case .dim:  return String(localized: "DIM")
+        case .deep: return String(localized: "DEEP")
         }
-    }
-
-    // MARK: - Quick presets
-
-    private var quickPresets: some View {
-        HStack(spacing: 8) {
-            preset(label: "🔥", value: 95)
-            preset(label: "👍", value: 78)
-            preset(label: "🙂", value: 58)
-            preset(label: "😐", value: 40)
-            preset(label: "💔", value: 18)
-        }
-        .padding(.horizontal, 22)
-    }
-
-    private func preset(label: String, value: Int) -> some View {
-        let isSel = Int(keypadInput) == value
-        return Button {
-            haptic()
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
-                keypadInput = "\(value)"
-            }
-        } label: {
-            VStack(spacing: 4) {
-                Text(label).font(.system(size: 18))
-                Text("\(value)")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(isSel
-                        ? ScoreTone.from(score: value).primary
-                        : ScoorPalette.inkTertiary)
-            }
-            .frame(width: 54, height: 54)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(isSel ? ScoreTone.from(score: value).primary.opacity(0.14)
-                                : Color.white.opacity(0.04))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(isSel
-                        ? ScoreTone.from(score: value).primary.opacity(0.45)
-                        : ScoorPalette.hairline, lineWidth: 0.6)
-            )
-        }
-        .buttonStyle(PressableScaleCompact())
     }
 
     // MARK: - Comment field
@@ -272,6 +243,8 @@ struct TopicScoreSheet: View {
 
             TextField("이 토픽에 대한 한 줄 감정", text: $comment, axis: .vertical)
                 .lineLimit(1...2)
+                .focused($commentFocused)
+                .accessibilityIdentifier("topic-score-comment")
                 .font(.system(size: 14.5))
                 .foregroundStyle(ScoorPalette.inkPrimary)
                 .padding(.horizontal, 14)
@@ -293,16 +266,6 @@ struct TopicScoreSheet: View {
         #if canImport(UIKit)
         UIImpactFeedbackGenerator(style: strong ? .medium : .light).impactOccurred()
         #endif
-    }
-}
-
-// MARK: - PressableScaleCompact button style
-
-private struct PressableScaleCompact: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.93 : 1.0)
-            .animation(.spring(response: 0.2, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
 

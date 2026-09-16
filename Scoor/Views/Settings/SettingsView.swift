@@ -34,14 +34,6 @@ enum AppAppearance: String, CaseIterable, Identifiable {
     }
 }
 
-/// 스토어 제출에 필요한 법적 문서 링크 (랜딩 사이트에서 호스팅).
-enum LegalLinks {
-    // 앱 UI가 한국어이고 국내 우선 출시이므로 한국어 문서를 가리킨다. 각 문서
-    // 상단에 English 링크가 있어 영어권 사용자도 한 번에 넘어갈 수 있다.
-    static let privacyPolicy = URL(string: "https://scoor.app/privacy/ko")!
-    static let termsOfService = URL(string: "https://scoor.app/terms/ko")!
-}
-
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var services: AppServices
@@ -55,6 +47,9 @@ struct SettingsView: View {
     @State private var nextReminderText: String?
     @State private var didLoad = false
     @State private var accountEmail: String?
+    @State private var showLegalManagement = false
+    @State private var showTermsDocument = false
+    @State private var showPrivacyDocument = false
     @State private var showSignOutConfirm = false
     @State private var showDeleteAccountConfirm = false
     @State private var isDeletingAccount = false
@@ -108,7 +103,13 @@ struct SettingsView: View {
                 }
 
                 Section("About") {
-                    Link(destination: LegalLinks.privacyPolicy) {
+                    Button(LegalPolicy.text("약관 전문 · 동의 관리", "Documents and consent settings")) { showLegalManagement = true }
+                        .accessibilityIdentifier("settings-consent-management")
+                        .sheet(isPresented: $showLegalManagement) {
+                            ConsentManagementView(service: services.legalConsent, userID: authService.currentSession?.userID)
+                        }
+
+                    Button { showPrivacyDocument = true } label: {
                         HStack {
                             Label("Privacy Policy", systemImage: "lock.shield")
                             Spacer()
@@ -120,7 +121,7 @@ struct SettingsView: View {
                     .foregroundStyle(.primary)
                     .accessibilityIdentifier("settings-privacy-link")
 
-                    Link(destination: LegalLinks.termsOfService) {
+                    Button { showTermsDocument = true } label: {
                         HStack {
                             Label("Terms of Service", systemImage: "doc.text")
                             Spacer()
@@ -158,6 +159,8 @@ struct SettingsView: View {
                         .foregroundColor(.scoorRed)
                 }
             }
+            .sheet(isPresented: $showTermsDocument) { LegalDocumentView(kind: "terms") }
+            .sheet(isPresented: $showPrivacyDocument) { LegalDocumentView(kind: "privacy") }
             .task { await loadIfNeeded() }
             .confirmationDialog("로그아웃 하시겠어요?", isPresented: $showSignOutConfirm, titleVisibility: .visible) {
                 Button("로그아웃", role: .destructive) { Task { await signOut() } }
@@ -176,7 +179,7 @@ struct SettingsView: View {
                                         set: { if !$0 { deleteAccountError = nil } })) {
                 Button("확인", role: .cancel) { deleteAccountError = nil }
             } message: {
-                Text((deleteAccountError ?? "") + "\n\n기기의 기록은 그대로 있습니다. 잠시 후 다시 시도해 주세요.")
+                Text((deleteAccountError ?? "") + String(localized: "\n\n기기의 기록은 그대로 있습니다. 잠시 후 다시 시도해 주세요."))
             }
             .disabled(isDeletingAccount)
         }
@@ -258,8 +261,8 @@ struct SettingsView: View {
     }
 
     private var lastSyncedText: String {
-        guard authService.currentSession != nil else { return "로그인 필요" }
-        guard let lastSyncedAt else { return "대기 중" }
+        guard authService.currentSession != nil else { return String(localized: "로그인 필요") }
+        guard let lastSyncedAt else { return String(localized: "대기 중") }
         let f = RelativeDateTimeFormatter()
         f.unitsStyle = .abbreviated
         return f.localizedString(for: lastSyncedAt, relativeTo: Date())
@@ -288,9 +291,9 @@ struct SettingsView: View {
 
     private var providerLabel: String {
         if let provider = authService.currentSession?.providerKind {
-            return "\(provider.displayName) 계정으로 로그인됨"
+            return String(localized: "\(provider.displayName)로 로그인됨")
         }
-        return "게스트 세션"
+        return String(localized: "게스트 세션")
     }
 
     private func signOut() async {
@@ -307,6 +310,10 @@ struct SettingsView: View {
     /// 던져서, 서버 삭제가 실패해도 화면은 삭제 완료로 되돌아갔다. 그러면 사용자
     /// 데이터는 서버에 남았는데 되돌릴 방법(로그인)은 이미 지워진 상태가 된다.
     private func deleteAccount() async {
+        guard let deletingUserID = authService.currentSession?.userID else {
+            deleteAccountError = APIError.unauthorized.localizedDescription
+            return
+        }
         isDeletingAccount = true
         defer { isDeletingAccount = false }
 
@@ -318,9 +325,9 @@ struct SettingsView: View {
             return
         }
 
-        try? await services.scoreService.deleteAllScores()
+        try? await services.scoreService.deleteLocalScores(userId: deletingUserID)
         try? await services.socialService.deleteAllLocalData()
-        try? await services.guestbookService.deleteAllMessages()
+        try? await services.guestbookService.deleteMessages(userId: deletingUserID)
         await services.notificationService.setEnabled(false)
         await services.userService.signOutCurrentUser()
         coordinator.resetForDebug()
@@ -425,7 +432,7 @@ struct SettingsView: View {
     private func refreshNextReminder() {
         if let next = notifications.nextReminderDate(), reminderEnabled, authStatus != .denied {
             let f = DateFormatter()
-            f.dateFormat = "EEE, MMM d · h:mm a"
+            f.setLocalizedDateFormatFromTemplate("EEE MMM d jmm")
             nextReminderText = f.string(from: next)
         } else {
             nextReminderText = nil

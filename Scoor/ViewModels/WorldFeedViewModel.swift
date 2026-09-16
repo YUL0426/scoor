@@ -18,6 +18,9 @@ import SwiftUI
 @MainActor
 final class WorldFeedViewModel: ObservableObject {
 
+    @Published var canLoadMoreTopics = false
+    @Published var loadingMoreTopics = false
+    private var topicOffset = 0
     @Published var topics: [WorldTopic] = []
     @Published var posts: [WorldPost] = []
     @Published var phase: LoadPhase = .idle
@@ -121,6 +124,8 @@ final class WorldFeedViewModel: ObservableObject {
         do {
             let remote = try await world.loadTopics()
             topicsAreLive = true
+            topicOffset = remote.count
+            canLoadMoreTopics = remote.count == 50
             return remote
         } catch {
             topicsAreLive = false
@@ -129,6 +134,20 @@ final class WorldFeedViewModel: ObservableObject {
             #endif
             return await service.loadTopics()
         }
+    }
+
+    func loadMoreTopics() async {
+        guard let world, canLoadMoreTopics, !loadingMoreTopics else { return }
+        loadingMoreTopics = true
+        defer { loadingMoreTopics = false }
+        do {
+            let next = try await world.loadTopics(offset: topicOffset)
+            topicOffset += next.count
+            let ids = Set(topics.map(\.id))
+            topics.append(contentsOf: next.filter { !ids.contains($0.id) })
+            canLoadMoreTopics = next.count == 50
+            transientError = nil
+        } catch { transientError = error.localizedDescription }
     }
 
     func loadMoreIfNeeded(currentItem: WorldPost) async {
@@ -185,7 +204,7 @@ final class WorldFeedViewModel: ObservableObject {
                     r.likes = max(0, r.likes + (nowLiked ? -1 : 1))
                     posts[idx].reactions = r
                 }
-                transientError = "좋아요 저장에 실패했어요. 다시 시도해주세요."
+                transientError = String(localized: "좋아요 저장에 실패했어요. 다시 시도해주세요.")
             }
         }
     }

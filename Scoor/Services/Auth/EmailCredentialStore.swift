@@ -47,7 +47,7 @@ enum EmailCredentialStore {
         if let record = load(email: normalized) {
             let candidate = pbkdf2(password: password, salt: record.salt, rounds: record.rounds)
             guard constantTimeEquals(candidate, record.hash) else {
-                throw AuthError.failed("이미 가입된 이메일입니다 — 비밀번호가 일치하지 않습니다.")
+                throw AuthError.failed(String(localized: "이미 가입된 이메일입니다 — 비밀번호가 일치하지 않습니다."))
             }
             return .signedInExisting
         }
@@ -58,7 +58,7 @@ enum EmailCredentialStore {
             return SecRandomCopyBytes(kSecRandomDefault, buffer.count, base)
         }
         guard status == errSecSuccess else {
-            throw AuthError.failed("보안 난수를 생성하지 못했습니다.")
+            throw AuthError.failed(String(localized: "보안 난수를 생성하지 못했습니다."))
         }
 
         let record = Record(
@@ -70,7 +70,7 @@ enum EmailCredentialStore {
         guard let encoded = try? JSONEncoder().encode(record),
               let string = String(data: encoded, encoding: .utf8),
               KeychainStore.set(string, for: key(for: normalized)) else {
-            throw AuthError.failed("자격 증명을 저장하지 못했습니다.")
+            throw AuthError.failed(String(localized: "자격 증명을 저장하지 못했습니다."))
         }
         return .createdNewAccount
     }

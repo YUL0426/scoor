@@ -22,7 +22,7 @@ final class AppleSignInController: NSObject,
 
     func signIn() async throws -> AuthenticatedIdentity {
         // Avoid overlapping requests.
-        if continuation != nil { throw AuthError.failed("이미 진행 중인 Apple 로그인이 있습니다.") }
+        if continuation != nil { throw AuthError.failed(String(localized: "이미 진행 중인 Apple 로그인이 있습니다.")) }
 
         return try await withCheckedThrowingContinuation { cont in
             self.continuation = cont

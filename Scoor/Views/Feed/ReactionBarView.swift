@@ -2,8 +2,8 @@
 //  ReactionBarView.swift
 //  Scoor
 //
-//  Toss Community/Threads 스타일의 2-액션 바.
-//  - heart · comment (BUG-005: Repost / Clap(empathy) 제거 — 좋아요·댓글만 유지)
+//  피드 액션 바.
+//  - 좋아요 · 댓글 · 리포스트 (서버 연결 시)
 //  - 카운트는 SF Symbols 옆에 작은 모노 숫자
 //  - heart는 토글 시 채워지고 살짝 펄스, 햅틱
 //
@@ -22,6 +22,9 @@ struct ReactionBarView: View {
     /// 좋아요 토글 직후 호출(영속용). 인자는 토글 후의 "좋아요됨" 상태.
     var onLikeToggle: (Bool) -> Void = { _ in }
 
+    var onRepostTap: (() -> Void)? = nil
+    var repostPending = false
+
     @State private var heartBump = false
 
     var body: some View {
@@ -39,7 +42,16 @@ struct ReactionBarView: View {
                        count: reactions.comments,
                        action: onCommentTap)
 
-            // 우측 여백 균형용 — 두 액션만 좌측 정렬되도록.
+            if let onRepostTap {
+                actionItem(symbol: "arrow.2.squarepath",
+                           tint: reactions.repostedByMe ? ScoorPalette.accent : ScoorPalette.inkSecondary,
+                           count: reactions.reposts, action: onRepostTap)
+                    .disabled(repostPending)
+                    .accessibilityLabel(reactions.repostedByMe ? "리포스트 취소" : "리포스트")
+                    .accessibilityIdentifier("feed-repost-\(entryId)")
+                    .accessibilityAddTraits(reactions.repostedByMe ? .isSelected : [])
+            }
+
             Spacer(minLength: 0)
         }
     }

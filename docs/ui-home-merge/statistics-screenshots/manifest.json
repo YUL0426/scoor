@@ -1,0 +1,53 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "C671A78B-E9A1-46F7-8E56-11462026FEA9",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "FA1B5DF5-860B-4F43-BCF6-4F5085B31DB4.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Statistics — recording rhythm and calendar_0_0845801C-124F-4351-9A64-F32FF67A0E04.png",
+        "timestamp" : 1788680441.84
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "C671A78B-E9A1-46F7-8E56-11462026FEA9",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "0F09C8CE-264A-42B3-A519-AB29ED3C6165.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Statistics — ninety days_0_B59992EE-7D38-4A76-ABB4-4BCA0753256B.png",
+        "timestamp" : 1788680440.724
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "C671A78B-E9A1-46F7-8E56-11462026FEA9",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "B7DB120C-7EF7-4E67-9A7C-4312E329D92D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Statistics — thirty days_0_92C55967-B93C-4F7A-A746-6F3E5A1F6E2F.png",
+        "timestamp" : 1788680440.289
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "C671A78B-E9A1-46F7-8E56-11462026FEA9",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "5B678C5F-0E27-4179-9B94-DA4CA3DA3D95.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Statistics — seven days_0_1C2736CE-6735-4245-91C8-2EEED5BE64B4.png",
+        "timestamp" : 1788680439.882
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "C671A78B-E9A1-46F7-8E56-11462026FEA9",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "38B7CF86-29E7-4CA1-91C7-850ECC572EDF.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Interest editor_0_D68ED1C8-31DB-43CD-B0FE-D86895D3E32F.png",
+        "timestamp" : 1788680429.719
+      }
+    ],
+    "testIdentifier" : "ScoorSprint1UITests/testStatisticsDashboardAndInterestEditing()",
+    "testIdentifierURL" : "test://com.apple.xcode/Scoor/ScoorUITests/ScoorSprint1UITests/testStatisticsDashboardAndInterestEditing"
+  }
+]

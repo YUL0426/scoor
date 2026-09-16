@@ -16,21 +16,33 @@ struct FeedView: View {
     @EnvironmentObject private var appServices: AppServices
     @StateObject private var vm: FeedViewModel
 
+    private let repostsOnly: Bool
     private let socialService: SocialServiceProtocol
     private let feedService: RemoteFeedService?
+    var onRequestScoreSheet: (() -> Void)?
+    var onOpenProfile: () -> Void
+    @State private var avatarURL: URL?
 
     @State private var commentTarget: FeedEntry? = nil
     @State private var reportTarget: FeedEntry? = nil
     /// 신고한 글은 검토 전에도 신고자 화면에서 즉시 사라진다 (World와 같은 규칙).
     @State private var hiddenEntryIds: Set<UUID> = []
+    @AppStorage("feed.interestMood") private var interestMood = Mood.work.rawValue
+    @State private var interestActive = false
+    @State private var showInterests = false
+    @State private var editingInterests = false
+    @State private var draftInterest = Mood.work.rawValue
     @State private var showDiscover = false
-    @State private var myName: String = "나"
+    @State private var myName: String = String(localized: "나")
     private let mySeed = 1
 
-    init(socialService: SocialServiceProtocol, feedService: RemoteFeedService? = nil) {
+    init(socialService: SocialServiceProtocol, feedService: RemoteFeedService? = nil, onRequestScoreSheet: (() -> Void)? = nil, onOpenProfile: @escaping () -> Void = {}, repostsOnly: Bool = false) {
+        self.repostsOnly = repostsOnly
+        self.onOpenProfile = onOpenProfile
+        self.onRequestScoreSheet = onRequestScoreSheet
         self.socialService = socialService
         self.feedService = feedService
-        _vm = StateObject(wrappedValue: FeedViewModel(service: socialService, remote: feedService))
+        _vm = StateObject(wrappedValue: FeedViewModel(service: socialService, remote: feedService, repostsOnly: repostsOnly))
     }
 
     // MARK: - Body
@@ -40,22 +52,19 @@ struct FeedView: View {
             ScoorPalette.bgBase.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                topHeader
-                // 시드 경로에서만 남는 두 가지: "예시 콘텐츠" 배너와, 수치가
-                // 전부 가짜인 펄스 티커. 서버 피드에서는 둘 다 거짓말이 된다.
-                if !vm.isLive {
-                    PreviewContentBanner()
-                        .padding(.top, 4)
-                    LivePulseView(pulses: MockFeed.pulses)
-                        .padding(.top, 6)
-                }
-                sortTabs
-                    .padding(.top, 10)
-                Divider().background(ScoorPalette.hairlineSoft)
-                MoodFilterView(selected: $vm.selectedMood)
-                    .padding(.vertical, 10)
-                Divider().background(ScoorPalette.hairline)
+                if !repostsOnly {
+                    topHeader
+                    // 시드 경로에서만 남는 두 가지: "예시 콘텐츠" 배너와, 수치가
+                    // 전부 가짜인 펄스 티커. 서버 피드에서는 둘 다 거짓말이 된다.
+                    if !vm.isLive {
+                        PreviewContentBanner()
+                            .padding(.top, 4)
+                    }
+                    sortTabs
+                        .padding(.top, 10)
+                    Divider().background(ScoorPalette.hairlineSoft)
 
+                }
                 feedStream
             }
         }
@@ -65,9 +74,19 @@ struct FeedView: View {
         .task {
             await vm.loadIfNeeded()
             if let user = await appServices.userService.getCurrentUser() {
-                myName = user.username.isEmpty ? "나" : user.username
+                myName = user.username.isEmpty ? String(localized: "나") : user.username
+                avatarURL = user.avatarURL
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .scoorHomeFeedDidChange)) { _ in
+            Task { await vm.load() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .scoorRepostsDidChange)) { _ in
+            Task { if repostsOnly { await vm.refresh() } else { await vm.reloadOverlays() } }
+        }
+        .alert("저장 실패", isPresented: Binding(get: { vm.transientError != nil }, set: { if !$0 { vm.transientError = nil } })) {
+            Button("확인") { vm.transientError = nil }
+        } message: { Text(vm.transientError ?? "") }
         .sheet(item: $commentTarget) { entry in
             CommentsSheet(
                 postId: entry.id,
@@ -99,58 +118,31 @@ struct FeedView: View {
     // MARK: - Top header
 
     private var topHeader: some View {
-        HStack(spacing: 8) {
-            Text("Feed")
-                .font(.system(size: 22, weight: .heavy))
-                .foregroundStyle(ScoorPalette.inkPrimary)
-            statusDot.padding(.leading, 2)
-
-            Spacer()
-
-            if !vm.isLive {
-            HStack(spacing: 6) {
-                Text("오늘")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(ScoorPalette.inkTertiary)
-                Text(CompactCount.format(MockFeed.todayCount))
-                    .font(.system(size: 12.5, weight: .bold))
-                    .foregroundStyle(ScoorPalette.inkPrimary)
-                    .monospacedDigit()
-                Text("·").font(.system(size: 11)).foregroundStyle(ScoorPalette.inkTertiary)
-                Text("평균 \(MockFeed.todayAverage)")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(ScoorPalette.accent)
-                    .monospacedDigit()
-            }
-            }
-
-            // 탐색(Discover)은 팔로우할 실사용자가 생기는 Phase 3 전까지 시드
-            // 프로필만 보여준다. 나머지 화면이 실데이터로 바뀐 뒤에도 여기만
-            // 가짜로 남으면, 배너 없이 조용히 가짜인 유일한 화면이 된다.
-            if !vm.isLive {
-            Button { showDiscover = true } label: {
-                Image(systemName: "person.2.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(ScoorPalette.inkSecondary)
-                    .frame(width: 32, height: 32)
-                    .background(ScoorPalette.bgRaised)
-                    .clipShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("사용자 탐색")
-            .accessibilityIdentifier("feed.discoverButton")
+        ZStack {
+            ScoorLogo(size: 44, variant: .white)
+                .accessibilityIdentifier("home-centered-logo")
+            HStack {
+                Button(action: onOpenProfile) {
+                    ProfileAvatarView(imageURL: avatarURL, size: 32)
+                        .frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("내 프로필")
+                .accessibilityIdentifier("home-profile-button")
+                Spacer()
+                Button { showDiscover = true } label: {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 21, weight: .medium))
+                        .foregroundStyle(ScoorPalette.inkPrimary)
+                        .frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("검색")
+                .accessibilityIdentifier("home-search-button")
             }
         }
-        .padding(.horizontal, 18)
-        .padding(.top, 10)
+        .buttonStyle(.plain)
+        .padding(.horizontal, 14)
+        .padding(.top, 12)
         .padding(.bottom, 4)
-    }
-
-    private var statusDot: some View {
-        Circle()
-            .fill(ScoorPalette.accent)
-            .frame(width: 6, height: 6)
-            .shadow(color: ScoorPalette.accent.opacity(0.6), radius: 4)
     }
 
     // MARK: - Sort tabs
@@ -158,19 +150,69 @@ struct FeedView: View {
     private var sortTabs: some View {
         HStack(spacing: 0) {
             ForEach(FeedSort.allCases) { mode in sortTab(mode) }
-            Spacer()
+            Button {
+                interestActive = true
+                vm.selectedMood = Mood(rawValue: interestMood)
+                draftInterest = interestMood
+                editingInterests = false
+                showInterests = true
+            } label: {
+                VStack(spacing: 6) {
+                    Text("관심").font(.system(size: 14, weight: .semibold))
+                    Rectangle().fill(interestActive ? ScoorPalette.accent : .clear).frame(height: 2)
+                }
+                .foregroundStyle(interestActive ? ScoorPalette.inkPrimary : ScoorPalette.inkTertiary)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("feed-interests-tab")
         }
         .padding(.horizontal, 18)
+        .sheet(isPresented: $showInterests) {
+            NavigationStack {
+                List(editingInterests ? Mood.allCases : [Mood(rawValue: interestMood) ?? .work]) { mood in
+                    Button {
+                        if editingInterests { draftInterest = mood.rawValue }
+                    } label: {
+                        HStack {
+                            Text(mood.label)
+                            Spacer()
+                            if draftInterest == mood.rawValue { Image(systemName: "checkmark") }
+                        }
+                    }
+                }
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button(editingInterests ? "취소" : "편집") {
+                            draftInterest = interestMood
+                            editingInterests.toggle()
+                        }
+                        .accessibilityIdentifier("interests-edit-button")
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("완료") {
+                            interestMood = draftInterest
+                            vm.selectedMood = Mood(rawValue: draftInterest)
+                            showInterests = false
+                        }
+                    }
+                }
+            }
+            .preferredColorScheme(.dark)
+            .presentationDetents([.medium, .large])
+        }
     }
 
     private func sortTab(_ mode: FeedSort) -> some View {
-        Button { vm.sort = mode } label: {
+        Button { interestActive = false; vm.selectedMood = nil; vm.sort = mode } label: {
             VStack(spacing: 6) {
-                Text(mode.rawValue)
-                    .font(.system(size: 14, weight: vm.sort == mode ? .bold : .medium))
-                    .foregroundStyle(vm.sort == mode ? ScoorPalette.inkPrimary : ScoorPalette.inkTertiary)
+                Text(LocalizedStringKey(mode.rawValue))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                    .font(.system(size: 14, weight: (!interestActive && vm.sort == mode) ? .bold : .medium))
+                    .foregroundStyle((!interestActive && vm.sort == mode) ? ScoorPalette.inkPrimary : ScoorPalette.inkTertiary)
                 Rectangle()
-                    .fill(vm.sort == mode ? ScoorPalette.accent : Color.clear)
+                    .fill((!interestActive && vm.sort == mode) ? ScoorPalette.accent : Color.clear)
                     .frame(height: 2)
             }
             .padding(.trailing, 18)
@@ -189,38 +231,46 @@ struct FeedView: View {
         case .error(let msg):
             errorState(msg)
         case .empty:
-            ScrollView { emptyState.padding(.top, 80) }.refreshable { await vm.refresh() }
+            if repostsOnly { emptyState } else {
+                ScrollView { emptyState.padding(.top, 80) }.refreshable { await vm.refresh() }
+            }
         case .loaded:
             loadedStream
         }
     }
 
+    @ViewBuilder
     private var loadedStream: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(vm.visible.filter { !hiddenEntryIds.contains($0.id) }) { entry in
-                    if let binding = vm.binding(for: entry.id) {
-                        FeedCardView(
-                            entry: binding,
-                            onLikeToggle: { liked in vm.persistLike(entryId: entry.id, nowLiked: liked) },
-                            onCommentTap: { commentTarget = entry },
-                            onReportTap: appServices.moderationService == nil
-                                ? nil
-                                : { reportTarget = entry }
-                        )
-                        .onAppear { Task { await vm.loadMoreIfNeeded(currentItem: entry) } }
-                        Divider().background(ScoorPalette.hairline)
-                    }
-                }
-
-                if vm.visible.allSatisfy({ hiddenEntryIds.contains($0.id) }) {
-                    emptyState.padding(.top, 60)
-                }
-                if vm.isLoadingMore { loadMoreSpinner }
-                bottomSpacer
-            }
+        if repostsOnly { feedRows } else {
+            ScrollView { feedRows }.refreshable { await vm.refresh() }
         }
-        .refreshable { await vm.refresh() }
+    }
+
+    private var feedRows: some View {
+        LazyVStack(spacing: 0) {
+            ForEach(vm.visible.filter { !hiddenEntryIds.contains($0.id) }) { entry in
+                if let binding = vm.binding(for: entry.id) {
+                    FeedCardView(
+                        entry: binding,
+                        onLikeToggle: { liked in vm.persistLike(entryId: entry.id, nowLiked: liked) },
+                        onCommentTap: { commentTarget = entry },
+                        onReportTap: appServices.moderationService == nil
+                            ? nil
+                            : { reportTarget = entry },
+                        onRepostTap: feedService == nil ? nil : { vm.toggleRepost(entryId: entry.id) },
+                        repostPending: vm.pendingReposts.contains(entry.id)
+                    )
+                    .onAppear { Task { await vm.loadMoreIfNeeded(currentItem: entry) } }
+                    Divider().background(ScoorPalette.hairline)
+                }
+            }
+
+            if vm.visible.allSatisfy({ hiddenEntryIds.contains($0.id) }) {
+                emptyState.padding(.top, 60)
+            }
+            if vm.isLoadingMore { loadMoreSpinner }
+            bottomSpacer
+            }
     }
 
     private var loadingState: some View {
@@ -248,10 +298,10 @@ struct FeedView: View {
 
     private var emptyState: some View {
         VStack(spacing: 8) {
-            Text("아직 이 감정의 글이 없어요.")
+            Text(repostsOnly ? "아직 리포스트한 글이 없어요" : "아직 나눠진 하루가 없어요")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(ScoorPalette.inkSecondary)
-            Text("다른 감정을 보거나 직접 한 줄 남겨볼까요?")
+            Text(repostsOnly ? "홈에서 마음에 드는 글을 리포스트해보세요" : "오늘의 점수와 한 줄로 이야기를 시작해보세요")
                 .font(.system(size: 12))
                 .foregroundStyle(ScoorPalette.inkTertiary)
         }
@@ -259,7 +309,7 @@ struct FeedView: View {
         .padding(.vertical, 60)
     }
 
-    private var bottomSpacer: some View { Color.clear.frame(height: 120) }
+    private var bottomSpacer: some View { Color.clear.frame(height: 24) }
 }
 
 #Preview {

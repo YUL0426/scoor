@@ -98,7 +98,7 @@ struct ReportSheet: View {
 
     private func submit() {
         guard let service else {
-            errorText = "서버에 연결되어 있지 않습니다."
+            errorText = String(localized: "서버에 연결되어 있지 않습니다.")
             return
         }
         isSubmitting = true
@@ -144,6 +144,9 @@ struct SelfHarmResourceCard: View {
             Text("정신건강 상담전화 **1577-0199**")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+
+            Link("Find support in your country", destination: URL(string: "https://findahelpline.com/")!)
+                .font(.footnote)
 
             Text("당장 위험한 상황이라면 119에 연락해 주세요.")
                 .font(.caption)

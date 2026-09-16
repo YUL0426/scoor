@@ -42,27 +42,8 @@ final class ScoorSprint2FoundationsUITests: XCTestCase {
 
     /// 온보딩을 통과해 메인 탭바까지 도달.
     private func reachMain(username: String) {
-        let apple = app.buttons["Continue with Apple"]
-        if apple.waitForExistence(timeout: 8) {
-            apple.tap()
-            let field = app.textFields.firstMatch
-            if field.waitForExistence(timeout: 8) {
-                field.tap(); field.typeText(username)
-                if app.staticTexts["Choose your Scoor name"].exists {
-                    app.staticTexts["Choose your Scoor name"].tap()
-                }
-                let claim = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Claim'")).firstMatch
-                if claim.waitForExistence(timeout: 6) {
-                    expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: claim)
-                    waitForExpectations(timeout: 8)
-                    claim.tap()
-                }
-            }
-            sleep(1); centerTap()
-            tapIfExists(app.buttons["Next"], 8)
-            tapIfExists(app.buttons["Try your first Scoor"], 8)
-            tapIfExists(app.buttons["Skip"], 8)
-        }
+        let apple = app.buttons["signup-apple"]
+        if apple.waitForExistence(timeout: 8) { apple.tap() }
         XCTAssertTrue(app.buttons["Home"].waitForExistence(timeout: 12), "Main tab bar never appeared")
     }
 

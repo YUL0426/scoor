@@ -117,7 +117,7 @@ struct BlockedUsersView: View {
             try await moderationService.unblock(user.blockedId)
         } catch {
             blocked = previous
-            errorMessage = "차단 해제에 실패했어요. 다시 시도해주세요."
+            errorMessage = String(localized: "차단 해제에 실패했어요. 다시 시도해주세요.")
         }
     }
 
@@ -125,7 +125,7 @@ struct BlockedUsersView: View {
         let f = DateFormatter()
         f.locale = .current
         f.setLocalizedDateFormatFromTemplate("yMMMd")
-        return "\(f.string(from: date)) 차단"
+        return String(localized: "\(f.string(from: date)) 차단")
     }
 }
 

@@ -1,0 +1,84 @@
+{
+  "date": "2026-09-10",
+  "status": "passed",
+  "file_count": 7,
+  "files": [
+    {
+      "file": "upload/ko-KR/iphone-6.9/01-score.png",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 252642,
+      "sha256": "14d669837807e4c9f45588208630d249ca0679e88c62cc277fcfb52202991a6d"
+    },
+    {
+      "file": "upload/ko-KR/iphone-6.9/02-records.png",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 320865,
+      "sha256": "51acfcb974faacf635bc9cc408814de85b5402228952b80806413dd721e112a8"
+    },
+    {
+      "file": "upload/ko-KR/iphone-6.9/03-stats.png",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 786304,
+      "sha256": "4a578f242691d786a7bfeba0d9ac3e7318120a9e5ab778ee602018866f2ba3ce"
+    },
+    {
+      "file": "upload/ko-KR/iphone-6.9/04-calendar.png",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 315793,
+      "sha256": "905665f9c428737e9c0ac98c1775dc4a831316de6373b50f881dc7e884dcf549"
+    },
+    {
+      "file": "upload/ko-KR/ipad-13/02-records.png",
+      "width": 2064,
+      "height": 2752,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 320443,
+      "sha256": "b01396d22b4533949dbd21bc3ea94ade6754cb2b9d6f731bff225443de8b60f2"
+    },
+    {
+      "file": "upload/ko-KR/ipad-13/03-stats.png",
+      "width": 2064,
+      "height": 2752,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 736403,
+      "sha256": "2da66242bcee9fe9b15cb135627891e7a0316d5ec5a33d0fa07d67c88a1e5495"
+    },
+    {
+      "file": "upload/ko-KR/ipad-13/04-calendar.png",
+      "width": 2064,
+      "height": 2752,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 748967,
+      "sha256": "b6e253714d3b9c77132456ed0021242884cf2624f00c2b3bf911d6704f463ae6"
+    }
+  ]
+}

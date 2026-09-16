@@ -6,7 +6,7 @@ import { formatRelativeTime, scoorToColor } from "@/lib/utils";
 import type { FeedEntry } from "@/types";
 
 function FeedRow({ entry }: { entry: FeedEntry }) {
-  const color = entry.scoorValue !== null ? scoorToColor(entry.scoorValue) : "#8b8ba4";
+  const color = entry.scoorValue !== null ? scoorToColor(entry.scoorValue) : "#a2a4ac";
   const initial = entry.username[0]?.toUpperCase();
 
   return (
@@ -22,8 +22,8 @@ function FeedRow({ entry }: { entry: FeedEntry }) {
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-0.5">
-          <span className="text-xs font-medium text-[#f4f4f6]">{entry.username}</span>
-          <span className="text-[10px] text-[#52526c]">{entry.countryCode}</span>
+          <span className="text-xs font-medium text-[#ededee]">{entry.username}</span>
+          <span className="text-[10px] text-[#8b8e98]">{entry.countryCode}</span>
           {entry.scoorValue !== null && (
             <span
               className="ml-auto text-sm font-bold tabular-nums flex-shrink-0"
@@ -34,21 +34,21 @@ function FeedRow({ entry }: { entry: FeedEntry }) {
           )}
         </div>
         {entry.reason && (
-          <p className="text-[11px] text-[#8b8ba4] truncate">{entry.reason}</p>
+          <p className="text-[11px] text-[#a2a4ac] truncate">{entry.reason}</p>
         )}
         {entry.agendaTitle && (
-          <p className="text-[10px] text-[#52526c] mt-0.5">↳ {entry.agendaTitle}</p>
+          <p className="text-[10px] text-[#8b8e98] mt-0.5">↳ {entry.agendaTitle}</p>
         )}
         <div className="flex items-center gap-3 mt-1.5">
-          <span className="flex items-center gap-1 text-[10px] text-[#52526c]">
+          <span className="flex items-center gap-1 text-[10px] text-[#8b8e98]">
             <Heart className="h-2.5 w-2.5" />
             {entry.likeCount}
           </span>
-          <span className="flex items-center gap-1 text-[10px] text-[#52526c]">
+          <span className="flex items-center gap-1 text-[10px] text-[#8b8e98]">
             <MessageCircle className="h-2.5 w-2.5" />
             {entry.commentCount}
           </span>
-          <span className="text-[10px] text-[#52526c] ml-auto">
+          <span className="text-[10px] text-[#8b8e98] ml-auto">
             {formatRelativeTime(entry.createdAt)}
           </span>
         </div>

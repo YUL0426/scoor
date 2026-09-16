@@ -33,7 +33,7 @@ struct OnboardingButton: View {
                     Image(systemName: s)
                         .font(.system(size: 16, weight: .semibold))
                 }
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.system(size: 16, weight: .semibold))
             }
             .frame(maxWidth: .infinity)

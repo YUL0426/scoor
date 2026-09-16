@@ -28,19 +28,19 @@ const TREND_CONFIG = {
   },
   neutral: {
     icon: Minus,
-    color: "text-[#8b8ba4]",
+    color: "text-[#a2a4ac]",
     bg: "bg-white/6 border-white/10",
   },
 };
 
-export function KPICard({ metric, accentColor = "#f42525" }: KPICardProps) {
+export function KPICard({ metric, accentColor = "#e36b59" }: KPICardProps) {
   const trendCfg = TREND_CONFIG[metric.trend];
   const TrendIcon = trendCfg.icon;
 
   const chartData = metric.sparkline.map((v, i) => ({ i, v }));
 
   return (
-    <div className="relative bg-[#0d0d1f] border border-white/6 rounded-xl p-5 overflow-hidden hover:border-white/10 transition-all duration-200 group">
+    <div className="relative bg-[#191a1d] border border-white/6 rounded-xl p-5 overflow-hidden hover:border-white/10 transition-all duration-200 group">
       {/* Background gradient */}
       <div
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
@@ -50,12 +50,12 @@ export function KPICard({ metric, accentColor = "#f42525" }: KPICardProps) {
       />
 
       {/* Label */}
-      <p className="text-xs font-medium text-[#52526c] uppercase tracking-wider mb-3">
+      <p className="text-xs font-medium text-[#8b8e98] uppercase tracking-wider mb-3">
         {metric.label}
       </p>
 
       {/* Value */}
-      <p className="text-3xl font-bold text-[#f4f4f6] tracking-tight mb-3 tabular-nums">
+      <p className="text-3xl font-bold text-[#ededee] tracking-tight mb-3 tabular-nums">
         {metric.formatted}
       </p>
 

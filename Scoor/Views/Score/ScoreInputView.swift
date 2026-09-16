@@ -63,7 +63,7 @@ struct ScoreInputView: View {
 
     private var dateBlock: some View {
         VStack(spacing: 4) {
-            Text("How was your day?")
+            Text("How's your day? scoor!")
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(Color(red: 0.45, green: 0.51, blue: 0.57))
             Text(formattedDateLine)
@@ -77,8 +77,8 @@ struct ScoreInputView: View {
 
     private var formattedDateLine: String {
         let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = "EEEE, MMM d"
+        f.locale = .current
+        f.setLocalizedDateFormatFromTemplate("EEEE, MMM d")
         return f.string(from: Date()).uppercased()
     }
 }

@@ -38,6 +38,7 @@ protocol AuthServiceProtocol: AnyObject {
 @MainActor
 final class AuthService: ObservableObject, AuthServiceProtocol {
 
+    @Published var deletionNeedsAppleFollowup = false
     @Published private(set) var currentSession: AuthSession?
     var isSignedIn: Bool { currentSession != nil }
 
@@ -58,8 +59,8 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
         refresh: "scoor.auth.refreshToken"
     )
 
-    init(config: SupabaseConfig? = SupabaseConfig.current) {
-        self.supabase = config.map { SupabaseAuthClient(config: $0) }
+    init(config: SupabaseConfig? = SupabaseConfig.current, session: URLSession = .shared) {
+        self.supabase = config.map { SupabaseAuthClient(config: $0, session: session) }
         restoreSession()
     }
 
@@ -72,21 +73,30 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
         switch provider {
         case .apple:  return try await signInWithApple()
         case .google: return try await signInWithGoogle()
-        case .email:  throw AuthError.notConfigured("이메일 로그인은 별도 플로우를 사용합니다.")
+        case .email:  throw AuthError.notConfigured(String(localized: "이메일 로그인은 별도 플로우를 사용합니다."))
         }
     }
 
     func signInWithApple() async throws -> AuthenticatedIdentity {
-        let identity = UITestSupport.wantsCleanState
-            ? Self.mockIdentity(provider: .apple)
-            : try await apple.signIn()
+        if UITestSupport.wantsCleanState {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-uitests-auth-cancel") { throw AuthError.cancelled }
+            #endif
+            let identity = Self.mockIdentity(provider: .apple)
+            persist(identity)
+            return identity
+        }
+        let identity = try await apple.signIn()
         return try await finish(identity, providerName: "apple")
     }
 
     func signInWithGoogle() async throws -> AuthenticatedIdentity {
-        let identity = UITestSupport.wantsCleanState
-            ? Self.mockIdentity(provider: .google)
-            : try await google.signIn()
+        if UITestSupport.wantsCleanState {
+            let identity = Self.mockIdentity(provider: .google)
+            persist(identity)
+            return identity
+        }
+        let identity = try await google.signIn()
         return try await finish(identity, providerName: "google")
     }
 
@@ -126,9 +136,9 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
                     throw AuthError.emailConfirmationRequired(normalized)
                 }
                 session = created
-            } catch APIError.rejected(let message) where message.contains("이미 가입") {
+            } catch APIError.rejected(let message) where message == String(localized: "이미 가입된 이메일입니다.") {
                 // The address is taken, so the password was simply wrong.
-                throw AuthError.failed("비밀번호가 올바르지 않습니다.")
+                throw AuthError.failed(String(localized: "비밀번호가 올바르지 않습니다."))
             }
         }
 
@@ -145,30 +155,20 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
         return identity
     }
 
-    /// Exchange a provider identity token for a Supabase session when the backend
-    /// is provisioned. Falls back to the local identity when it is not, or when
-    /// the provider has not been configured server-side yet — a dashboard setup
-    /// gap should not make sign-in impossible, it should just mean no sync.
-    private func finish(_ identity: AuthenticatedIdentity,
-                        providerName: String) async throws -> AuthenticatedIdentity {
-        guard let supabase, let idToken = identity.identityToken else {
+    /// A configured backend must verify the identity before sign-in succeeds.
+    func finish(_ identity: AuthenticatedIdentity,
+                providerName: String) async throws -> AuthenticatedIdentity {
+        guard let supabase else {
             persist(identity)
             return identity
         }
-
+        guard let idToken = identity.identityToken else { throw AuthError.invalidResponse }
+        let session = try await supabase.signInWithIdToken(provider: providerName, idToken: idToken)
+        adopt(session)
         var resolved = identity
-        do {
-            let session = try await supabase.signInWithIdToken(provider: providerName, idToken: idToken)
-            adopt(session)
-            resolved.serverUserID = session.userId
-            resolved.accessToken = session.accessToken
-            resolved.refreshToken = session.refreshToken
-        } catch {
-            #if DEBUG
-            print("[Scoor] \(providerName) id-token exchange failed: \(error.localizedDescription)")
-            #endif
-        }
-
+        resolved.serverUserID = session.userId
+        resolved.accessToken = session.accessToken
+        resolved.refreshToken = session.refreshToken
         persist(resolved)
         return resolved
     }
@@ -214,16 +214,18 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
     /// survived on the server while the user was told it was gone. 5.1.1(v) asks
     /// for deletion, not for a sign-out that resembles one.
     func deleteAccount() async throws {
-        if let supabase, let token = supabaseSession?.accessToken {
-            try await supabase.deleteAccount(
-                accessToken: token,
-                appleAuthorizationCode: await freshAppleAuthorizationCode()
-            )
+        let wasApple = currentSession?.providerKind == .apple
+        var appleRevoked = !wasApple
+        if let supabase {
+            let code = await freshAppleAuthorizationCode()
+            guard let token = await currentAccessToken() else { throw APIError.unauthorized }
+            appleRevoked = try await supabase.deleteAccount(accessToken: token, appleAuthorizationCode: code)
         }
         if let session = currentSession, session.providerKind == .email {
             EmailCredentialStore.removeAccount(email: session.providerUserID)
         }
         signOut()
+        deletionNeedsAppleFollowup = wasApple && !appleRevoked
     }
 
     /// A *newly issued* Apple authorization code, for server-side token revocation.
@@ -292,7 +294,7 @@ extension AuthService: SupabaseTokenProviding {
     /// Current access token, refreshed first when it is at or near expiry so the
     /// data layer rarely has to handle a 401 at all.
     func currentAccessToken() async -> String? {
-        guard let session = supabaseSession else { return nil }
+        guard let session = supabaseSession, session.userId == currentSession?.userID else { return nil }
         guard session.isExpired() else { return session.accessToken }
         return await refreshAccessToken()
     }
@@ -301,16 +303,21 @@ extension AuthService: SupabaseTokenProviding {
         guard let supabase, let session = supabaseSession else { return nil }
         do {
             let refreshed = try await supabase.refresh(refreshToken: session.refreshToken)
+            // A sign-out/account switch may have happened while the request ran.
+            guard supabaseSession?.refreshToken == session.refreshToken else { return nil }
             adopt(refreshed)
             return refreshed.accessToken
         } catch APIError.offline {
             // Keep the session: the token may still be good once we reconnect,
             // and dropping it here would sign the user out for a subway ride.
             return nil
-        } catch {
-            // A rejected refresh token is unrecoverable — the session is dead.
+        } catch APIError.unauthorized {
+            guard supabaseSession?.refreshToken == session.refreshToken else { return nil }
             supabaseSession = nil
             KeychainStore.delete(supabaseSessionKey)
+            return nil
+        } catch {
+            // Rate limits and server outages must not erase a restorable session.
             return nil
         }
     }

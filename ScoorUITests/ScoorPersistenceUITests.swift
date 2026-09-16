@@ -43,47 +43,12 @@ final class ScoorPersistenceUITests: XCTestCase {
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
     }
 
-    // Drives splash → welcome → nickname → complete → tour → (skip first scoor) → Main.
+    // Drives splash → social sign-in → Main; profile setup is optional.
     // Adaptive: if the app already resumed past onboarding (persisted stage), it
     // simply confirms Main and returns — so the test is robust to prior state.
     private func reachMain(username: String) {
-        let apple = app.buttons["Continue with Apple"]
-        if apple.waitForExistence(timeout: 8) {
-            snap("01 · Signup Welcome")
-            apple.tap()
-
-            // Nickname
-            let field = app.textFields.firstMatch
-            if field.waitForExistence(timeout: 8) {
-                field.tap()
-                field.typeText(username)
-                if app.staticTexts["Choose your Scoor name"].exists {
-                    app.staticTexts["Choose your Scoor name"].tap() // dismiss keyboard
-                }
-                let claim = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Claim'")).firstMatch
-                if claim.waitForExistence(timeout: 6) {
-                    let enabled = NSPredicate(format: "isEnabled == true")
-                    expectation(for: enabled, evaluatedWith: claim)
-                    waitForExpectations(timeout: 8)
-                    snap("02 · Nickname (available)")
-                    claim.tap()
-                }
-            }
-
-            // Complete (auto-advances ~2.8s; tap to hasten)
-            sleep(1); centerTap()
-            snap("03 · Signup Complete / Tour")
-
-            // Tour page 1 → 2 → first scoor
-            tapIfExists(app.buttons["Next"], 8)
-            tapIfExists(app.buttons["Try your first Scoor"], 8)
-
-            // First Scoor prompt — skip to land on Main with NO score
-            snap("04 · First Scoor prompt")
-            tapIfExists(app.buttons["Skip"], 8)
-        }
-
-        // Main / Home
+        let apple = app.buttons["signup-apple"]
+        if apple.waitForExistence(timeout: 8) { apple.tap() }
         XCTAssertTrue(app.buttons["Home"].waitForExistence(timeout: 12), "Main tab bar never appeared")
         XCTAssertTrue(app.buttons["Add today's score"].waitForExistence(timeout: 6), "FAB missing on Home")
     }
@@ -159,12 +124,14 @@ final class ScoorPersistenceUITests: XCTestCase {
         clearKeypad(3)
         app.buttons["9"].tap()
         app.buttons["1"].tap()
+        let editedReason = app.textFields["reason-field"]
+        editedReason.tap()
+        editedReason.typeText("Release audit edited reason")
+        if app.keyboards.buttons["Done"].exists { app.keyboards.buttons["Done"].tap() }
         snap("09 · Edit input 91")
-        var savedEdit = false
-        for label in ["업데이트", "Scoor!"] where app.buttons[label].exists {
-            app.buttons[label].tap(); savedEdit = true; break
-        }
-        XCTAssertTrue(savedEdit, "Update button not found")
+        let update = app.buttons["score-keypad-submit"]
+        XCTAssertTrue(update.waitForExistence(timeout: 6), "Update button not found")
+        update.tap()
         _ = app.buttons["Add today's score"].waitForExistence(timeout: 8)
         XCTAssertTrue(app.staticTexts["91"].waitForExistence(timeout: 8), "Home should show edited 91")
         snap("10 · Home after edit 91")
@@ -179,6 +146,12 @@ final class ScoorPersistenceUITests: XCTestCase {
                       "PERSISTENCE FAIL: edited score 91 gone after restart")
         XCTAssertFalse(app.staticTexts["73"].exists, "Old value 73 should be gone after edit")
         snap("11 · Home after RESTART (edit persisted)")
+        app.buttons["Add today's score"].tap()
+        let restoredReason = app.textFields["reason-field"]
+        XCTAssertTrue(restoredReason.waitForExistence(timeout: 6))
+        XCTAssertEqual(restoredReason.value as? String, "Release audit edited reason")
+        app.buttons["score-keypad-submit"].tap()
+        _ = app.buttons["Home"].waitForExistence(timeout: 6)
 
         // ===== Scenario 3: Multiple-day records (probe the UI capability) =====
         app.buttons["My Page"].tap(); sleep(1)

@@ -1,7 +1,12 @@
 import { Header } from "@/components/admin/header";
 import { Badge } from "@/components/ui/badge";
 import { mockAgendas } from "@/lib/mock/agendas";
-import { formatRelativeTime, scoorToColor, formatNumber, statusLabel } from "@/lib/utils";
+import {
+  formatRelativeTime,
+  scoorToColor,
+  formatNumber,
+  statusLabel,
+} from "@/lib/utils";
 import { Globe, Flame, Activity, Users } from "lucide-react";
 import type { AgendaCategory } from "@/types";
 
@@ -10,7 +15,7 @@ const CATEGORY_COLORS: Record<AgendaCategory, string> = {
   culture: "#a855f7",
   economy: "#f59e0b",
   environment: "#22c55e",
-  sports: "#f42525",
+  sports: "#e36b59",
   technology: "#06b6d4",
   health: "#fb7185",
 };
@@ -24,13 +29,23 @@ export default function AgendaPage() {
         <div className="grid grid-cols-4 gap-4 mb-6">
           {[
             { label: "진행 중", value: "18", color: "#22c55e" },
-            { label: "인기", value: "4", color: "#f42525" },
+            { label: "인기", value: "4", color: "#e36b59" },
             { label: "전체 반응", value: "142K", color: "#4f8ef7" },
             { label: "평균 참여", value: "8.4K", color: "#a855f7" },
           ].map((s) => (
-            <div key={s.label} className="bg-[#0d0d1f] border border-white/6 rounded-xl px-5 py-4">
-              <p className="text-xs text-[#52526c] uppercase tracking-wider mb-1">{s.label}</p>
-              <p className="text-2xl font-bold tabular-nums" style={{ color: s.color }}>{s.value}</p>
+            <div
+              key={s.label}
+              className="bg-[#191a1d] border border-white/6 rounded-xl px-5 py-4"
+            >
+              <p className="text-xs text-[#8b8e98] uppercase tracking-wider mb-1">
+                {s.label}
+              </p>
+              <p
+                className="text-2xl font-bold tabular-nums"
+                style={{ color: s.color }}
+              >
+                {s.value}
+              </p>
             </div>
           ))}
         </div>
@@ -45,7 +60,7 @@ export default function AgendaPage() {
             return (
               <div
                 key={agenda.id}
-                className="bg-[#0d0d1f] border border-white/6 rounded-xl p-5 hover:border-white/12 transition-all duration-150 group cursor-pointer"
+                className="bg-[#191a1d] border border-white/6 rounded-xl p-5 hover:border-white/12 transition-all duration-150 group cursor-pointer"
               >
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3 mb-3">
@@ -54,19 +69,19 @@ export default function AgendaPage() {
                       className="w-2 h-2 rounded-full flex-shrink-0"
                       style={{ background: catColor }}
                     />
-                    <p className="text-sm font-semibold text-[#f4f4f6] truncate leading-snug">
+                    <p className="text-sm font-semibold text-[#ededee] truncate leading-snug">
                       {agenda.title}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
-                    {isHot && <Flame className="h-4 w-4 text-[#f42525]" />}
+                    {isHot && <Flame className="h-4 w-4 text-[#e36b59]" />}
                     <Badge
                       variant={
                         agenda.status === "trending"
                           ? "trending"
                           : agenda.status === "active"
-                          ? "success"
-                          : "neutral"
+                            ? "success"
+                            : "neutral"
                       }
                       dot
                     >
@@ -75,18 +90,27 @@ export default function AgendaPage() {
                   </div>
                 </div>
 
-                <p className="text-xs text-[#8b8ba4] mb-4 line-clamp-2">{agenda.description}</p>
+                <p className="text-xs text-[#a2a4ac] mb-4 line-clamp-2">
+                  {agenda.description}
+                </p>
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-1 mb-4">
                   <span
                     className="px-2 py-0.5 rounded-full text-[10px] font-medium border"
-                    style={{ color: catColor, borderColor: `${catColor}30`, background: `${catColor}10` }}
+                    style={{
+                      color: catColor,
+                      borderColor: `${catColor}30`,
+                      background: `${catColor}10`,
+                    }}
                   >
                     {agenda.category}
                   </span>
                   {agenda.tags.slice(0, 3).map((t) => (
-                    <span key={t} className="px-2 py-0.5 rounded-full text-[10px] text-[#52526c] bg-white/4 border border-white/6">
+                    <span
+                      key={t}
+                      className="px-2 py-0.5 rounded-full text-[10px] text-[#8b8e98] bg-white/4 border border-white/6"
+                    >
                       {t}
                     </span>
                   ))}
@@ -94,17 +118,23 @@ export default function AgendaPage() {
 
                 {/* Stats row */}
                 <div className="flex items-center gap-4 pt-3 border-t border-white/4">
-                  <div className="flex items-center gap-1.5 text-xs text-[#8b8ba4]">
+                  <div className="flex items-center gap-1.5 text-xs text-[#a2a4ac]">
                     <Users className="h-3 w-3" />
-                    <span className="tabular-nums">{formatNumber(agenda.participantCount)}</span>
+                    <span className="tabular-nums">
+                      {formatNumber(agenda.participantCount)}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-[#8b8ba4]">
+                  <div className="flex items-center gap-1.5 text-xs text-[#a2a4ac]">
                     <Activity className="h-3 w-3" />
-                    <span className="tabular-nums">{formatNumber(agenda.reactionCount)}</span>
+                    <span className="tabular-nums">
+                      {formatNumber(agenda.reactionCount)}
+                    </span>
                   </div>
                   <div className="ml-auto flex items-center gap-2">
-                    <Globe className="h-3 w-3 text-[#52526c]" />
-                    <span className="text-[10px] text-[#52526c]">{formatRelativeTime(agenda.createdAt)}</span>
+                    <Globe className="h-3 w-3 text-[#8b8e98]" />
+                    <span className="text-[10px] text-[#8b8e98]">
+                      {formatRelativeTime(agenda.createdAt)}
+                    </span>
                     <span
                       className="text-sm font-bold tabular-nums"
                       style={{ color }}

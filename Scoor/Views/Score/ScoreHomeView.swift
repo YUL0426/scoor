@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ScoreHomeView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var services: AppServices
     @StateObject private var viewModel: ScoreInputViewModel
     @State private var keypadInput: String = ""
     @FocusState private var reasonFocused: Bool
@@ -20,6 +21,7 @@ struct ScoreHomeView: View {
         userService: UserServiceProtocol,
         moodAnalyzer: MoodAnalyzing = DisabledMoodAnalyzer(),
         notificationService: NotificationServiceProtocol = MockNotificationService(),
+        homeFeedPublisher: HomeFeedPublishing? = nil,
         targetDate: Date = Date()
     ) {
         _viewModel = StateObject(wrappedValue: ScoreInputViewModel(
@@ -27,6 +29,7 @@ struct ScoreHomeView: View {
             userService: userService,
             moodAnalyzer: moodAnalyzer,
             notificationService: notificationService,
+            homeFeedPublisher: homeFeedPublisher,
             targetDate: targetDate
         ))
     }
@@ -43,7 +46,7 @@ struct ScoreHomeView: View {
 
                 // Question + score display
                 VStack(spacing: 0) {
-                    Text(viewModel.isTargetToday ? "오늘 하루는 어땠나요?" : "그 날은 어땠나요?")
+                    Text(viewModel.isTargetToday ? "How's your day? scoor!" : "그 날은 어땠나요?")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(ScoorPalette.inkSecondary)
                         .padding(.bottom, 4)
@@ -75,19 +78,32 @@ struct ScoreHomeView: View {
                     .padding(.horizontal, 24)
                     .padding(.top, 12)
 
+                homeShareRow
+                    .padding(.horizontal, 24)
+                    .padding(.top, 10)
+
                 Spacer(minLength: 12)
 
-                // Inline keypad
-                ScoorKeypadView(
-                    inputText: $keypadInput,
-                    onDone: { Task { await viewModel.submitScore() } },
-                    doneLabel: viewModel.isSubmitting ? "···" : (viewModel.isUpdateMode ? String(localized: "업데이트") : "Scoor!"),
-                    isDoneDisabled: viewModel.isSubmitting
-                )
-                .padding(.horizontal, 12)
-                .padding(.bottom, 32)
+                if !reasonFocused {
+                    // Inline keypad
+                    ScoorKeypadView(
+                        inputText: $keypadInput,
+                        onDone: { Task { await viewModel.submitScore() } },
+                        doneLabel: viewModel.isSubmitting ? "···" : (viewModel.isUpdateMode ? String(localized: "업데이트") : "Scoor!"),
+                        isDoneDisabled: viewModel.isSubmitting
+                    )
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 32)
+                    .accessibilityIdentifier("score-keypad")
+                } else {
+                    Button("입력 완료") { reasonFocused = false }
+                        .font(.system(size: 14, weight: .semibold))
+                        .padding(16)
+                        .accessibilityIdentifier("reason-done-button")
+                }
             }
         }
+
         .environment(\.colorScheme, .dark)
         .task { await viewModel.loadTodaysScore() }
         .onAppear {
@@ -118,11 +134,22 @@ struct ScoreHomeView: View {
         .animation(.easeInOut(duration: 0.22), value: viewModel.feedbackMessage)
     }
 
+
     // MARK: - Header
 
     private var header: some View {
         HStack {
-            ScoorLogo(size: 22, variant: .white)
+            Button {
+                reasonFocused = false
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(ScoorPalette.inkPrimary)
+                    .frame(width: 44, height: 44)
+            }
+            .accessibilityLabel("뒤로가기")
+            .accessibilityIdentifier("score-back-button")
 
             Spacer()
 
@@ -133,17 +160,7 @@ struct ScoreHomeView: View {
 
             Spacer()
 
-            Button(action: { dismiss() }) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(ScoorPalette.inkSecondary)
-                    .frame(width: 34, height: 34)
-                    .background(ScoorPalette.bgRaised)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(ScoorPalette.hairline, lineWidth: 0.5))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("닫기")
+            Color.clear.frame(width: 44, height: 44)
         }
         .padding(.horizontal, 24)
         .padding(.top, 16)
@@ -216,6 +233,41 @@ struct ScoreHomeView: View {
         )
     }
 
+    // MARK: - Home sharing
+
+    private var homeShareRow: some View {
+        Toggle(isOn: $viewModel.shareToHome) {
+            HStack(spacing: 12) {
+                Image(systemName: "house.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(viewModel.shareToHome ? ScoorPalette.accent : ScoorPalette.inkTertiary)
+                    .frame(width: 34, height: 34)
+                    .background(ScoorPalette.bgRaised, in: Circle())
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("홈에 공유")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(ScoorPalette.inkPrimary)
+                    Text(homeShareCaption)
+                        .font(.system(size: 11))
+                        .foregroundStyle(ScoorPalette.inkTertiary)
+                }
+            }
+        }
+        .tint(ScoorPalette.accent)
+        .disabled(!viewModel.canShareToHome || viewModel.isCheckingHomeShare)
+        .opacity(viewModel.homeSharingAvailable ? 1 : 0.5)
+        .accessibilityIdentifier("share-to-home-toggle")
+    }
+
+    private var homeShareCaption: String {
+        if !viewModel.homeSharingAvailable { return String(localized: "로그인하면 홈에 공유할 수 있어요") }
+        if viewModel.reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return String(localized: "이유를 입력하면 선택할 수 있어요")
+        }
+        return viewModel.shareToHome ? String(localized: "점수와 이유가 홈에 공개돼요") : String(localized: "개인 기록으로만 저장돼요")
+    }
+
     // MARK: - Helpers
 
     private func bounceScore() {
@@ -239,8 +291,8 @@ struct ScoreHomeView: View {
 
     private var formattedDateLine: String {
         let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = "EEE, MMM d"
+        f.locale = .current
+        f.setLocalizedDateFormatFromTemplate("EEE, MMM d")
         return f.string(from: viewModel.targetDate).uppercased()
     }
 }

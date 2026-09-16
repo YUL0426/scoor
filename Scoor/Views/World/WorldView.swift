@@ -17,9 +17,20 @@ struct WorldView: View {
 
     private let socialService: SocialServiceProtocol
 
+    @State private var liveScores: [WorldScoreFeedRow] = []
+    @State private var scoreFeedLoading = false
+    @State private var scoreFeedError: String?
+    @State private var scoreFeedHasMore = true
+    @State private var scoreFeedGeneration = UUID()
+    @State private var topicSearch = ""
+    @State private var searchedTopics: [WorldTopic] = []
+    @State private var searchError: String?
+    @State private var searching = false
+    @State private var showProposals = false
+    @State private var unreadProposals = 0
     @State private var selectedTopic: WorldTopic? = nil
     @State private var commentTarget: WorldPost? = nil
-    @State private var myName: String = "나"
+    @State private var myName: String = String(localized: "나")
     private let mySeed = 1
 
     init(socialService: SocialServiceProtocol, worldService: RemoteWorldService? = nil) {
@@ -38,22 +49,6 @@ struct WorldView: View {
 
             VStack(spacing: 0) {
                 topHeader
-                // 시드 글 스트림이 남아 있는 빌드에서만 배너와 가짜 펄스 티커를
-                // 붙인다. 토픽이 서버에서 오면 본문 자체를 토픽 목록으로 바꾸므로
-                // (§loadedStream) 가짜 글이 사라지고 배너도 필요 없어진다.
-                if !vm.topicsAreLive {
-                    PreviewContentBanner()
-                        .padding(.top, 4)
-                    WorldPulseStrip(pulses: MockWorld.pulses)
-                        .padding(.top, 6)
-                    sortTabs
-                        .padding(.top, 10)
-                    Divider().background(ScoorPalette.hairlineSoft)
-                }
-                WorldCategoryFilter(selected: $vm.category)
-                    .padding(.vertical, 10)
-                Divider().background(ScoorPalette.hairline)
-
                 postStream
             }
         }
@@ -63,12 +58,32 @@ struct WorldView: View {
         .task {
             await vm.loadIfNeeded()
             await refreshMyName()
+            await refreshProposalBadge()
         }
+        .task(id: vm.category) { await loadScoreFeed(reset: true) }
         // Reflect profile edits made in My Page without an app restart (BUG-008).
         .onReceive(NotificationCenter.default.publisher(for: .scoorUserProfileDidChange)) { _ in
             Task { await refreshMyName() }
         }
-        .sheet(item: $selectedTopic) { topic in
+        .task(id: topicSearch) {
+            guard !topicSearch.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  let world = appServices.worldService else { searchedTopics = []; searching = false; searchError = nil; return }
+            searching = true
+            do {
+                try await Task.sleep(for: .milliseconds(350))
+                let rows = try await world.searchTopics(topicSearch)
+                try Task.checkCancellation()
+                searchedTopics = rows; searchError = nil; searching = false
+            } catch is CancellationError { } catch { searchError = error.localizedDescription; searching = false }
+        }
+        .sheet(isPresented: $showProposals, onDismiss: {
+            Task { await vm.refresh(); await refreshProposalBadge() }
+        }) {
+            if let world = appServices.worldService {
+                TopicProposalsView(service: world, moderation: appServices.moderationService, social: socialService)
+            }
+        }
+        .sheet(item: $selectedTopic, onDismiss: { Task { await vm.refresh(); await loadScoreFeed(reset: true) } }) { topic in
             TopicDetailView(topic: topic,
                             socialService: socialService,
                             worldService: appServices.worldService,
@@ -93,7 +108,14 @@ struct WorldView: View {
     /// Re-read the current user's display name from the live profile (BUG-008).
     private func refreshMyName() async {
         if let user = await appServices.userService.getCurrentUser() {
-            myName = user.username.isEmpty ? "나" : user.username
+            myName = user.username.isEmpty ? String(localized: "나") : user.username
+        }
+    }
+
+    private func refreshProposalBadge() async {
+        guard let world = appServices.worldService else { return }
+        if let notices = try? await world.proposalNotifications() {
+            unreadProposals = notices.filter { $0.readAt == nil }.count
         }
     }
 
@@ -113,6 +135,13 @@ struct WorldView: View {
             }
 
             Spacer()
+            if appServices.worldService != nil {
+                Button { showProposals = true } label: {
+                    Label(unreadProposals > 0 ? String(localized: "토픽 제안 · \(unreadProposals)") : String(localized: "토픽 제안"), systemImage: "plus.bubble")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ScoorPalette.accent)
+                }.accessibilityIdentifier("world-proposals")
+            }
 
             if vm.topicsAreLive {
                 Text("토픽 \(vm.topics.count)")
@@ -161,7 +190,9 @@ struct WorldView: View {
     private func sortTab(_ mode: WorldSort) -> some View {
         Button { vm.sort = mode } label: {
             VStack(spacing: 6) {
-                Text(mode.rawValue)
+                Text(LocalizedStringKey(mode.rawValue))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
                     .font(.system(size: 14, weight: vm.sort == mode ? .bold : .medium))
                     .foregroundStyle(vm.sort == mode ? ScoorPalette.inkPrimary : ScoorPalette.inkTertiary)
                 Rectangle()
@@ -191,46 +222,133 @@ struct WorldView: View {
 
     @ViewBuilder
     private var loadedStream: some View {
-        if vm.topicsAreLive { liveTopicList } else { seededPostStream }
+        if appServices.worldService != nil { liveTopicList } else { seededPostStream }
     }
 
-    /// 실데이터 경로: 서버 토픽 목록. 사용자 글 스트림은 Phase 2에서 열린다 —
-    /// 그때까지 이 자리에 시드 글을 놓아 두면 실토픽 옆에서 그것만 가짜다.
+    /// Topics remain discoverable above the public score-and-reason stream.
     private var liveTopicList: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
-                WorldTrendingRow(topics: vm.trendingTopics,
+                WorldTrendingRow(topics: vm.topics,
                                  onSelect: { selectedTopic = $0 })
                     .padding(.top, 14)
                     .padding(.bottom, 14)
 
                 Divider().background(ScoorPalette.hairline)
 
-                HStack {
-                    Text("전체 토픽")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(ScoorPalette.inkPrimary)
-                    Spacer()
+                WorldCategoryFilter(selected: $vm.category)
+                    .padding(.vertical, 18)
+                    .accessibilityIdentifier("world-category-menu")
+                TextField("토픽 검색", text: $topicSearch)
+                    .textFieldStyle(.roundedBorder).padding(.horizontal, 18).padding(.bottom, 12)
+                    .accessibilityIdentifier("world-topic-search")
+                if searching { ProgressView().padding() }
+                if let searchError { Text(searchError).font(.caption).foregroundStyle(.red).padding() }
+                if topicSearch.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    ForEach(liveScores) { row in
+                        liveScoreCard(row)
+                        Divider().background(ScoorPalette.hairline)
+                    }
+                    if scoreFeedLoading { ProgressView().padding(24) }
+                    if let scoreFeedError {
+                        Text(scoreFeedError).font(.caption).foregroundStyle(.red).padding()
+                        Button("다시 시도") { Task { await loadScoreFeed(reset: liveScores.isEmpty) } }.padding()
+                    } else if !scoreFeedLoading && liveScores.isEmpty {
+                        emptyState
+                    }
+                    if scoreFeedHasMore && !scoreFeedLoading && !liveScores.isEmpty {
+                        Button("점수 더 보기") { Task { await loadScoreFeed(reset: false) } }.padding()
+                    }
+                } else {
+                    ForEach(searchedTopics.filter { vm.category == nil || $0.category == vm.category }) { topic in
+                        WorldTopicListRow(topic: topic, onSelect: { selectedTopic = topic })
+                        Divider().background(ScoorPalette.hairline)
+                    }
+                    if searchedTopics.isEmpty && !searching && searchError == nil {
+                        Text("검색 결과가 없어요. 새 토픽을 제안해 보세요.").font(.subheadline).padding(24)
+                    }
                 }
-                .padding(.horizontal, 18)
-                .padding(.top, 16)
-                .padding(.bottom, 4)
-
-                ForEach(vm.trendingTopics) { topic in
-                    WorldTopicListRow(topic: topic, onSelect: { selectedTopic = topic })
-                    Divider().background(ScoorPalette.hairline)
-                }
-
-                if vm.trendingTopics.isEmpty { topicEmptyState }
+                if let error = vm.transientError { Text(error).font(.caption).foregroundStyle(.red).padding() }
                 bottomSpacer
             }
         }
-        .refreshable { await vm.refresh() }
+        .refreshable { await vm.refresh(); await loadScoreFeed(reset: true) }
+    }
+
+    @MainActor
+    private func loadScoreFeed(reset: Bool) async {
+        guard let world = appServices.worldService else { return }
+        if !reset && (scoreFeedLoading || !scoreFeedHasMore) { return }
+        if reset {
+            scoreFeedGeneration = UUID()
+            liveScores = []
+            scoreFeedHasMore = true
+        }
+        let generation = scoreFeedGeneration
+        scoreFeedLoading = true
+        scoreFeedError = nil
+        defer { if generation == scoreFeedGeneration { scoreFeedLoading = false } }
+        do {
+            let rows = try await world.scoreFeed(category: vm.category, offset: liveScores.count)
+            try Task.checkCancellation()
+            guard generation == scoreFeedGeneration else { return }
+            let existing = Set(liveScores.map(\.id))
+            liveScores.append(contentsOf: rows.filter { !existing.contains($0.id) })
+            scoreFeedHasMore = rows.count == 20
+        } catch is CancellationError { }
+        catch {
+            guard generation == scoreFeedGeneration else { return }
+            scoreFeedError = String(localized: "점수를 불러오지 못했어요. 다시 시도해 주세요.")
+        }
+    }
+
+    private func liveScoreCard(_ row: WorldScoreFeedRow) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Text(row.reaction.isAnonymous ? "?" : String(row.reaction.identity.name.prefix(1)))
+                .font(.system(size: 14, weight: .semibold))
+                .frame(width: 38, height: 38)
+                .background(ScoorPalette.bgRaised, in: Circle())
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 6) {
+                    Text(row.reaction.identity.name).font(ScoorType.name)
+                    Text(row.reaction.createdAt, style: .relative)
+                        .font(ScoorType.meta).foregroundStyle(ScoorPalette.inkTertiary)
+                }
+                Button {
+                    Task {
+                        do { selectedTopic = try await appServices.worldService?.topic(id: row.topic.id) }
+                        catch { scoreFeedError = String(localized: "토픽을 열지 못했어요. 다시 시도해 주세요.") }
+                    }
+                } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(row.topic.categoryLabel).font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(ScoorPalette.accent)
+                        Text("\(row.topic.coverEmoji ?? "") \(row.topic.title)")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(ScoorPalette.inkSecondary)
+                    }
+                }
+                .buttonStyle(.plain)
+                if let reason = row.reaction.comment, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text(reason).font(.system(size: 15)).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            ScoreValueView(score: row.reaction.value,
+                           font: .system(size: 40, weight: .heavy, design: .rounded),
+                           color: ScoreTone.from(score: row.reaction.value).primary,
+                           italic: true, logoHeight: 28, logoVariant: .white)
+                .accessibilityLabel("점수 \(row.reaction.value)")
+        }
+        .foregroundStyle(ScoorPalette.inkPrimary)
+        .padding(.horizontal, 18).padding(.vertical, 14)
+        .accessibilityIdentifier("world-score-\(row.id)")
     }
 
     private var topicEmptyState: some View {
         VStack(spacing: 8) {
             Text("이 카테고리엔 아직 토픽이 없어요.")
+                .accessibilityIdentifier("world-topic-empty")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(ScoorPalette.inkSecondary)
             Text("매일 새 토픽이 올라옵니다.")
@@ -244,13 +362,17 @@ struct WorldView: View {
     private var seededPostStream: some View {
         ScrollView {
             LazyVStack(spacing: 0, pinnedViews: []) {
-                WorldTrendingRow(topics: vm.trendingTopics,
+                WorldTrendingRow(topics: vm.topics,
                                  onSelect: { selectedTopic = $0 })
                     .padding(.top, 14)
                     .padding(.bottom, 14)
 
                 Divider().background(ScoorPalette.hairline)
 
+                PreviewContentBanner().padding(.vertical, 8)
+                WorldCategoryFilter(selected: $vm.category)
+                    .padding(.vertical, 18)
+                    .accessibilityIdentifier("world-category-menu")
                 ForEach(vm.visiblePosts) { post in
                     if let binding = vm.binding(for: post.id) {
                         WorldPostCardView(
@@ -287,10 +409,11 @@ struct WorldView: View {
 
     private var emptyState: some View {
         VStack(spacing: 8) {
-            Text("이 채널엔 아직 글이 없어요.")
+            Text("아직 이 토픽에 대한 이야기가 없어요")
+                .accessibilityIdentifier("world-post-empty")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(ScoorPalette.inkSecondary)
-            Text("다른 카테고리도 둘러볼까요?")
+            Text("토픽에 대한 점수와 의견이 이곳에 모여요")
                 .font(.system(size: 12))
                 .foregroundStyle(ScoorPalette.inkTertiary)
         }
@@ -298,7 +421,7 @@ struct WorldView: View {
         .padding(.vertical, 60)
     }
 
-    private var bottomSpacer: some View { Color.clear.frame(height: 120) }
+    private var bottomSpacer: some View { Color.clear.frame(height: 24) }
 }
 
 #Preview {

@@ -33,16 +33,16 @@ function ReportRow({ report }: { report: Report }) {
           >
             {statusLabel(report.status)}
           </Badge>
-          <span className="text-[10px] text-[#52526c]">
+          <span className="text-[10px] text-[#8b8e98]">
             {REASON_LABELS[report.reason]}
           </span>
         </div>
-        <p className="text-xs text-[#8b8ba4] truncate">{report.targetSummary}</p>
-        <p className="text-[10px] text-[#52526c] mt-0.5">
+        <p className="text-xs text-[#a2a4ac] truncate">{report.targetSummary}</p>
+        <p className="text-[10px] text-[#8b8e98] mt-0.5">
           by {report.reporterUsername}
         </p>
       </div>
-      <div className="flex items-center gap-1 flex-shrink-0 text-[10px] text-[#52526c]">
+      <div className="flex items-center gap-1 flex-shrink-0 text-[10px] text-[#8b8e98]">
         <Clock className="h-2.5 w-2.5" />
         {formatRelativeTime(report.createdAt)}
       </div>
@@ -72,7 +72,7 @@ export function RecentReports({ reports }: RecentReportsProps) {
       </CardHeader>
       <CardContent className="py-2">
         {reports.length === 0 ? (
-          <p className="text-xs text-[#52526c] py-4 text-center">처리할 신고 없음 ✓</p>
+          <p className="text-xs text-[#8b8e98] py-4 text-center">처리할 신고 없음 ✓</p>
         ) : (
           reports.map((r) => <ReportRow key={r.id} report={r} />)
         )}

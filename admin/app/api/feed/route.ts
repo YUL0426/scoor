@@ -14,8 +14,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/server/guard";
-import { supabaseAdminConfig, supabaseRest, SupabaseRestError } from "@/lib/server/supabase";
-import { POST_MOODS, POST_WEATHERS, type AdminPost, type PostMood, type PostWeather } from "@/types";
+import {
+  supabaseAdminConfig,
+  supabaseRest,
+  SupabaseRestError,
+} from "@/lib/server/supabase";
+import {
+  POST_MOODS,
+  POST_WEATHERS,
+  type AdminPost,
+  type PostMood,
+  type PostWeather,
+} from "@/types";
 
 const NOT_CONFIGURED =
   "백엔드가 설정되지 않았습니다. admin/.env.local의 SUPABASE_URL·SUPABASE_SERVICE_ROLE_KEY를 확인해주세요.";
@@ -59,7 +69,8 @@ export async function GET() {
   if (!auth.ok) return auth.response;
 
   const config = supabaseAdminConfig();
-  if (!config) return NextResponse.json({ error: NOT_CONFIGURED }, { status: 503 });
+  if (!config)
+    return NextResponse.json({ error: NOT_CONFIGURED }, { status: 503 });
 
   try {
     const rows =
@@ -77,17 +88,22 @@ export async function POST(request: NextRequest) {
   if (!auth.ok) return auth.response;
 
   const config = supabaseAdminConfig();
-  if (!config) return NextResponse.json({ error: NOT_CONFIGURED }, { status: 503 });
+  if (!config)
+    return NextResponse.json({ error: NOT_CONFIGURED }, { status: 503 });
 
   let payload: unknown;
   try {
     payload = await request.json();
   } catch {
-    return NextResponse.json({ error: "요청 본문 형식이 올바르지 않습니다." }, { status: 400 });
+    return NextResponse.json(
+      { error: "요청 본문 형식이 올바르지 않습니다." },
+      { status: 400 },
+    );
   }
 
   const parsed = parseCreate(payload);
-  if ("error" in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 });
+  if ("error" in parsed)
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
 
   try {
     const created = await supabaseRest<{ id: string }[]>(config, "posts", {
@@ -117,8 +133,11 @@ interface CreatePayload {
  * Postgres의 check 제약이 진짜 보증이고, 이 층은 오타가 원시 제약 위반 메시지
  * 대신 읽을 수 있는 문장으로 돌아오게 하려고 있다 (topics 라우트와 같은 이유).
  */
-function parseCreate(input: unknown): { value: CreatePayload } | { error: string } {
-  if (typeof input !== "object" || input === null) return { error: "요청 본문은 객체여야 합니다." };
+function parseCreate(
+  input: unknown,
+): { value: CreatePayload } | { error: string } {
+  if (typeof input !== "object" || input === null)
+    return { error: "요청 본문은 객체여야 합니다." };
   const body = input as Record<string, unknown>;
 
   const score = typeof body.score === "number" ? Math.trunc(body.score) : NaN;
@@ -131,9 +150,12 @@ function parseCreate(input: unknown): { value: CreatePayload } | { error: string
     return { error: "본문은 1~280자여야 합니다." };
   }
 
-  const primaryMood = typeof body.primaryMood === "string" ? body.primaryMood : "";
+  const primaryMood =
+    typeof body.primaryMood === "string" ? body.primaryMood : "";
   if (!POST_MOODS.includes(primaryMood as PostMood)) {
-    return { error: `감정은 다음 중 하나여야 합니다: ${POST_MOODS.join(", ")}.` };
+    return {
+      error: `감정은 다음 중 하나여야 합니다: ${POST_MOODS.join(", ")}.`,
+    };
   }
 
   const extraRaw = Array.isArray(body.extraMoods) ? body.extraMoods : [];
@@ -142,7 +164,8 @@ function parseCreate(input: unknown): { value: CreatePayload } | { error: string
     if (typeof item !== "string" || !POST_MOODS.includes(item as PostMood)) {
       return { error: `추가 감정 값이 올바르지 않습니다: ${String(item)}.` };
     }
-    if (item !== primaryMood && !extra.includes(item as PostMood)) extra.push(item as PostMood);
+    if (item !== primaryMood && !extra.includes(item as PostMood))
+      extra.push(item as PostMood);
   }
   if (extra.length > 2) return { error: "추가 감정은 2개까지입니다." };
 
@@ -169,5 +192,8 @@ function errorResponse(error: unknown): NextResponse {
     const status = error.status >= 400 && error.status < 500 ? 400 : 502;
     return NextResponse.json({ error: error.message }, { status });
   }
-  return NextResponse.json({ error: "백엔드에 연결하지 못했습니다." }, { status: 502 });
+  return NextResponse.json(
+    { error: "백엔드에 연결하지 못했습니다." },
+    { status: 502 },
+  );
 }

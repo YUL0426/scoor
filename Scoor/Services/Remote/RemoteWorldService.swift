@@ -18,12 +18,17 @@ import Foundation
 @MainActor
 final class RemoteWorldService {
 
-    private let client: SupabaseHTTPClient
+    let client: SupabaseHTTPClient
     private let currentUserID: () -> UUID?
 
     init(client: SupabaseHTTPClient, currentUserID: @escaping () -> UUID?) {
         self.client = client
         self.currentUserID = currentUserID
+    }
+
+    func acceptSensitiveTopics() async throws {
+        let body = SensitiveConsentRequest(p_accepted: true, p_version: "2026-09-15.1", p_request_id: UUID())
+        try await client.send(SupabaseRequest(method: .post, path: "rpc/set_sensitive_consent", body: try SupabaseHTTPClient.encoder.encode(body)))
     }
 
     // MARK: - Topics
@@ -34,12 +39,24 @@ final class RemoteWorldService {
     /// embed a view from a table (no FK relationship to follow — it fails the
     /// whole query with PGRST200), so the join is done in the database and the
     /// client makes one flat request.
-    func loadTopics(limit: Int = 50) async throws -> [WorldTopic] {
+    func loadTopics(limit: Int = 50, offset: Int = 0) async throws -> [WorldTopic] {
         let rows: [TopicRow] = try await client.send(
-            .select("topics_feed", order: "created_at.desc", limit: limit),
+            .select("topics_feed", order: "created_at.desc,id.desc", limit: limit, offset: offset),
             as: [TopicRow].self
         )
         return rows.compactMap { $0.toDomain() }
+    }
+
+    /// Public score stream, paginated across topics and filtered by the server's RLS.
+    func scoreFeed(category: WorldCategory?, limit: Int = 20, offset: Int = 0) async throws -> [WorldScoreFeedRow] {
+        var filters: [String: String] = [:]
+        if let category { filters["topics.category"] = SupabaseRequest.eq(category.rawValue) }
+        return try await client.send(
+            .select("world_scores",
+                    columns: "id,value,comment,is_anonymous,country_code,created_at,profiles(username,avatar_emoji),topics!inner(id,title,category,cover_emoji)",
+                    filters: filters, order: "created_at.desc,id.desc", limit: limit, offset: offset),
+            as: [WorldScoreFeedRow].self
+        )
     }
 
     // MARK: - Scoring
@@ -54,6 +71,15 @@ final class RemoteWorldService {
                           isAnonymous: Bool,
                           countryCode: String?) async throws {
         guard let userId = currentUserID() else { throw APIError.unauthorized }
+        // Ask using only the topic ID, before transmitting a potentially sensitive
+        // score or comment. The database trigger also protects direct API callers.
+        let needsConsent = try await client.send(
+            SupabaseRequest(method: .post, path: "rpc/needs_sensitive_consent",
+                            body: try SupabaseHTTPClient.encoder.encode(["p_topic_id": topicId.uuidString])),
+            as: Bool.self
+        )
+        guard !needsConsent else { throw APIError.rejected("SENSITIVE_CONSENT_REQUIRED") }
+        guard currentUserID() == userId else { throw APIError.unauthorized }
         let row = WorldScoreRow(
             userId: userId,
             topicId: topicId,
@@ -112,8 +138,18 @@ struct TopicRow: Codable {
     let globalScore: Int
     let scoreDelta: Int
     let lastActivityAt: Date
+    var status: String? = nil
+    var origin: String? = nil
+    var proposedBy: UUID? = nil
+    var proposerName: String? = nil
+    var sourceURL: String? = nil
+    var lowLabel: String? = nil
+    var highLabel: String? = nil
 
     enum CodingKeys: String, CodingKey {
+        case status, origin
+        case proposedBy = "proposed_by", proposerName = "proposer_name", sourceURL = "source_url"
+        case lowLabel = "score_low_label", highLabel = "score_high_label"
         case id, category, title, subtitle
         case coverEmoji = "cover_emoji"
         case createdAt = "created_at"
@@ -136,7 +172,10 @@ struct TopicRow: Codable {
             scoreDelta: scoreDelta,
             postsCount: postsCount,
             lastActivityAt: lastActivityAt,
-            heat: Self.heat(postsCount: postsCount, delta: scoreDelta, createdAt: createdAt)
+            heat: Self.heat(postsCount: postsCount, delta: scoreDelta, createdAt: createdAt),
+            subtitle: subtitle, status: status ?? "live", origin: origin ?? "admin",
+            proposedBy: proposedBy, proposerName: proposerName, sourceURL: sourceURL,
+            lowLabel: lowLabel ?? String(localized: "부정적"), highLabel: highLabel ?? String(localized: "긍정적")
         )
     }
 
@@ -201,7 +240,7 @@ struct TopicReactionRow: Codable, Identifiable {
     /// joined profile — the identity is dropped here, at the boundary.
     var identity: LightIdentity {
         isAnonymous
-            ? LightIdentity(name: "익명", isAnonymous: true, avatarSeed: seed)
+            ? LightIdentity(name: String(localized: "익명"), isAnonymous: true, avatarSeed: seed)
             : LightIdentity(name: profile?.username ?? "Scoor",
                             isAnonymous: false,
                             avatarSeed: seed)
@@ -214,4 +253,34 @@ struct TopicReactionRow: Codable, Identifiable {
         let byte = withUnsafeBytes(of: id.uuid) { $0.first ?? 0 }
         return Int(byte % 9) + 1
     }
+}
+
+struct WorldScoreFeedRow: Decodable, Identifiable {
+    var id: UUID { reaction.id }
+    let reaction: TopicReactionRow
+    let topic: Topic
+
+    struct Topic: Decodable {
+        let id: UUID
+        let title: String
+        let category: String
+        let coverEmoji: String?
+        enum CodingKeys: String, CodingKey {
+            case id, title, category
+            case coverEmoji = "cover_emoji"
+        }
+        var categoryLabel: String { WorldCategory(rawValue: category)?.label ?? category }
+    }
+
+    private enum CodingKeys: String, CodingKey { case topics }
+    init(from decoder: Decoder) throws {
+        reaction = try TopicReactionRow(from: decoder)
+        topic = try decoder.container(keyedBy: CodingKeys.self).decode(Topic.self, forKey: .topics)
+    }
+}
+
+struct SensitiveConsentRequest: Encodable {
+    let p_accepted: Bool
+    let p_version: String
+    let p_request_id: UUID
 }
