@@ -25,8 +25,10 @@ struct DiscoverView: View {
 
             VStack(spacing: 0) {
                 header
-                PreviewContentBanner()
-                    .padding(.bottom, 8)
+                if vm.usesPreviewData {
+                    PreviewContentBanner()
+                        .padding(.bottom, 8)
+                }
                 searchBar
                 Divider().background(ScoorPalette.hairline)
                 content

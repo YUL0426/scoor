@@ -37,6 +37,7 @@ final class FeedViewModel: ObservableObject {
     /// 티커를 감출지 결정하는 데 쓴다 — 실글 위에 그 배너가 남아 있으면 이번엔
     /// 반대 방향으로 거짓말을 하게 된다.
     var isLive: Bool { remote != nil }
+    var usesPreviewData: Bool { remote == nil && service.usesPreviewData }
 
     init(service: SocialServiceProtocol,
          remote: RemoteFeedService? = nil,

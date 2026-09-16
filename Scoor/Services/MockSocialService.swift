@@ -10,6 +10,13 @@ import Foundation
 
 @MainActor
 final class MockSocialService: SocialServiceProtocol {
+    var usesPreviewData: Bool {
+        #if DEBUG
+        true
+        #else
+        false
+        #endif
+    }
 
     private var likes: [UUID: Bool] = [:]
     private var commentsStore: [UUID: [SocialComment]] = [:]

@@ -3,8 +3,8 @@
 //  Scoor
 //
 //  소셜 레이어의 실제 영속 구현 — SwiftData 백엔드.
-//  좋아요/댓글/월드 점수/팔로우를 로컬에 저장하고, 시드 데이터 위에 덧입혀
-//  앱 재시작 후에도 상태가 유지된다. (SwiftDataScoreService와 동일 철학)
+//  좋아요/댓글/월드 점수/팔로우를 로컬에 저장한다.
+//  공개 콘텐츠는 Remote 서비스에서만 읽고, 서버가 없으면 빈 상태를 반환한다.
 //
 
 import Foundation
@@ -19,39 +19,18 @@ final class SwiftDataSocialService: SocialServiceProtocol {
         self.modelContext = modelContext
     }
 
-    // MARK: - Overlay sources
-
-    private func likeMap() -> [UUID: Bool] {
-        let rows = (try? modelContext.fetch(FetchDescriptor<LikeRecord>())) ?? []
-        return Dictionary(rows.map { ($0.postId, $0.liked) }, uniquingKeysWith: { _, new in new })
-    }
-
-    private func extraCommentCounts() -> [UUID: Int] {
-        let rows = (try? modelContext.fetch(FetchDescriptor<CommentRecord>())) ?? []
-        var counts: [UUID: Int] = [:]
-        for r in rows { counts[r.postId, default: 0] += 1 }
-        return counts
-    }
-
-    private func followSet() -> Set<String> {
-        let rows = (try? modelContext.fetch(FetchDescriptor<FollowRecord>())) ?? []
-        return Set(rows.map { $0.userName })
-    }
-
     // MARK: - Feed
 
     func loadFeed(page: Int, pageSize: Int) async -> [FeedEntry] {
-        let raw = SocialSeed.feedPage(page: page, pageSize: pageSize)
-        return SocialSeed.applyFeedOverlays(raw, likeMap: likeMap(), extraComments: extraCommentCounts())
+        []
     }
 
     // MARK: - World
 
-    func loadTopics() async -> [WorldTopic] { SocialSeed.topics }
+    func loadTopics() async -> [WorldTopic] { [] }
 
     func loadWorldPosts(page: Int, pageSize: Int) async -> [WorldPost] {
-        let raw = SocialSeed.worldPostsPage(page: page, pageSize: pageSize)
-        return SocialSeed.applyWorldOverlays(raw, likeMap: likeMap(), extraComments: extraCommentCounts())
+        []
     }
 
     // MARK: - Likes
@@ -159,13 +138,7 @@ final class SwiftDataSocialService: SocialServiceProtocol {
     // MARK: - Discover
 
     func loadDiscover() async -> DiscoverData {
-        let follows = followSet()
-        let (popular, recommended) = SocialSeed.discoverUsers(following: follows)
-        return DiscoverData(
-            popularUsers: popular,
-            recommendedUsers: recommended,
-            recommendedContent: SocialSeed.recommendedContent()
-        )
+        .empty
     }
 
     func isFollowing(_ userName: String) -> Bool {

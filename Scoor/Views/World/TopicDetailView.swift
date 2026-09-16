@@ -47,7 +47,7 @@ struct TopicDetailView: View {
 
     @State private var showTopicReport = false
     private var detail: TopicDetail {
-        guard worldService != nil else { return MockWorld.detail(for: topic) }
+        if worldService == nil && socialService.usesPreviewData { return MockWorld.detail(for: topic) }
         return TopicDetail(source: topic.origin == "community" ? String(localized: "커뮤니티 제안 · \(topic.proposerName ?? String(localized: "탈퇴한 사용자"))") : topic.category.label,
                            summary: topic.subtitle ?? "", coverHue: 0.58,
                            globalParticipants: topic.postsCount, regional: [], sports: nil, recent: [])
@@ -106,6 +106,7 @@ struct TopicDetailView: View {
                 topic: topic,
                 target: $scoreTarget,
                 existing: mySubmissions[scoreTarget],
+                usesPreviewData: worldService == nil && socialService.usesPreviewData,
                 // 서버에 올릴 때만 익명 선택이 의미가 있다.
                 isAnonymous: worldService == nil ? nil : $isAnonymous
             ) { submitted, comment in

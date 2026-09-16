@@ -165,7 +165,7 @@ final class RemoteDecodingTests: XCTestCase {
         XCTAssertEqual(rows[0].identity.name, "yul")
         XCTAssertFalse(rows[0].identity.isAnonymous)
 
-        XCTAssertEqual(rows[1].identity.name, "익명")
+        XCTAssertEqual(rows[1].identity.name, String(localized: "익명"))
         XCTAssertTrue(rows[1].identity.isAnonymous)
         XCTAssertNotEqual(rows[1].identity.name, "secret_person")
     }

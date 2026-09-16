@@ -12,6 +12,8 @@ import Foundation
 
 @MainActor
 protocol SocialServiceProtocol {
+    /// Only explicitly injected Debug fixtures may display sample content.
+    var usesPreviewData: Bool { get }
 
     // MARK: Feed
     /// 페이지 단위 피드 로드(영속 좋아요/댓글 수 반영됨).
@@ -47,6 +49,10 @@ protocol SocialServiceProtocol {
     // MARK: Account lifecycle
     /// 로컬에 영속된 소셜 상태(좋아요/댓글/월드점수/팔로우) 전체 삭제 (P0-4).
     func deleteAllLocalData() async throws
+}
+
+extension SocialServiceProtocol {
+    var usesPreviewData: Bool { false }
 }
 
 // MARK: - Notifications
