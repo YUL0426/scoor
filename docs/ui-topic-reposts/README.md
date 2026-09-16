@@ -8,7 +8,11 @@
 
 ## Deployment
 
-Apply `supabase/migrations/20260916000003_post_reposts.sql` before releasing the updated app. This task tested the migration in an isolated local PostgreSQL database; it did not apply it to production. Existing home-feed reads remain compatible with the older schema.
+Applied `supabase/migrations/20260916000003_post_reposts.sql` to the linked production project on 2026-09-16 after explicit user approval. The table, RLS policies, feed columns and migration history were committed together, then the PostgREST schema cache was refreshed.
+
+Before rollout, the app's repost list request returned HTTP 400 (`42703`: missing `feed_posts.reposted_by_me`), and `post_reposts` returned HTTP 404 (`PGRST205`). After rollout, the same repost-list request, repost-table read, and ordinary home-feed read all returned HTTP 200. Production schema checks confirmed the table, all three feed columns and migration history exist.
+
+Production database validation exercised authenticated-role save, duplicate save, per-user list metadata, cancel, cross-account protection, blocked/hidden original filtering and cancellation after moderation. It used fresh synthetic IDs in a transaction ending in ROLLBACK, leaving no test records. No app rebuild is required for this server fix.
 
 ## Validation
 
