@@ -44,10 +44,10 @@ final class MockUserService: UserServiceProtocol {
         }
 
         let savedBio = defaults.string(forKey: Key.bio)
-        // Email is seeded from a real auth session when present, else a fallback.
+        // A missing email stays empty; never display an invented contact address.
         let email = defaults.string(forKey: Key.email)
             ?? defaults.string(forKey: "scoor.authEmail")
-            ?? "user@scoor.app"
+            ?? ""
         let gender = defaults.string(forKey: Key.gender)
         let avatarURL = Self.avatarFileURLIfExists()
 
@@ -70,7 +70,7 @@ final class MockUserService: UserServiceProtocol {
             currentUser = seed
             users[seed.id] = seed
         } else {
-            let defaultUser = User(username: "scoor_user", email: "user@scoor.app")
+            let defaultUser = User(username: "scoor_user", email: "")
             currentUser = defaultUser
             users[defaultUser.id] = defaultUser
         }
@@ -83,7 +83,7 @@ final class MockUserService: UserServiceProtocol {
 
     func getCurrentUser() async -> User? { currentUser }
 
-    func getUser(id: UUID) async -> User? { users[id] ?? currentUser }
+    func getUser(id: UUID) async -> User? { users[id] }
 
     func currentAvatarEmoji() async -> String? { avatarEmoji }
 
@@ -187,7 +187,7 @@ final class MockUserService: UserServiceProtocol {
 
         let freshId = UUID()
         defaults.set(freshId.uuidString, forKey: Key.userId)
-        let fresh = User(id: freshId, username: "scoor_user", email: "user@scoor.app")
+        let fresh = User(id: freshId, username: "scoor_user", email: "")
         currentUser = fresh
         users = [freshId: fresh]
         avatarEmoji = nil

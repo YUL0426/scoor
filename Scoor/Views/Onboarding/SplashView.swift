@@ -16,7 +16,7 @@ struct SplashView: View {
 
     var body: some View {
         ZStack {
-            ScoorPalette.bgBase.ignoresSafeArea()
+            Color.scoorRed.ignoresSafeArea()
 
             VStack(spacing: 28) {
                 Text("How's your day?")

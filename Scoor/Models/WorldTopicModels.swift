@@ -241,6 +241,8 @@ enum WorldSort: String, CaseIterable, Identifiable, Hashable {
 // MARK: - Mock
 
 enum MockWorld {
+    // Sample users and activity are never compiled into a distribution build.
+    #if DEBUG
 
     // 동일 identity 풀을 Feed와 공유 — 같은 LightIdentity 타입.
     private static let identities: [LightIdentity] = MockFeed.identities
@@ -694,4 +696,17 @@ enum MockWorld {
             recent: []
         )
     }
+    #else
+    static let topics: [WorldTopic] = []
+    static let posts: [WorldPost] = []
+    static let pulses: [WorldPulse] = []
+    static let liveActiveCount = 0
+    static let liveAverage = 0
+    static func topicsIn(_ category: WorldCategory) -> [WorldTopic] { [] }
+    static func postsIn(_ category: WorldCategory?) -> [WorldPost] { [] }
+    static func detail(for topic: WorldTopic) -> TopicDetail {
+        TopicDetail(source: topic.category.label, summary: topic.subtitle ?? "", coverHue: 0.58,
+                    globalParticipants: topic.postsCount, regional: [], sports: nil, recent: [])
+    }
+    #endif
 }

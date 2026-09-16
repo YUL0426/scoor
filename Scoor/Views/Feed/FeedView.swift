@@ -56,7 +56,7 @@ struct FeedView: View {
                     topHeader
                     // 시드 경로에서만 남는 두 가지: "예시 콘텐츠" 배너와, 수치가
                     // 전부 가짜인 펄스 티커. 서버 피드에서는 둘 다 거짓말이 된다.
-                    if !vm.isLive {
+                    if vm.usesPreviewData {
                         PreviewContentBanner()
                             .padding(.top, 4)
                     }

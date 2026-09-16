@@ -19,6 +19,7 @@ struct TopicScoreSheet: View {
     let topic: WorldTopic
     @Binding var target: ScoorTarget
     let existing: Int?
+    var usesPreviewData = false
     /// 게시 단위 익명 토글. nil이면 서버 미연결 상태라 토글을 감춘다.
     /// 기본값은 닉네임 노출 — 실명은 부담스럽다는 판단으로 닉네임을 택했고(§15-2),
     /// 익명은 매 게시마다 사용자가 고르는 선택지로 남긴다.
@@ -30,7 +31,7 @@ struct TopicScoreSheet: View {
     @FocusState private var commentFocused: Bool
 
     private var detail: TopicDetail {
-        if isAnonymous == nil { return MockWorld.detail(for: topic) }
+        if usesPreviewData { return MockWorld.detail(for: topic) }
         return TopicDetail(source: topic.category.label, summary: topic.subtitle ?? "", coverHue: 0.58,
                            globalParticipants: topic.postsCount, regional: [], sports: nil, recent: [])
     }

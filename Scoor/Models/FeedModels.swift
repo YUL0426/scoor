@@ -141,6 +141,8 @@ enum FeedSort: String, CaseIterable, Identifiable, Hashable {
 // MARK: - Mock
 
 enum MockFeed {
+    // Sample users and activity are never compiled into a distribution build.
+    #if DEBUG
 
     static let identities: [LightIdentity] = [
         .init(name: "Yul",   isAnonymous: false, avatarSeed: 1),
@@ -335,4 +337,11 @@ enum MockFeed {
     /// 헤더 우상단 통계 — "오늘 12,482명 · 평균 67".
     static let todayCount: Int = 12_482
     static let todayAverage: Int = 67
+    #else
+    static let identities: [LightIdentity] = []
+    static let entries: [FeedEntry] = []
+    static let pulses: [LivePulse] = []
+    static let todayCount = 0
+    static let todayAverage = 0
+    #endif
 }

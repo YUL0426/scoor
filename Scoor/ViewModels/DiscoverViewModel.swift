@@ -21,6 +21,7 @@ final class DiscoverViewModel: ObservableObject {
     @Published var transientError: String? = nil
 
     private let service: SocialServiceProtocol
+    var usesPreviewData: Bool { service.usesPreviewData }
 
     init(service: SocialServiceProtocol) {
         self.service = service

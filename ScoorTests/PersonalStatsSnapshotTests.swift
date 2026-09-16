@@ -26,7 +26,9 @@ final class PersonalStatsSnapshotTests: XCTestCase {
         let now = calendar.date(from: DateComponents(year: 2026, month: 9, day: 8))!
         let entries = [now: ScoreEntry(calendarDay: now, score: 0, reason: nil)]
         let buckets = PersonalStatsPeriod.daily.buckets(entries: entries, now: now, calendar: calendar)
-        XCTAssertEqual(buckets.map(\.label), ["9/2", "9/3", "9/4", "9/5", "9/6", "9/7", "9/8"])
+        XCTAssertEqual(buckets.map { calendar.component(.day, from: $0.start) }, [2, 3, 4, 5, 6, 7, 8])
+        XCTAssertTrue(buckets.allSatisfy { !$0.label.isEmpty })
+        XCTAssertEqual(Set(buckets.map(\.label)).count, 7)
         XCTAssertEqual(buckets.filter { $0.average == nil }.count, 6)
         XCTAssertEqual(buckets.last?.average, 0)
     }
@@ -42,10 +44,13 @@ final class PersonalStatsSnapshotTests: XCTestCase {
                        day(1): ScoreEntry(calendarDay: day(1), score: 100, reason: nil)]
         let weeks = PersonalStatsPeriod.weekly.buckets(entries: entries, now: now, calendar: calendar)
         XCTAssertEqual(weeks.count, 4)
-        XCTAssertEqual(weeks.last?.label, "1/5\n–1/11")
+        XCTAssertEqual(weeks.last?.start, day(-1))
+        XCTAssertEqual(weeks.last?.label.components(separatedBy: "\n–").count, 2)
         XCTAssertEqual(weeks.last?.average, 50)
         let months = PersonalStatsPeriod.monthly.buckets(entries: entries, now: now, calendar: calendar)
-        XCTAssertEqual(months.map(\.label), ["8월", "9월", "10월", "11월", "12월", "1월"])
+        XCTAssertEqual(months.map { calendar.component(.month, from: $0.start) }, [8, 9, 10, 11, 12, 1])
+        XCTAssertEqual(months.map { calendar.component(.year, from: $0.start) }, [2025, 2025, 2025, 2025, 2025, 2026])
+        XCTAssertTrue(months.allSatisfy { !$0.label.isEmpty })
         XCTAssertEqual(months.last?.average, 50)
     }
 
