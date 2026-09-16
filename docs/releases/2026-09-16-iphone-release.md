@@ -4,10 +4,14 @@
 
 - 앱·단위 테스트·UI 테스트의 Debug/Release 설정을 `TARGETED_DEVICE_FAMILY = 1`로 변경했다. iPad 전용 화면 회전 설정도 제거했다.
 - 버전 `1.0`, 빌드 `3`, 번들 `com.euro.Scoor`.
-- 서명된 Release 아카이브: [Scoor-2026-09-16-iPhone.xcarchive](/Users/yul/Desktop/scoor-workspace/release/Scoor-2026-09-16-iPhone.xcarchive).
+- 서명된 Release 아카이브: [Scoor-2026-09-16-iPhone-red-entry.xcarchive](/Users/yul/Desktop/scoor-workspace/release/Scoor-2026-09-16-iPhone-red-entry.xcarchive).
 - 최종 앱의 `UIDeviceFamily = [1]`, iOS 17.0 이상, 서버 및 Google 로그인 설정 포함을 확인했다. 코드 서명 검증도 통과했다.
 - 업로드 및 심사 제출은 실행하지 않았다. Xcode Organizer에서 이 아카이브를 선택해 Distribute App → App Store Connect로 진행하고 새 빌드를 제출 버전에 연결한다. 이전 iPad 지원 아카이브 대신 이 빌드를 사용한다.
 - Apple의 [스크린샷 규격](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications)은 iPad 실행을 지원하는 앱에 iPad 스크린샷을 요구한다. 이번 번들은 iPhone 기기군만 포함한다.
+
+## 시작 화면
+
+- 앱 진입 시 `How’s your day?`와 Scoor 로고가 나타나는 화면의 배경을 브랜드 빨강 `#CE3B22`로 변경했다. 문구·로고의 흰색과 기존 등장 애니메이션은 유지한다.
 
 ## 앱 목업 정리
 
@@ -41,6 +45,6 @@
 - 초기 실행에서 기존 테스트의 한국어 고정 문구 및 혼합된 날짜 형식 기대값이 현지화 결과와 충돌했다. 날짜 경계·집계 검증은 실제 날짜로 검사하고, 익명 표시 검증은 현지화 문자열을 사용하도록 수정한 후 영어/미국 설정의 전체 테스트가 통과했다.
 - `xcodebuild archive`: **ARCHIVE SUCCEEDED**.
 - `codesign --verify --deep --strict`: 성공.
-- [아카이브 검사 결과](/Users/yul/Desktop/scoor-workspace/release/validation-2026-09-16/archive-verification.json), [최종 테스트 결과](/Users/yul/Desktop/scoor-workspace/release/validation-2026-09-16/unit-tests-final.xcresult), [빌드 로그](/Users/yul/Desktop/scoor-workspace/release/validation-2026-09-16/archive.log).
+- [아카이브 검사 결과](/Users/yul/Desktop/scoor-workspace/release/validation-2026-09-16/archive-red-entry-verification.json), [최종 테스트 결과](/Users/yul/Desktop/scoor-workspace/release/validation-2026-09-16/unit-tests-final.xcresult), [빌드 로그](/Users/yul/Desktop/scoor-workspace/release/validation-2026-09-16/archive-red-entry.log).
 
 이번 검증은 빌드 설정과 목업 노출 경로에 대한 결과다. TestFlight 업로드, App Store Connect의 새 빌드 연결 및 심사 제출 상태는 확인하지 않았다.
