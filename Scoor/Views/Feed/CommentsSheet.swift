@@ -27,7 +27,7 @@ struct CommentsSheet: View {
     /// 신고·차단·가이드라인 동의. UGC 화면에는 반드시 붙어야 한다
     /// (App Store Guideline 1.2) — 댓글은 서버에 공개되는 사용자 콘텐츠다.
     var moderationService: RemoteModerationService? = nil
-    var currentUserName: String = "나"
+    var currentUserName: String = String(localized: "나")
     var currentUserSeed: Int = 1
     /// 댓글 추가/수정/삭제 후 호출 — 상위(피드)에서 카운트 갱신.
     var onChange: () -> Void = {}
@@ -39,9 +39,6 @@ struct CommentsSheet: View {
     @State private var errorMessage: String? = nil
     @State private var reportTarget: SocialComment? = nil
     @State private var hiddenCommentIds: Set<UUID> = []
-    @State private var showGuidelines = false
-    /// 가이드라인 동의 시트를 띄우느라 미뤄 둔 댓글 본문.
-    @State private var pendingCommentText: String? = nil
     @FocusState private var inputFocused: Bool
 
     var body: some View {
@@ -64,19 +61,12 @@ struct CommentsSheet: View {
             ReportSheet(
                 targetType: .comment,
                 targetId: comment.id,
-                authorId: nil,
+                authorId: comment.isMine ? nil : comment.authorId,
                 service: moderationService,
                 onCompleted: { hiddenCommentIds.insert(comment.id) }
             )
         }
-        .sheet(isPresented: $showGuidelines) {
-            CommunityGuidelinesSheet(service: moderationService) {
-                if let text = pendingCommentText {
-                    pendingCommentText = nil
-                    Task { await postComment(text) }
-                }
-            }
-        }
+
     }
 
     // MARK: - Header
@@ -302,7 +292,7 @@ struct CommentsSheet: View {
             phase = list.isEmpty ? .empty : .loaded
         } catch {
             comments = []
-            phase = .error((error as? LocalizedError)?.errorDescription ?? "댓글을 불러오지 못했어요.")
+            phase = .error((error as? LocalizedError)?.errorDescription ?? String(localized: "댓글을 불러오지 못했어요."))
         }
     }
 
@@ -312,13 +302,6 @@ struct CommentsSheet: View {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
 
-        if editingId == nil, let moderation = moderationService {
-            if await moderation.hasAcceptedGuidelines() == false {
-                pendingCommentText = text
-                showGuidelines = true
-                return
-            }
-        }
         await postComment(text)
     }
 
@@ -345,7 +328,7 @@ struct CommentsSheet: View {
             await reload()
             onChange()
         } catch {
-            errorMessage = (error as? LocalizedError)?.errorDescription ?? "처리에 실패했어요."
+            errorMessage = (error as? LocalizedError)?.errorDescription ?? String(localized: "처리에 실패했어요.")
         }
     }
 
@@ -373,7 +356,7 @@ struct CommentsSheet: View {
             await reload()
             onChange()
         } catch {
-            errorMessage = "삭제에 실패했어요."
+            errorMessage = String(localized: "삭제에 실패했어요.")
         }
     }
 

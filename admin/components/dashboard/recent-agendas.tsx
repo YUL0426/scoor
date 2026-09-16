@@ -30,8 +30,8 @@ function AgendaRow({ agenda }: { agenda: Agenda }) {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2 mb-1">
-          <p className="text-xs font-medium text-[#f4f4f6] leading-snug truncate">{agenda.title}</p>
-          {isHot && <Flame className="h-3.5 w-3.5 text-[#f42525] flex-shrink-0" />}
+          <p className="text-xs font-medium text-[#ededee] leading-snug truncate">{agenda.title}</p>
+          {isHot && <Flame className="h-3.5 w-3.5 text-[#e36b59] flex-shrink-0" />}
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
@@ -47,10 +47,10 @@ function AgendaRow({ agenda }: { agenda: Agenda }) {
           >
             {statusLabel(agenda.status)}
           </Badge>
-          <span className="text-[10px] text-[#52526c]">
+          <span className="text-[10px] text-[#8b8e98]">
             {CATEGORY_LABELS[agenda.category]}
           </span>
-          <span className="text-[10px] text-[#52526c] flex items-center gap-1">
+          <span className="text-[10px] text-[#8b8e98] flex items-center gap-1">
             <Activity className="h-2.5 w-2.5" />
             {formatNumber(agenda.participantCount)}
           </span>
@@ -65,7 +65,7 @@ function AgendaRow({ agenda }: { agenda: Agenda }) {
         >
           {agenda.avgScoor.toFixed(0)}
         </span>
-        <span className="text-[10px] text-[#52526c]">
+        <span className="text-[10px] text-[#8b8e98]">
           {formatRelativeTime(agenda.createdAt)}
         </span>
       </div>
@@ -85,7 +85,7 @@ export function RecentAgendas({ agendas }: RecentAgendasProps) {
           <Globe className="h-4 w-4 text-[#4f8ef7]" />
           진행 중 아젠다
         </CardTitle>
-        <span className="text-xs text-[#52526c]">{agendas.length}개 진행 중</span>
+        <span className="text-xs text-[#8b8e98]">{agendas.length}개 진행 중</span>
       </CardHeader>
       <CardContent className="py-2">
         {agendas.map((agenda) => (

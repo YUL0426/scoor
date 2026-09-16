@@ -8,7 +8,7 @@ import type { User } from "@/types";
 
 function UserRow({ user }: { user: User }) {
   const initial = user.username[0]?.toUpperCase();
-  const scoorColor = user.lastScoor !== null ? scoorToColor(user.lastScoor) : "#52526c";
+  const scoorColor = user.lastScoor !== null ? scoorToColor(user.lastScoor) : "#8b8e98";
 
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-white/4 last:border-0 hover:bg-white/2 rounded-lg px-2 -mx-2 transition-colors">
@@ -23,14 +23,14 @@ function UserRow({ user }: { user: User }) {
       {/* User info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <p className="text-xs font-medium text-[#f4f4f6] truncate">{user.username}</p>
+          <p className="text-xs font-medium text-[#ededee] truncate">{user.username}</p>
           {user.deviceOs === "ios" ? (
-            <Smartphone className="h-2.5 w-2.5 text-[#52526c] flex-shrink-0" />
+            <Smartphone className="h-2.5 w-2.5 text-[#8b8e98] flex-shrink-0" />
           ) : (
-            <Monitor className="h-2.5 w-2.5 text-[#52526c] flex-shrink-0" />
+            <Monitor className="h-2.5 w-2.5 text-[#8b8e98] flex-shrink-0" />
           )}
         </div>
-        <p className="text-[10px] text-[#52526c]">
+        <p className="text-[10px] text-[#8b8e98]">
           {user.countryCode} · {formatRelativeTime(user.lastActiveAt)}
         </p>
       </div>
@@ -74,7 +74,7 @@ export function RecentUsers({ users }: RecentUsersProps) {
           <Users className="h-4 w-4 text-[#a855f7]" />
           최근 사용자
         </CardTitle>
-        <span className="text-xs text-[#52526c]">오늘 활성</span>
+        <span className="text-xs text-[#8b8e98]">오늘 활성</span>
       </CardHeader>
       <CardContent className="py-2">
         {users.map((user) => (

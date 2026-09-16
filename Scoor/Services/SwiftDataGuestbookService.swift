@@ -46,6 +46,14 @@ final class SwiftDataGuestbookService: GuestbookServiceProtocol {
         try modelContext.save()
     }
 
+    func deleteMessages(userId: UUID) async throws {
+        let rows = try modelContext.fetch(FetchDescriptor<GuestbookRecord>(
+            predicate: #Predicate { $0.authorId == userId || $0.recipientId == userId }
+        ))
+        for row in rows { modelContext.delete(row) }
+        try modelContext.save()
+    }
+
     func deleteAllMessages() async throws {
         try modelContext.delete(model: GuestbookRecord.self)
         try modelContext.save()

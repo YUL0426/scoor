@@ -21,13 +21,13 @@ interface CustomTooltipProps {
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[#1a1a2e] border border-white/10 rounded-lg px-3 py-2 shadow-xl text-xs">
-      <p className="text-[#8b8ba4] mb-1">{label}</p>
+    <div className="bg-[#26272b] border border-white/10 rounded-lg px-3 py-2 shadow-xl text-xs">
+      <p className="text-[#a2a4ac] mb-1">{label}</p>
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full" style={{ background: p.color }} />
-          <span className="text-[#8b8ba4]">{p.name}:</span>
-          <span className="text-[#f4f4f6] font-semibold tabular-nums">{p.value.toFixed(1)}</span>
+          <span className="text-[#a2a4ac]">{p.name}:</span>
+          <span className="text-[#ededee] font-semibold tabular-nums">{p.value.toFixed(1)}</span>
         </div>
       ))}
     </div>
@@ -52,11 +52,11 @@ export function ScoorTrendChart({ data }: ScoorTrendChartProps) {
       <CardHeader>
         <CardTitle>글로벌 스코어 추이 — 30일</CardTitle>
         <div className="flex items-center gap-4 text-xs">
-          <span className="flex items-center gap-1.5 text-[#8b8ba4]">
-            <span className="w-6 h-0.5 bg-[#f42525] inline-block rounded" />
+          <span className="flex items-center gap-1.5 text-[#a2a4ac]">
+            <span className="w-6 h-0.5 bg-[#e36b59] inline-block rounded" />
             Platform Avg
           </span>
-          <span className="flex items-center gap-1.5 text-[#8b8ba4]">
+          <span className="flex items-center gap-1.5 text-[#a2a4ac]">
             <span className="w-6 h-0.5 bg-[#4f8ef7] inline-block rounded opacity-60" style={{ borderStyle: "dashed" }} />
             Global Baseline
           </span>
@@ -67,8 +67,8 @@ export function ScoorTrendChart({ data }: ScoorTrendChartProps) {
           <AreaChart data={shortDates} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="scoorGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#f42525" stopOpacity={0.2} />
-                <stop offset="100%" stopColor="#f42525" stopOpacity={0} />
+                <stop offset="0%" stopColor="#e36b59" stopOpacity={0.2} />
+                <stop offset="100%" stopColor="#e36b59" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="globalGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#4f8ef7" stopOpacity={0.1} />
@@ -77,7 +77,7 @@ export function ScoorTrendChart({ data }: ScoorTrendChartProps) {
             </defs>
             <XAxis
               dataKey="label"
-              tick={{ fill: "#52526c", fontSize: 10 }}
+              tick={{ fill: "#8b8e98", fontSize: 10 }}
               tickLine={false}
               axisLine={false}
               interval="preserveStartEnd"
@@ -85,7 +85,7 @@ export function ScoorTrendChart({ data }: ScoorTrendChartProps) {
             />
             <YAxis
               domain={[30, 100]}
-              tick={{ fill: "#52526c", fontSize: 10 }}
+              tick={{ fill: "#8b8e98", fontSize: 10 }}
               tickLine={false}
               axisLine={false}
             />
@@ -106,11 +106,11 @@ export function ScoorTrendChart({ data }: ScoorTrendChartProps) {
               type="monotone"
               dataKey="avgScoor"
               name="플랫폼"
-              stroke="#f42525"
+              stroke="#e36b59"
               strokeWidth={2}
               fill="url(#scoorGrad)"
               dot={false}
-              activeDot={{ r: 4, fill: "#f42525", strokeWidth: 0 }}
+              activeDot={{ r: 4, fill: "#e36b59", strokeWidth: 0 }}
             />
           </AreaChart>
         </ResponsiveContainer>

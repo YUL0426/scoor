@@ -64,7 +64,7 @@ struct ScoreSyncOperation: Codable, Equatable, Identifiable {
             kind: .delete,
             userId: score.userId,
             day: ScoreSyncFormat.day(from: score.date, calendar: calendar),
-            value: score.value,
+            value: 0,
             reason: nil,
             mood: nil,
             clientUpdatedAt: Date()
@@ -102,11 +102,6 @@ actor ScoreSyncQueue {
 
     private let defaultsKey = "scoor.sync.scoreQueue"
     private let lastSyncedKey = "scoor.sync.lastSyncedAt"
-    /// Past this, an operation is assumed permanently broken and dropped rather
-    /// than retried forever on every launch. The local record still stands — the
-    /// user loses backup of that day, not the day itself.
-    private let maxAttempts = 8
-
     private let defaults: UserDefaults
     private var pending: [ScoreSyncOperation]
 
@@ -142,13 +137,15 @@ actor ScoreSyncQueue {
         persist()
     }
 
-    /// Record a failed attempt, dropping the operation once it is clearly poison.
+    /// Connectivity failures never expire a pending offline edit or deletion.
     func recordFailure(_ id: UUID) {
         guard let index = pending.firstIndex(where: { $0.id == id }) else { return }
         pending[index].attempts += 1
-        if pending[index].attempts >= maxAttempts {
-            pending.remove(at: index)
-        }
+        persist()
+    }
+
+    func removeAll(userId: UUID) {
+        pending.removeAll { $0.userId == userId }
         persist()
     }
 

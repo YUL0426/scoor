@@ -2,18 +2,13 @@
 //  ContentView.swift
 //  Scoor
 //
-//  Root view — 4-탭 구조 (Home / Feed / World / My Page) + 중앙 떠 있는 빨간 "+" FAB.
-//
-//  탭 변경:
-//   - Stats 탭은 제거. 통계는 My Page 안에 흡수 (요약 카드 + 상세 통계 진입).
-//   - 두 번째 탭은 사람들의 감정 커뮤니티 “Feed”.
-//   - 세 번째 탭은 전세계 토픽의 실시간 감정 “World”.
+//  Home feed, World, inline record action, and personal archive.
 //
 
 import SwiftUI
 
 enum AppTab: Int, CaseIterable, Hashable {
-    case home, feed, world, mypage
+    case home, world, activity, mypage
 }
 
 struct ContentView: View {
@@ -24,10 +19,9 @@ struct ContentView: View {
     private let tabTransition = Animation.easeInOut(duration: DesignTokens.animationTabTransitionDuration)
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        VStack(spacing: 0) {
             currentTabContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea(edges: .bottom)
 
             ScoorTabBar(
                 selected: $selectedTab,
@@ -40,7 +34,8 @@ struct ContentView: View {
                 scoreService: appServices.scoreService,
                 userService: appServices.userService,
                 moodAnalyzer: appServices.moodAnalyzer,
-                notificationService: appServices.notificationService
+                notificationService: appServices.notificationService,
+                homeFeedPublisher: appServices.feedService
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
@@ -51,17 +46,12 @@ struct ContentView: View {
     private var currentTabContent: some View {
         switch selectedTab {
         case .home:
-            HomeView(
-                scoreService: appServices.scoreService,
-                userService: appServices.userService,
-                onRequestScoreSheet: { showScoreSheet = true }
-            )
-        case .feed:
-            FeedView(socialService: appServices.socialService,
-                     feedService: appServices.feedService)
+            HomeView(onRequestScoreSheet: { showScoreSheet = true }, onOpenProfile: { selectedTab = .mypage })
         case .world:
             WorldView(socialService: appServices.socialService,
                       worldService: appServices.worldService)
+        case .activity:
+            ActivityView()
         case .mypage:
             NavigationStack {
                 MyPageView(
@@ -74,15 +64,14 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Custom Tab Bar with Center FAB
+// MARK: - Custom Tab Bar with Inline Record Action
 
 private struct ScoorTabBar: View {
     @Binding var selected: AppTab
     var onPlusTap: () -> Void
 
     private let barHeight: CGFloat = 64
-    private let fabSize: CGFloat = 56
-    private let fabLift: CGFloat = 18
+    private let fabSize: CGFloat = 36
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -90,18 +79,14 @@ private struct ScoorTabBar: View {
 
             HStack(spacing: 0) {
                 tabItem(.home,   icon: "house",            filledIcon: "house.fill",            label: "Home")
-                tabItem(.feed,   icon: "square.stack",     filledIcon: "square.stack.fill",     label: "Feed")
-
-                Color.clear.frame(width: fabSize + 24)
-
-                tabItem(.world,  icon: "globe",            filledIcon: "globe.americas.fill",   label: "World")
+                tabItem(.world, icon: "globe", filledIcon: "globe.americas.fill", label: "World")
+                fabButton.frame(maxWidth: .infinity)
+                tabItem(.activity, icon: "heart", filledIcon: "heart.fill", label: "알림")
                 tabItem(.mypage, icon: "person.crop.circle", filledIcon: "person.crop.circle.fill", label: "My Page")
             }
             .frame(height: barHeight)
             .padding(.horizontal, 8)
 
-            fabButton
-                .offset(y: -fabLift)
         }
         .frame(maxWidth: .infinity)
         .frame(height: barHeight)
@@ -127,23 +112,23 @@ private struct ScoorTabBar: View {
                 selected = tab
             }
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: 2) {
                 Image(systemName: isSelected ? filledIcon : icon)
                     .font(.system(size: 22, weight: isSelected ? .semibold : .regular))
                     .foregroundStyle(isSelected ? DesignTokens.primaryColor : ScoorPalette.inkTertiary)
-                    .frame(height: 24)
+                    .frame(height: 36)
 
-                Text(label)
+                Text(LocalizedStringKey(label))
                     .font(.system(size: 10, weight: isSelected ? .bold : .medium))
                     .foregroundStyle(isSelected ? DesignTokens.primaryColor : ScoorPalette.inkTertiary)
                     .lineLimit(1)
-                    .opacity(isSelected ? 1 : 1)
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, minHeight: 52)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(label)
+        .accessibilityLabel(LocalizedStringKey(label))
+        .accessibilityIdentifier("main-tab-\(label)")
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }
 
@@ -154,26 +139,33 @@ private struct ScoorTabBar: View {
             #endif
             onPlusTap()
         }) {
-            Image(systemName: "plus")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundStyle(.white)
-                .frame(width: fabSize, height: fabSize)
-                .background(
-                    LinearGradient(
-                        colors: [DesignTokens.primaryColor, DesignTokens.primaryColor.opacity(0.92)],
-                        startPoint: .top,
-                        endPoint: .bottom
+            VStack(spacing: 2) {
+                Image(systemName: "plus")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: fabSize, height: fabSize)
+                    .background(
+                        LinearGradient(
+                            colors: [DesignTokens.primaryColor, DesignTokens.primaryColor.opacity(0.92)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
                     )
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .shadow(color: DesignTokens.primaryColor.opacity(0.4), radius: 14, x: 0, y: 8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(Color.white.opacity(0.18), lineWidth: 1)
-                )
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                    )
+                Text("기록")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(ScoorPalette.inkSecondary)
+            }
+            .frame(maxWidth: .infinity, minHeight: 52)
+            .contentShape(Rectangle())
         }
         .buttonStyle(FabPressStyle())
         .accessibilityLabel("Add today's score")
+        .accessibilityIdentifier("main-add-score")
     }
 }
 

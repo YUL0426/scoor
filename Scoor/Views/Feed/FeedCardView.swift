@@ -5,7 +5,7 @@
 //  Toss Community/Threads 톤의 컴팩트 피드 카드.
 //  - 카드 박스/후광 없음. 플랫 row + 하단 hairline divider.
 //  - 한 줄 본문이 시각적 중심. 점수는 우상단 작은 배지로 항상 보이지만 본문보다 작음.
-//  - 액션 2종: heart · comment (BUG-005: repost / clap 제거).
+//  - 좋아요 · 댓글 · 리포스트 액션.
 //
 
 import SwiftUI
@@ -18,6 +18,9 @@ struct FeedCardView: View {
     /// nil이면 더보기 메뉴 자체를 감춘다 — 신고를 받을 백엔드가 없는 빌드에서
     /// 아무 데도 가지 않는 메뉴를 보여주지 않기 위해서다.
     var onReportTap: (() -> Void)? = nil
+
+    var onRepostTap: (() -> Void)? = nil
+    var repostPending = false
 
     private var tone: ScoreTone { .from(score: entry.score) }
 
@@ -36,7 +39,9 @@ struct FeedCardView: View {
                         set: { entry.reactions = $0 }
                     ),
                     onCommentTap: onCommentTap,
-                    onLikeToggle: onLikeToggle
+                    onLikeToggle: onLikeToggle,
+                    onRepostTap: onRepostTap,
+                    repostPending: repostPending
                 )
                 .padding(.top, 2)
             }
@@ -192,20 +197,22 @@ struct FeedCardView: View {
     }
 
     private var tagsRow: some View {
-        HStack(spacing: 6) {
-            tagPill(entry.primaryMood.hashtag, isPrimary: true)
-            ForEach(entry.extraTags.prefix(2), id: \.self) { mood in
-                tagPill(mood.hashtag, isPrimary: false)
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                tagPill(entry.primaryMood.hashtag, isPrimary: true)
+                ForEach(entry.extraTags.prefix(2), id: \.self) { mood in
+                    tagPill(mood.hashtag, isPrimary: false)
+                }
+                if let w = entry.weather {
+                    Text(w.glyph).font(.system(size: 11))
+                }
             }
-            if let w = entry.weather {
-                Text(w.glyph).font(.system(size: 11))
-            }
-            Spacer()
         }
     }
 
     private func tagPill(_ text: String, isPrimary: Bool) -> some View {
         Text(text)
+            .fixedSize(horizontal: true, vertical: false)
             .font(.system(size: 11.5, weight: .semibold))
             .foregroundStyle(
                 isPrimary ? ScoorPalette.inkPrimary.opacity(0.85)

@@ -15,8 +15,8 @@ struct WorldCategoryFilter: View {
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                chip(label: "전체", emoji: nil, isOn: selected == nil) {
+            HStack(spacing: 10) {
+                chip(label: String(localized: "전체"), emoji: nil, isOn: selected == nil) {
                     withAnimation(.easeInOut(duration: 0.18)) { selected = nil }
                 }
 
@@ -35,18 +35,21 @@ struct WorldCategoryFilter: View {
     @ViewBuilder
     private func chip(label: String, emoji: String?, isOn: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 4) {
+            HStack(spacing: 6) {
                 if let e = emoji {
-                    Text(e).font(.system(size: 12))
+                    Text(e).font(.system(size: 16))
+                } else {
+                    Image(systemName: "square.grid.2x2.fill").font(.system(size: 16))
                 }
                 Text(label)
-                    .font(ScoorType.chip)
+                    .font(.system(size: 14, weight: .bold))
             }
             .foregroundStyle(isOn ? ScoorPalette.bgBase : ScoorPalette.inkSecondary)
-            .padding(.vertical, 6)
+            .frame(minHeight: 24)
+            .padding(.vertical, 10)
             .padding(.horizontal, 12)
             .background(
-                Capsule().fill(
+                RoundedRectangle(cornerRadius: 14).fill(
                     isOn ? ScoorPalette.inkPrimary : Color.white.opacity(0.06)
                 )
             )

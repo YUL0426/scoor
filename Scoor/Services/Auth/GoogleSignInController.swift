@@ -74,7 +74,7 @@ final class GoogleSignInController: NSObject, ASWebAuthenticationPresentationCon
             throw err == "access_denied" ? AuthError.cancelled : AuthError.failed(err)
         }
         guard items.first(where: { $0.name == "state" })?.value == state else {
-            throw AuthError.failed("state 불일치(보안 검증 실패)")
+            throw AuthError.failed(String(localized: "state 불일치(보안 검증 실패)"))
         }
         guard let code = items.first(where: { $0.name == "code" })?.value else {
             throw AuthError.cancelled
@@ -103,7 +103,7 @@ final class GoogleSignInController: NSObject, ASWebAuthenticationPresentationCon
             session.prefersEphemeralWebBrowserSession = false
             self.session = session
             if !session.start() {
-                cont.resume(throwing: AuthError.failed("브라우저 세션을 시작할 수 없습니다."))
+                cont.resume(throwing: AuthError.failed(String(localized: "브라우저 세션을 시작할 수 없습니다.")))
             }
         }
     }
@@ -125,7 +125,7 @@ final class GoogleSignInController: NSObject, ASWebAuthenticationPresentationCon
 
         let (data, response) = try await URLSession.shared.data(for: req)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw AuthError.failed("토큰 교환 실패")
+            throw AuthError.failed(String(localized: "토큰 교환 실패"))
         }
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw AuthError.invalidResponse

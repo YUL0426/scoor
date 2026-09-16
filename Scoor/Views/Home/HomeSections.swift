@@ -411,7 +411,7 @@ struct RecentEmotionList: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("recent-day-card")
-                        .accessibilityLabel("Recent day, score \(row.score)\(row.mood.map { ", mood \($0.label)" } ?? ""). Tap to edit.")
+                        .accessibilityLabel("Recent day, score \(row.score)\(row.mood.map { String(localized: ", mood \($0.label)") } ?? ""). Tap to edit.")
                     }
                 }
                 .padding(.horizontal, 20)

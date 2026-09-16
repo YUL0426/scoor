@@ -18,6 +18,16 @@ import XCTest
 
 final class FeedDecodingTests: XCTestCase {
 
+    func testRepostMetadataAndLegacyDefaults() throws {
+        let legacy = try SupabaseHTTPClient.decoder.decode([FeedPostRow].self, from: Data(feedJSON.utf8))
+        XCTAssertFalse(legacy[0].toDomain().reactions.repostedByMe)
+        XCTAssertEqual(legacy[0].toDomain().reactions.reposts, 0)
+        let updated = feedJSON.replacingOccurrences(of: "\"liked_by_me\": true", with: "\"liked_by_me\": true, \"reposts_count\": 4, \"reposted_by_me\": true")
+        let rows = try SupabaseHTTPClient.decoder.decode([FeedPostRow].self, from: Data(updated.utf8))
+        XCTAssertTrue(rows[0].toDomain().reactions.repostedByMe)
+        XCTAssertEqual(rows[0].toDomain().reactions.reposts, 4)
+    }
+
     private let feedJSON = """
     [
       {

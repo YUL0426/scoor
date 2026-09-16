@@ -206,8 +206,8 @@ struct StatsView: View {
 
     private var todayDateLine: String {
         let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = "MMMM d"
+        f.locale = .current
+        f.setLocalizedDateFormatFromTemplate("MMMM d")
         return f.string(from: Date())
     }
 
@@ -223,14 +223,14 @@ struct StatsView: View {
             .padding(.horizontal, 24)
             HStack(spacing: 16) {
                 if let h = viewModel.weeklyHighest {
-                    statTile(title: "Highest Day", value: "\(h.score)", suffix: "/100", caption: h.weekday)
+                    statTile(title: String(localized: "Highest Day"), value: "\(h.score)", suffix: "/100", caption: h.weekday)
                 } else {
-                    statTile(title: "Highest Day", value: "—", suffix: "", caption: "—")
+                    statTile(title: String(localized: "Highest Day"), value: "—", suffix: "", caption: "—")
                 }
                 if let l = viewModel.weeklyLowest {
-                    statLowTile(title: "Lowest Day", value: "\(l.score)", suffix: "/100", caption: l.weekday)
+                    statLowTile(title: String(localized: "Lowest Day"), value: "\(l.score)", suffix: "/100", caption: l.weekday)
                 } else {
-                    statLowTile(title: "Lowest Day", value: "—", suffix: "", caption: "—")
+                    statLowTile(title: String(localized: "Lowest Day"), value: "—", suffix: "", caption: "—")
                 }
             }
             .padding(.horizontal, 24)
@@ -778,24 +778,24 @@ struct InstagramStoryShareSheet: View {
                     item: Image(uiImage: storyImage),
                     preview: SharePreview("My Scoor month", image: Image(uiImage: storyImage))
                 ) {
-                    primaryButtonLabel(title: "Share", icon: "square.and.arrow.up", filled: true)
+                    primaryButtonLabel(title: String(localized: "Share"), icon: "square.and.arrow.up", filled: true)
                 }
             } else {
-                primaryButtonLabel(title: "Preparing…", icon: "hourglass", filled: true)
+                primaryButtonLabel(title: String(localized: "Preparing…"), icon: "hourglass", filled: true)
                     .opacity(0.6)
             }
 
             Button {
                 Task { await shareToInstagram() }
             } label: {
-                primaryButtonLabel(title: "Instagram Story", icon: "camera.fill", filled: false)
+                primaryButtonLabel(title: String(localized: "Instagram Story"), icon: "camera.fill", filled: false)
             }
             .disabled(storyImage == nil || isBusy)
 
             Button {
                 Task { await saveToGallery() }
             } label: {
-                primaryButtonLabel(title: "Save to Gallery", icon: "arrow.down.circle", filled: false)
+                primaryButtonLabel(title: String(localized: "Save to Gallery"), icon: "arrow.down.circle", filled: false)
             }
             .disabled(storyImage == nil || isBusy)
         }

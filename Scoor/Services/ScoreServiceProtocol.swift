@@ -13,6 +13,7 @@ protocol ScoreServiceProtocol {
     func deleteScore(_ score: Score) async throws
     /// Remove every stored score (account deletion, P0-4).
     func deleteAllScores() async throws
+    func deleteLocalScores(userId: UUID) async throws
     /// Move every record from one owner id to another, returning the rows that
     /// moved (already re-keyed).
     ///
@@ -22,4 +23,12 @@ protocol ScoreServiceProtocol {
     /// which reads as data loss and never reaches the server (spec-13 §7).
     @discardableResult
     func reassignScores(from oldUserId: UUID, to newUserId: UUID) async throws -> [Score]
+}
+
+extension ScoreServiceProtocol {
+    func deleteLocalScores(userId: UUID) async throws {
+        for score in await getScoreHistory(userId: userId, limit: Int.max) {
+            try await deleteScore(score)
+        }
+    }
 }

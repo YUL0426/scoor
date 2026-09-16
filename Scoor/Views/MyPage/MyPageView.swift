@@ -16,11 +16,16 @@ struct MyPageView: View {
     @EnvironmentObject private var authService: AuthService
     @EnvironmentObject private var coordinator: AppFlowCoordinator
     @StateObject private var viewModel: MyPageViewModel
+    @StateObject private var homeModel: HomeViewModel
+    @State private var showMyScoors = false
+    @State private var myScoors: [MyScoorEntry] = []
+    @State private var selectedSection = "기록"
     @State private var showSettings = false
     @State private var showProfileEdit = false
     @State private var calendarRoute: CalendarRoute?
 
     init(scoreService: ScoreServiceProtocol, userService: UserServiceProtocol, guestbookService: GuestbookServiceProtocol) {
+        _homeModel = StateObject(wrappedValue: HomeViewModel(scoreService: scoreService, userService: userService))
         _viewModel = StateObject(wrappedValue: MyPageViewModel(
             scoreService: scoreService,
             userService: userService,
@@ -30,7 +35,7 @@ struct MyPageView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            LazyVStack(spacing: 24, pinnedViews: [.sectionHeaders]) {
                 if viewModel.currentUser != nil {
                     ProfileHeaderView(
                         username: viewModel.currentUser!.username,
@@ -42,26 +47,15 @@ struct MyPageView: View {
                         monthlyAverage: viewModel.monthlyAverage,
                         onEditProfile: { showProfileEdit = true }
                     )
-                    StatsSummarySection(
-                        todayScore: todayScore,
-                        weeklyAverage: weeklyAverage,
-                        currentStreak: currentStreak,
-                        monthlyAverage: viewModel.monthlyAverage,
-                        statsDestination: StatsView(
-                            scoreService: appServices.scoreService,
-                            userService: appServices.userService
-                        )
-                    )
-                    if let mood = viewModel.monthlyTopMood {
-                        MonthlyMoodSummaryView(mood: mood, count: viewModel.monthlyTopMoodCount)
-                    }
-                    CalendarSectionView(
-                        displayedMonth: $viewModel.displayedMonth,
-                        entryForDate: { viewModel.entry(for: $0) },
-                        previousMonth: { viewModel.previousMonth() },
-                        nextMonth: { viewModel.nextMonth() },
-                        onSelectDate: { date in handleCalendarTap(date) }
-                    )
+                    Section {
+                    Group {
+                        switch selectedSection {
+                        case "리포스트":
+                            FeedView(socialService: appServices.socialService,
+                                     feedService: appServices.feedService, repostsOnly: true)
+                        case "통계":
+                            PersonalStatisticsView(viewModel: viewModel, onSelectDate: handleCalendarTap)
+                        case "방명록":
                     GuestbookSectionView(
                         messages: viewModel.guestbookMessages,
                         composeText: $viewModel.guestbookComposeText,
@@ -69,6 +63,50 @@ struct MyPageView: View {
                         onSubmit: { Task { await viewModel.postGuestbookMessage() } },
                         onDelete: { msg in Task { await viewModel.deleteGuestbookMessage(msg) } }
                     )
+                        default:
+                    compactTodayCard
+                    RecentEmotionList(rows: homeModel.recent, onTapEntry: { row in
+                        calendarRoute = .input(row.date)
+                    })
+                    Button { showMyScoors = true } label: {
+                        Label("My Scoors", systemImage: "globe")
+                            .font(.system(size: 14, weight: .semibold))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(18)
+                            .background(ScoorPalette.bgRaised, in: RoundedRectangle(cornerRadius: 18))
+                    }
+                    .padding(.horizontal, 20)
+                    .accessibilityIdentifier("my-world-scores-button")
+                    AIInsightSection(insights: homeModel.insights)
+                        }
+                    }
+                    .id(selectedSection)
+                    } header: {
+                    HStack(spacing: 0) {
+                        ForEach(["기록", "통계", "리포스트", "방명록"], id: \.self) { section in
+                            Button { selectedSection = section } label: {
+                                VStack(spacing: 12) {
+                                    Label(LocalizedStringKey(section), systemImage: section == "기록" ? "book.closed" : section == "통계" ? "chart.bar" : section == "리포스트" ? "arrow.2.squarepath" : "bubble.left.and.bubble.right")
+                                        .font(.system(size: 13, weight: .bold))
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
+                                        .foregroundStyle(selectedSection == section ? ScoorPalette.accent : ScoorPalette.inkSecondary)
+                                    Rectangle()
+                                        .fill(selectedSection == section ? ScoorPalette.inkPrimary : .clear)
+                                        .frame(height: 2)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 12)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("mypage-section-\(section)")
+                            .accessibilityAddTraits(selectedSection == section ? .isSelected : [])
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                        .background(ScoorPalette.bgBase)
+                    }
                 } else if !viewModel.isLoading {
                     Text("Sign in to see your page")
                         .font(AppTypography.body())
@@ -86,20 +124,25 @@ struct MyPageView: View {
         .background(DesignTokens.backgroundColor)
         .environment(\.colorScheme, .dark)
         .navigationBarHidden(true)
-        // 내비게이션 바를 숨겼기 때문에 toolbar 항목은 표시되지 않는다.
-        // 설정 진입점이 사라지지 않도록 화면 우상단에 직접 기어 버튼을 띄운다.
-        .overlay(alignment: .topTrailing) {
-            Button(action: { showSettings = true }) {
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(DesignTokens.textSecondary)
-                    .padding(10)
-                    .background(DesignTokens.cardBackground.opacity(0.9), in: Circle())
+        .safeAreaInset(edge: .top, spacing: 0) {
+            HStack {
+                Text("My Page")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(ScoorPalette.inkPrimary)
+                Spacer()
+                Button(action: { showSettings = true }) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(DesignTokens.textSecondary)
+                        .frame(width: 44, height: 44)
+                        .background(DesignTokens.cardBackground, in: Circle())
+                }
+                .accessibilityLabel("Settings")
+                .accessibilityIdentifier("settingsButton")
             }
-            .accessibilityLabel("Settings")
-            .accessibilityIdentifier("settingsButton")
-            .padding(.trailing, DesignTokens.spacingLG)
-            .padding(.top, DesignTokens.spacingSM)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 8)
+            .background(DesignTokens.backgroundColor)
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
@@ -158,16 +201,67 @@ struct MyPageView: View {
                     userService: appServices.userService,
                     moodAnalyzer: appServices.moodAnalyzer,
                     notificationService: appServices.notificationService,
+                    homeFeedPublisher: appServices.feedService,
                     targetDate: date
                 )
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
             }
         }
-        .task { await viewModel.load() }
-        .onReceive(NotificationCenter.default.publisher(for: .scoorScoreStoreDidChange)) { _ in
-            Task { await viewModel.load() }
+        .sheet(isPresented: $showMyScoors) {
+            NavigationStack {
+                MyScoorsView(entries: myScoors)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("닫기") { showMyScoors = false }
+                        }
+                    }
+            }
         }
+        .task {
+            await viewModel.load()
+            await homeModel.load()
+            myScoors = await appServices.socialService.myWorldScores()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .scoorSocialStoreDidChange)) { _ in
+            Task { myScoors = await appServices.socialService.myWorldScores() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .scoorScoreStoreDidChange)) { _ in
+            Task { await viewModel.load(); await homeModel.load() }
+        }
+    }
+
+    private var compactTodayCard: some View {
+        Button { calendarRoute = .input(Date()) } label: {
+            HStack(spacing: 18) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("오늘의 기록")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(ScoorPalette.inkPrimary)
+                    Text(homeModel.hasTodayEntry ? "오늘의 점수와 한 줄 수정" : "점수와 한 줄로 오늘을 남겨보세요")
+                        .font(.system(size: 13))
+                        .foregroundStyle(ScoorPalette.inkSecondary)
+                }
+                Spacer()
+                if let score = homeModel.todayScore {
+                    ScoreValueView(score: score, font: .system(size: 36, weight: .bold), color: ScoorPalette.accent, logoHeight: 30)
+                } else {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 30))
+                        .foregroundStyle(ScoorPalette.accent)
+                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(ScoorPalette.inkTertiary)
+            }
+            .padding(20)
+            .frame(minHeight: 100)
+            .background(ScoorPalette.bgRaised, in: RoundedRectangle(cornerRadius: 20))
+            .overlay(RoundedRectangle(cornerRadius: 20).stroke(ScoorPalette.hairline, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 20)
+        .accessibilityIdentifier("mypage-today-card")
     }
 
     private func handleCalendarTap(_ date: Date) {
@@ -261,10 +355,9 @@ struct ProfileHeaderView: View {
                     }
 
                     VStack(alignment: .leading, spacing: DesignTokens.spacingXS) {
-                        ScoorLogo(size: 20, variant: .white)
                         Text("@\(username)")
-                            .font(AppTypography.bodySmall())
-                            .foregroundStyle(DesignTokens.textSecondary)
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundStyle(ScoorPalette.inkPrimary)
                         if let provider {
                             providerChip(provider)
                         }
@@ -335,7 +428,7 @@ struct CalendarSectionView: View {
 
     private var monthTitle: String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
+        formatter.setLocalizedDateFormatFromTemplate("MMMM yyyy")
         return formatter.string(from: displayedMonth)
     }
 
@@ -385,7 +478,7 @@ struct CalendarSectionView: View {
             }
 
             HStack(spacing: 0) {
-                ForEach(["일", "월", "화", "수", "목", "금", "토"], id: \.self) { day in
+                ForEach(Calendar.current.veryShortStandaloneWeekdaySymbols, id: \.self) { day in
                     Text(day)
                         .font(AppTypography.caption())
                         .foregroundStyle(DesignTokens.textSecondary)
@@ -521,8 +614,8 @@ struct CalendarDayDetailSheet: View {
 
     private var dateLine: String {
         let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = "EEEE, MMM d"
+        f.locale = .current
+        f.setLocalizedDateFormatFromTemplate("EEEE, MMM d")
         return f.string(from: date).uppercased()
     }
 
@@ -999,7 +1092,7 @@ struct MyScoorRow: View {
     private static func dateText(_ date: Date) -> String {
         let f = DateFormatter()
         f.locale = Locale.current
-        f.dateFormat = "yyyy.MM.dd"
+        f.setLocalizedDateFormatFromTemplate("yMd")
         return f.string(from: date)
     }
 }
@@ -1211,12 +1304,12 @@ struct ProfileEditView: View {
             Spacer()
             Menu {
                 ForEach(genderOptions, id: \.self) { option in
-                    Button(option) { editGender = option }
+                    Button(LocalizedStringKey(option)) { editGender = option }
                 }
                 Button("설정 안 함", role: .destructive) { editGender = nil }
             } label: {
                 HStack(spacing: 6) {
-                    Text(editGender ?? "설정 안 함")
+                    Text(LocalizedStringKey(editGender ?? "설정 안 함"))
                         .font(.system(size: 15))
                         .foregroundStyle(editGender == nil ? ScoorPalette.inkTertiary : ScoorPalette.inkPrimary)
                     Image(systemName: "chevron.up.chevron.down")
@@ -1238,11 +1331,11 @@ struct ProfileEditView: View {
         keyboard: UIKeyboardType = .default
     ) -> some View {
         HStack(spacing: 16) {
-            Text(label)
+            Text(LocalizedStringKey(label))
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(ScoorPalette.inkSecondary)
                 .frame(width: 72, alignment: .leading)
-            TextField(placeholder, text: text)
+            TextField(LocalizedStringKey(placeholder), text: text)
                 .font(.system(size: 15))
                 .foregroundStyle(ScoorPalette.inkPrimary)
                 .keyboardType(keyboard)

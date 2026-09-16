@@ -1,3 +1,4 @@
+import { checkOrigin } from "@/lib/server/origin";
 import { NextResponse } from "next/server";
 import { adminAuthConfig } from "@/lib/server/env";
 import {
@@ -10,29 +11,52 @@ import {
 import type { AdminUser } from "@/types";
 
 export async function POST(request: Request) {
+  const denied = checkOrigin(request);
+  if (denied) return denied;
   const config = adminAuthConfig();
   if (!config) {
     return NextResponse.json(
       { error: "이 환경에는 어드민 인증이 설정되어 있지 않습니다." },
-      { status: 503 }
+      { status: 503 },
     );
   }
 
   let email = "";
   let password = "";
   try {
-    const body = (await request.json()) as { email?: string; password?: string };
+    const body = (await request.json()) as {
+      email?: unknown;
+      password?: unknown;
+    };
+    if (
+      !body ||
+      typeof body.email !== "string" ||
+      typeof body.password !== "string" ||
+      body.email.length > 254 ||
+      body.password.length > 1024
+    ) {
+      return NextResponse.json(
+        { error: "이메일과 비밀번호를 확인해 주세요." },
+        { status: 400 },
+      );
+    }
     email = (body.email ?? "").trim().toLowerCase();
     password = body.password ?? "";
   } catch {
-    return NextResponse.json({ error: "요청 본문이 올바르지 않습니다." }, { status: 400 });
+    return NextResponse.json(
+      { error: "요청 본문이 올바르지 않습니다." },
+      { status: 400 },
+    );
   }
 
   const passwordHash = await sha256Hex(password);
   const emailOk = timingSafeEqual(email, config.email);
   const passwordOk = timingSafeEqual(passwordHash, config.passwordSha256);
   if (!emailOk || !passwordOk) {
-    return NextResponse.json({ error: "이메일 또는 비밀번호가 올바르지 않습니다." }, { status: 401 });
+    return NextResponse.json(
+      { error: "이메일 또는 비밀번호가 올바르지 않습니다." },
+      { status: 401 },
+    );
   }
 
   const user: AdminUser = {

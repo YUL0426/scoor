@@ -100,7 +100,7 @@ actor SupabaseAuthClient {
     ///   the native `signInWithIdToken` grant never gives Supabase an Apple
     ///   refresh token, so `identities.identity_data` holds nothing to revoke.
     func deleteAccount(accessToken: String,
-                       appleAuthorizationCode: String? = nil) async throws {
+                       appleAuthorizationCode: String? = nil) async throws -> Bool {
         var request = URLRequest(url: config.functionsURL.appendingPathComponent("account-delete"))
         request.httpMethod = "POST"
         request.setValue(config.anonKey, forHTTPHeaderField: "apikey")
@@ -112,6 +112,8 @@ actor SupabaseAuthClient {
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             throw Self.error(from: data, status: (response as? HTTPURLResponse)?.statusCode ?? -1)
         }
+        let payload = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+        return payload?["apple_revoked"] as? Bool == true
     }
 
     // MARK: - Transport
@@ -188,13 +190,13 @@ actor SupabaseAuthClient {
         case (400, "invalid_credentials"), (400, "invalid_grant"), (401, _):
             return .unauthorized
         case (422, "user_already_exists"), (400, "user_already_exists"):
-            return .rejected("이미 가입된 이메일입니다.")
+            return .rejected(String(localized: "이미 가입된 이메일입니다."))
         case (429, _):
             return .rateLimited
         case (400, "email_address_invalid"):
-            return .rejected("사용할 수 없는 이메일 주소입니다.")
+            return .rejected(String(localized: "사용할 수 없는 이메일 주소입니다."))
         case (400, "weak_password"), (422, "weak_password"):
-            return .rejected("비밀번호가 너무 약합니다. 6자 이상으로 설정해 주세요.")
+            return .rejected(String(localized: "비밀번호가 너무 약합니다. 6자 이상으로 설정해 주세요."))
         default:
             return .server(status: status, message: message)
         }

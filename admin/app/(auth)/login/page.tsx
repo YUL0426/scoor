@@ -1,168 +1,112 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Zap, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
 import { signIn, AuthConfigError } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  // Already-authenticated visitors are redirected to /admin by proxy.ts
-  // before this page renders — no client-side session check needed.
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  async function handleSubmit(e: React.FormEvent) {
+  const [email, setEmail] = useState(""),
+    [password, setPassword] = useState(""),
+    [show, setShow] = useState(false),
+    [loading, setLoading] = useState(false),
+    [error, setError] = useState<string | null>(null);
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
+    if (loading) return;
     setLoading(true);
-
+    setError(null);
     try {
       const user = await signIn(email, password);
       if (!user) {
         setError("이메일 또는 비밀번호가 올바르지 않습니다.");
-        setLoading(false);
         return;
       }
       router.replace("/admin");
-    } catch (err) {
+    } catch (e) {
       setError(
-        err instanceof AuthConfigError
-          ? "어드민 인증이 설정되지 않았습니다. .env.local에 ADMIN_EMAIL, ADMIN_PASSWORD_SHA256, ADMIN_SESSION_SECRET를 채워주세요."
-          : "예기치 못한 오류가 발생했습니다. 다시 시도해주세요."
+        e instanceof AuthConfigError
+          ? "로그인을 사용할 수 없습니다. 관리자에게 연결 설정을 확인해 주세요."
+          : "연결하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       );
+    } finally {
       setLoading(false);
     }
   }
-
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#060610]">
-      {/* Ambient gradients */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#f42525] rounded-full opacity-[0.04] blur-[100px]" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[300px] bg-[#4f8ef7] rounded-full opacity-[0.04] blur-[80px]" />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-[#a855f7] rounded-full opacity-[0.03] blur-[80px]" />
+    <main className="flex min-h-dvh flex-col bg-bg-base">
+      <div className="flex items-center gap-2.5 px-7 py-6">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand text-lg font-bold text-white">
+          s
+        </span>
+        <span className="font-semibold">Scoor</span>
+        <span className="ml-2 text-xs text-text-tertiary">워크스페이스</span>
       </div>
-
-      {/* Grid overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.02]"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)`,
-          backgroundSize: "40px 40px",
-        }}
-      />
-
-      {/* Login card */}
-      <div
-        className={cn(
-          "relative w-full max-w-sm mx-4 transition-all duration-500",
-          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-        )}
-      >
-        {/* Card */}
-        <div className="bg-[#0d0d1f]/90 backdrop-blur-xl border border-white/8 rounded-2xl p-8 shadow-2xl">
-          {/* Logo */}
-          <div className="flex flex-col items-center mb-8">
-            <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-[#f42525] shadow-[0_0_24px_rgba(244,37,37,0.4)] mb-4">
-              <Zap className="h-6 w-6 text-white" strokeWidth={2.5} />
-            </div>
-            <h1 className="text-xl font-bold text-[#f4f4f6] tracking-tight">
-              scoor admin
-            </h1>
-            <p className="text-xs text-[#52526c] mt-1">운영 관리 센터</p>
-          </div>
-
-          {/* Status bar */}
-          <div className="flex items-center justify-center gap-6 mb-8 py-3 px-4 bg-white/3 rounded-xl border border-white/6">
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-base font-bold text-emerald-400 tabular-nums">24.9K</span>
-              <span className="text-[10px] text-[#52526c] tracking-wider">일간 활성 사용자</span>
-            </div>
-            <div className="w-px h-8 bg-white/8" />
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-base font-bold text-[#f42525] tabular-nums">67.3</span>
-              <span className="text-[10px] text-[#52526c] tracking-wider">평균 스코어</span>
-            </div>
-            <div className="w-px h-8 bg-white/8" />
-            <div className="flex flex-col items-center gap-1">
-              <div className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                <span className="text-base font-bold text-[#f4f4f6] tabular-nums">18</span>
-              </div>
-              <span className="text-[10px] text-[#52526c] tracking-wider">아젠다</span>
-            </div>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex flex-1 items-center justify-center px-6 pb-20">
+        <div className="w-full max-w-[340px]">
+          <span className="mb-7 flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/3">
+            <ShieldCheck
+              size={22}
+              strokeWidth={1.4}
+              className="text-text-secondary"
+            />
+          </span>
+          <h1 className="text-[26px] font-semibold tracking-[-.8px]">
+            다시 만나 반가워요.
+          </h1>
+          <p className="mb-8 mt-2 text-sm text-text-secondary">
+            Scoor 운영 워크스페이스에 로그인하세요.
+          </p>
+          <form onSubmit={submit} className="space-y-5">
             <Input
               label="이메일"
               type="email"
-              placeholder="admin@scoor.app"
+              autoComplete="username"
+              placeholder="name@company.com"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              required
             />
-
             <Input
               label="비밀번호"
-              type={showPass ? "text" : "password"}
-              placeholder="••••••••"
+              type={show ? "text" : "password"}
+              autoComplete="current-password"
+              placeholder="비밀번호를 입력하세요"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
               rightIcon={
                 <button
                   type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  className="text-[#52526c] hover:text-[#8b8ba4] transition-colors"
+                  aria-label={show ? "비밀번호 숨기기" : "비밀번호 보기"}
+                  onClick={() => setShow((v) => !v)}
+                  className="ui-icon"
                 >
-                  {showPass ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {show ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               }
             />
-
             {error && (
-              <div className="flex items-start gap-2.5 px-3 py-2.5 bg-red-500/8 border border-red-500/20 rounded-lg">
-                <AlertCircle className="h-4 w-4 text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-red-400">{error}</p>
-              </div>
+              <p role="alert" className="ui-error">
+                {error}
+              </p>
             )}
-
-            <Button
-              type="submit"
-              className="w-full mt-2"
-              size="lg"
-              loading={loading}
+            <button
+              className="ui-button primary !w-full !py-2.5"
+              disabled={loading}
             >
-              {loading ? "인증 중…" : "로그인"}
-            </Button>
+              {loading ? "로그인 중…" : "로그인"}
+              <ArrowRight size={14} />
+            </button>
           </form>
-
-          {/* Hint */}
-          <p className="text-center text-[10px] text-[#52526c] mt-6">
-            접근 제한 · Scoor 어드민 v1.0
+          <p className="mt-6 text-center text-[11px] text-text-tertiary">
+            등록된 관리자만 접근할 수 있습니다.
           </p>
         </div>
       </div>
-    </div>
+      <footer className="px-7 py-5 text-[11px] text-text-tertiary">
+        SCOOR · ADMIN WORKSPACE
+      </footer>
+    </main>
   );
 }

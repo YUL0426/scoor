@@ -14,17 +14,17 @@ enum StatsPeriod: String, CaseIterable {
 
     var label: String {
         switch self {
-        case .daily: return "Daily"
-        case .weekly: return "Weekly"
-        case .monthly: return "Monthly"
+        case .daily: return String(localized: "Daily")
+        case .weekly: return String(localized: "Weekly")
+        case .monthly: return String(localized: "Monthly")
         }
     }
 
     var headerTitle: String {
         switch self {
-        case .daily: return "Today"
-        case .weekly: return "Advanced Insights"
-        case .monthly: return "Monthly Pattern"
+        case .daily: return String(localized: "TODAY")
+        case .weekly: return String(localized: "Advanced Insights")
+        case .monthly: return String(localized: "Monthly Pattern")
         }
     }
 }

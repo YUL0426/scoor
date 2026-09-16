@@ -3,7 +3,7 @@
 //  Scoor
 //
 //  앱 진입점. 단일 코디네이터(AppFlowCoordinator)가 라우팅한다.
-//  - Splash → Signup(4단계) → Onboarding Tour → First Scoor → Main
+//  - Splash → Stories + social sign-in → Main. Optional setup remains in settings.
 //  - 코디네이터는 마지막 단계를 UserDefaults에 저장하므로 흐름 중간 종료 후 재개 가능.
 //
 
@@ -28,8 +28,20 @@ enum UITestSupport {
 
     /// Whether the UI test runner asked for a fresh slate on this launch.
     static var wantsCleanState: Bool {
+        #if DEBUG
         ProcessInfo.processInfo.arguments.contains("-uitests-reset")
+        #else
+        false
+        #endif
     }
+
+    #if DEBUG
+    /// Enables the in-memory private-journal fixture used only by App Store UI screenshot tests.
+    /// The entire hook is compiled out of Release builds.
+    static var wantsAppStoreScreenshotFixture: Bool {
+        ProcessInfo.processInfo.arguments.contains("-appstore-screenshot-fixture")
+    }
+    #endif
 
     /// UserDefaults keys holding onboarding progress + the mock user's identity /
     /// profile. Mirrors the keys written by `AppFlowCoordinator` and
@@ -54,6 +66,9 @@ enum UITestSupport {
         guard wantsCleanState else { return }
         let defaults = UserDefaults.standard
         for key in stateKeys { defaults.removeObject(forKey: key) }
+        for key in defaults.dictionaryRepresentation().keys where key.hasPrefix("scoor.legal.") {
+            defaults.removeObject(forKey: key)
+        }
     }
 
     /// Delete every persisted score so the calendar / home start empty.
@@ -90,6 +105,15 @@ struct ScoorApp: App {
         // onboarding/identity defaults *before* services/coordinator read them.
         UITestSupport.prepareCleanStateIfNeeded()
 
+        #if DEBUG
+        // Screenshot captures skip onboarding and use only an in-memory private fixture.
+        // This branch is not present in Release archives.
+        if UITestSupport.wantsAppStoreScreenshotFixture {
+            UserDefaults.standard.set(AppFlowCoordinator.Stage.main.rawValue, forKey: "scoor.appFlow")
+            UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+        }
+        #endif
+
         let container: ModelContainer
         do {
             container = try ModelContainer(
@@ -112,15 +136,26 @@ struct ScoorApp: App {
         let auth = AuthService()
         _authService = StateObject(wrappedValue: auth)
         // Inject the container's mainContext so saved scores persist to disk.
+        #if DEBUG
+        if UITestSupport.wantsAppStoreScreenshotFixture {
+            _services = StateObject(wrappedValue: AppServices.appStoreScreenshotFixture())
+        } else {
+            _services = StateObject(wrappedValue: AppServices(
+                modelContext: container.mainContext,
+                authService: auth
+            ))
+        }
+        #else
         _services = StateObject(wrappedValue: AppServices(
             modelContext: container.mainContext,
             authService: auth
         ))
+        #endif
     }
 
     var body: some Scene {
         WindowGroup {
-            RootFlowView()
+            AppEntryView()
                 .preferredColorScheme(AppAppearance(rawValue: appearanceRaw)?.colorScheme)
                 .environmentObject(coordinator)
                 .environmentObject(services)
@@ -137,6 +172,12 @@ struct ScoorApp: App {
                     // 사용자 플로우를 막지 않는다.
                     guard phase == .active, !AppEnvironment.isRunningUnitTests else { return }
                     services.syncScores(userId: authService.currentSession?.userID)
+                }
+                .onReceive(services.legalConsent.$readyUserID) { userID in
+                    Task { @MainActor in
+                        await Task.yield()
+                        services.syncScores(userId: userID)
+                    }
                 }
                 .onChange(of: authService.currentSession?.userID) { _, userID in
                     // 로그인 직후: 큐에 쌓인 로컬 기록을 올리고 서버 기록을 내려받는다.
@@ -164,12 +205,37 @@ struct RootFlowView: View {
             // 각 stage가 자체 배경을 그리므로 베이스만 깔아둔다.
             Color.black.ignoresSafeArea()
 
-            currentStageView
+            if coordinator.stage == .splash || isAuthenticating {
+                // Keep the entry screen mounted while the provider and receipt finish.
+                currentStageView.transition(.opacity)
+            } else {
+                ConsentGate(service: services.legalConsent) {
+                    currentStageView.transition(.opacity)
+                }
                 .transition(.opacity)
+            }
 
             if isAuthenticating {
                 Color.black.opacity(0.35).ignoresSafeArea()
                 ProgressView().tint(.white).scaleEffect(1.3)
+            }
+        }
+        .onReceive(services.legalConsent.$readyUserID) { userID in
+            Task { @MainActor in
+                await Task.yield()
+                guard let userID, !isAuthenticating,
+                      services.legalConsent.permits(userID),
+                      let session = authService.currentSession, session.userID == userID,
+                      let provider = session.providerKind,
+                      coordinator.stage == .signupWelcome || coordinator.stage == .signupLogin else { return }
+                // Resume a login whose consent RPC previously failed, without asking
+                // the user to authenticate a second time or skipping account migration.
+                let previousUserID = await services.userService.getCurrentUser()?.id
+                await services.userService.applyAuthenticatedIdentity(
+                    provider: session.provider, userID: userID,
+                    email: session.email, displayName: session.fullName)
+                await services.adoptSignedInAccount(previousLocalUserID: previousUserID, accountUserID: userID)
+                coordinator.completeAuthentication(provider: provider, email: session.email)
             }
         }
         .installGlobalKeyboardDismiss()
@@ -197,6 +263,8 @@ struct RootFlowView: View {
                 // there is no way to know which id the local rows belong to.
                 let previousUserID = await services.userService.getCurrentUser()?.id
                 let identity = try await authService.signIn(with: provider)
+                try await services.legalConsent.acceptTerms(
+                    action: provider == .apple ? .apple : .google, userID: identity.resolvedUserID)
                 await services.userService.applyAuthenticatedIdentity(
                     provider: provider.rawValue,
                     userID: identity.resolvedUserID,
@@ -218,16 +286,15 @@ struct RootFlowView: View {
 
     @ViewBuilder
     private var currentStageView: some View {
+        if !authService.isSignedIn && coordinator.stage != .splash && coordinator.stage != .signupLogin {
+            signupEntry
+        } else {
         switch coordinator.stage {
         case .splash:
             SplashView { coordinator.didFinishSplash() }
 
         case .signupWelcome:
-            SignupWelcomeView(
-                onApple: { performSocialSignIn(.apple) },
-                onGoogle: { performSocialSignIn(.google) },
-                onEmail: { coordinator.continueFromWelcome() }
-            )
+            signupEntry
 
         case .signupLogin:
             SignupLoginOptionsView { provider, email in
@@ -236,9 +303,13 @@ struct RootFlowView: View {
                 // provider sign-in.
                 if provider == .email {
                     Task {
+                        isAuthenticating = true
+                        defer { isAuthenticating = false }
                         // Adopt the deterministic email identity so records keyed by
                         // userId survive sign-out/sign-in cycles (P0-7).
                         if let session = authService.currentSession, session.providerKind == .email {
+                            do { try await services.legalConsent.acceptTerms(action: .email, userID: session.userID) }
+                            catch { authError = error.localizedDescription; return }
                             let previousUserID = await services.userService.getCurrentUser()?.id
                             await services.userService.applyAuthenticatedIdentity(
                                 provider: session.provider,
@@ -294,6 +365,15 @@ struct RootFlowView: View {
         case .main:
             ContentView()
         }
+        }
+    }
+
+    private var signupEntry: some View {
+        SignupWelcomeView(
+            onApple: { performSocialSignIn(.apple) },
+            onGoogle: { performSocialSignIn(.google) },
+            onEmail: { coordinator.continueFromWelcome() }
+        )
     }
 
     /// 첫 점수를 mock score service에 기록하고 success로 이동.
@@ -313,4 +393,23 @@ struct RootFlowView: View {
     RootFlowView()
         .environmentObject(AppFlowCoordinator())
         .environmentObject(AppServices())
+}
+
+private struct AppEntryView: View {
+    @EnvironmentObject private var auth: AuthService
+    var body: some View {
+        Group {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-uitests-consent-recovery") { ConsentRecoveryFixture() }
+            else { RootFlowView() }
+            #else
+            RootFlowView()
+            #endif
+        }
+        .alert(LegalPolicy.text("계정이 삭제됐어요", "Account deleted"), isPresented: $auth.deletionNeedsAppleFollowup) {
+            Button(LegalPolicy.text("확인", "OK"), role: .cancel) {}
+        } message: {
+            Text(LegalPolicy.text("Apple 로그인 연결 해제가 아직 완료되지 않았어요. iPhone 설정의 Apple 계정 → Apple로 로그인 → Scoor에서도 연결을 해제할 수 있어요.", "Apple sign-in access has not yet been revoked. You can also remove Scoor in iPhone Settings → Apple Account → Sign in with Apple."))
+        }
+    }
 }

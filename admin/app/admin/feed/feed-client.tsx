@@ -1,19 +1,17 @@
 "use client";
-
-/**
- * 피드 큐레이션 + 모더레이션.
- *
- * 여기서 등록하는 글은 전부 **공식 글**이다 (author_id 없음, 앱에서 "Scoor" +
- * 배지). 앱에 아직 작성 UI가 없어 출시 시점 피드는 이 글들로 채워지는데,
- * 운영자 글을 일반 사용자 글처럼 보이게 만드는 순간 P0-1이 지적한 가짜 소셜
- * 데이터로 되돌아가기 때문에 그 구분은 스키마(check 제약)와 앱 렌더링 양쪽에서
- * 강제된다.
- *
- * 사용자 글은 등록할 수 없고 숨김/삭제만 된다 — 이 화면의 모더레이션 절반이다.
- */
-
-import { useCallback, useEffect, useState } from "react";
-import { Loader2, Plus, Eye, EyeOff, Trash2, RefreshCw, Heart, MessageCircle } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import {
+  Loader2,
+  Plus,
+  Eye,
+  EyeOff,
+  Trash2,
+  Heart,
+  MessageCircle,
+  Rss,
+} from "lucide-react";
+import { CreateDialog, ListToolbar } from "@/components/admin/content-tools";
 import {
   POST_MOODS,
   POST_MOOD_LABELS,
@@ -21,41 +19,33 @@ import {
   type AdminPost,
   type PostMood,
 } from "@/types";
-
 const WEATHER_GLYPH: Record<string, string> = {
-  sunny: "☀️", cloudy: "☁️", rainy: "🌧️", snowy: "❄️", night: "🌙",
+  sunny: "☀️",
+  cloudy: "☁️",
+  rainy: "🌧️",
+  snowy: "❄️",
+  night: "🌙",
 };
-
-function moodLabel(raw: string): string {
-  return (POST_MOOD_LABELS as Record<string, string>)[raw] ?? raw;
-}
-
-/** iOS `ScoreTone`과 같은 구간. 어드민에서도 같은 색으로 읽혀야 한다. */
-function scoreColor(score: number): string {
-  if (score >= 86) return "#ff4d4d";
-  if (score >= 71) return "#f29d71";
-  if (score >= 51) return "#f4f4f6";
-  if (score >= 31) return "#8b8ba4";
-  return "#52526c";
-}
-
+const moodLabel = (raw: string) =>
+  (POST_MOOD_LABELS as Record<string, string>)[raw] ?? raw;
+const messageOf = (e: unknown) =>
+  e instanceof Error ? e.message : "다시 시도해 주세요.";
 async function fetchPosts(): Promise<AdminPost[]> {
-  const response = await fetch("/api/feed", { cache: "no-store" });
-  const body = (await response.json()) as { posts?: AdminPost[]; error?: string };
-  if (!response.ok) throw new Error(body.error ?? "피드를 불러오지 못했습니다.");
-  return body.posts ?? [];
+  const r = await fetch("/api/feed", { cache: "no-store" });
+  const b = await r.json();
+  if (!r.ok) throw new Error(b.error ?? "피드를 불러오지 못했습니다.");
+  return b.posts ?? [];
 }
-
-function messageOf(error: unknown): string {
-  return error instanceof Error ? error.message : "문제가 발생했습니다.";
-}
-
 export function FeedClient() {
-  const [posts, setPosts] = useState<AdminPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [pendingId, setPendingId] = useState<string | null>(null);
-
+  const [posts, setPosts] = useState<AdminPost[]>([]),
+    [isLoading, setIsLoading] = useState(true),
+    [error, setError] = useState<string | null>(null),
+    [pendingId, setPendingId] = useState<string | null>(null);
+  const [query, setQuery] = useState(""),
+    [filter, setFilter] = useState("all"),
+    [createOpen, setCreateOpen] = useState(false),
+    [notice, setNotice] = useState(""),
+    [deleteTarget, setDeleteTarget] = useState<AdminPost | null>(null);
   const load = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -67,45 +57,56 @@ export function FeedClient() {
       setIsLoading(false);
     }
   }, []);
-
   useEffect(() => {
     let cancelled = false;
     fetchPosts()
-      .then((list) => { if (!cancelled) setPosts(list); })
-      .catch((e: unknown) => { if (!cancelled) setError(messageOf(e)); })
-      .finally(() => { if (!cancelled) setIsLoading(false); });
-    return () => { cancelled = true; };
-  }, []);
-
-  async function setHidden(post: AdminPost, isHidden: boolean) {
-    setPendingId(post.id);
-    setError(null);
-    try {
-      const response = await fetch(`/api/feed/${post.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isHidden }),
+      .then((rows) => {
+        if (!cancelled) setPosts(rows);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(messageOf(e));
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
       });
-      const body = (await response.json()) as { error?: string };
-      if (!response.ok) throw new Error(body.error ?? "글을 수정하지 못했습니다.");
-      setPosts((current) => current.map((p) => (p.id === post.id ? { ...p, isHidden } : p)));
-    } catch (e) {
-      setError(messageOf(e));
-    } finally {
-      setPendingId(null);
-    }
-  }
-
-  async function remove(post: AdminPost) {
-    if (!window.confirm("이 글을 삭제할까요? 앱에서 즉시 사라집니다.")) return;
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  async function update(post: AdminPost, remove = false) {
+    if (pendingId) return;
     setPendingId(post.id);
     setError(null);
+    setNotice("");
     try {
-      const response = await fetch(`/api/feed/${post.id}`, { method: "DELETE" });
-      const body = (await response.json()) as { error?: string };
-      if (!response.ok) throw new Error(body.error ?? "글을 삭제하지 못했습니다.");
-      setPosts((current) =>
-        current.map((p) => (p.id === post.id ? { ...p, deletedAt: new Date().toISOString() } : p))
+      const r = await fetch(`/api/feed/${post.id}`, {
+        method: remove ? "DELETE" : "PATCH",
+        headers: { "Content-Type": "application/json" },
+        ...(!remove
+          ? { body: JSON.stringify({ isHidden: !post.isHidden }) }
+          : {}),
+      });
+      const b = await r.json();
+      if (!r.ok) throw new Error(b.error ?? "글을 변경하지 못했습니다.");
+      setPosts((rows) =>
+        rows.map((p) =>
+          p.id === post.id
+            ? {
+                ...p,
+                ...(remove
+                  ? { deletedAt: new Date().toISOString() }
+                  : { isHidden: !p.isHidden }),
+              }
+            : p,
+        ),
+      );
+      setDeleteTarget(null);
+      setNotice(
+        remove
+          ? "글을 삭제했습니다."
+          : post.isHidden
+            ? "숨김을 해제했습니다."
+            : "앱에서 글을 숨겼습니다.",
       );
     } catch (e) {
       setError(messageOf(e));
@@ -113,146 +114,246 @@ export function FeedClient() {
       setPendingId(null);
     }
   }
-
-  const visibleCount = posts.filter((p) => !p.isHidden && !p.deletedAt).length;
-  const officialCount = posts.filter((p) => p.isOfficial && !p.isHidden && !p.deletedAt).length;
-
+  const status = (p: AdminPost) =>
+    p.deletedAt ? "deleted" : p.isHidden ? "hidden" : "live";
+  const labels: Record<string, string> = {
+    live: "공개",
+    hidden: "숨김",
+    deleted: "삭제",
+  };
+  const count = (s: string) => posts.filter((p) => status(p) === s).length;
+  const visible = posts.filter(
+    (p) =>
+      (filter === "all" || status(p) === filter) &&
+      `${p.message} ${p.authorName ?? ""} ${moodLabel(p.primaryMood)}`
+        .toLowerCase()
+        .includes(query.toLowerCase()),
+  );
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-4">
+    <div>
+      <div className="page-intro">
+        <div>
+          <p className="ui-kicker !mb-1">콘텐츠 / FEED</p>
+          <h2>피드</h2>
+          <p>공식 메시지를 전하고, 공개된 콘텐츠를 살펴보세요.</p>
+        </div>
+        <CreateDialog
+          title="공식 글 등록"
+          description="등록하면 앱에 ‘Scoor · 공식’ 배지와 함께 바로 공개됩니다."
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+        >
+          <CreatePostForm
+            onCreated={async () => {
+              setCreateOpen(false);
+              setNotice("공식 글을 등록했습니다.");
+              await load();
+            }}
+          />
+        </CreateDialog>
+      </div>
+      <div className="ui-summary">
         {[
-          { label: "앱에 보이는 글", value: String(visibleCount), color: visibleCount > 0 ? "#22c55e" : "#f59e0b" },
-          { label: "공식 글", value: String(officialCount), color: "#4f8ef7" },
-          { label: "숨김·삭제", value: String(posts.length - visibleCount), color: "#8b8ba4" },
+          { label: "앱에 공개 중", value: count("live") },
+          { label: "숨긴 글", value: count("hidden") },
+          { label: "삭제한 글", value: count("deleted") },
         ].map((s) => (
-          <div key={s.label} className="bg-[#0d0d1f] border border-white/6 rounded-xl px-5 py-4">
-            <p className="text-xs text-[#52526c] uppercase tracking-wider mb-1">{s.label}</p>
-            <p className="text-2xl font-bold tabular-nums" style={{ color: s.color }}>{s.value}</p>
+          <div key={s.label}>
+            <p>{s.label}</p>
+            <strong>{isLoading || error ? "—" : s.value}</strong>
           </div>
         ))}
       </div>
-
-      {visibleCount === 0 && !isLoading && (
-        <p className="text-xs text-[#f59e0b]">
-          앱에 보이는 글이 없습니다 — 지금 Feed 탭은 빈 화면입니다.
-        </p>
-      )}
-
-      <CreatePostForm onCreated={load} />
-
       {error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <div role="alert" className="ui-error mb-4">
           {error}
-        </div>
-      )}
-
-      <div className="bg-[#0d0d1f] border border-white/6 rounded-xl overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-white/6">
-          <h2 className="text-sm font-semibold text-[#f4f4f6]">글 목록</h2>
-          <button
-            onClick={() => void load()}
-            className="flex items-center gap-1.5 text-xs text-[#8b8ba4] hover:text-[#f4f4f6] transition-colors"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            새로고침
+          <button className="ui-button ml-auto" onClick={() => void load()}>
+            다시 시도
           </button>
         </div>
-
+      )}
+      {notice && (
+        <p role="status" className="mb-4 text-xs text-[#8ccbb0]">
+          {notice}
+        </p>
+      )}
+      <section className="ui-panel" aria-label="피드 목록">
+        <ListToolbar
+          query={query}
+          onQuery={setQuery}
+          filter={filter}
+          onFilter={setFilter}
+          tabs={[
+            { value: "all", label: "전체", count: posts.length },
+            ...["live", "hidden", "deleted"].map((s) => ({
+              value: s,
+              label: labels[s],
+              count: count(s),
+            })),
+          ]}
+          loading={isLoading}
+          onRefresh={() => void load()}
+        />
         {isLoading ? (
-          <div className="flex items-center justify-center py-14 text-[#52526c]">
-            <Loader2 className="h-5 w-5 animate-spin" />
+          <div className="ui-empty" role="status">
+            <Loader2 size={20} className="animate-spin" />
+            피드를 불러오는 중
           </div>
-        ) : posts.length === 0 ? (
-          <div className="py-14 text-center">
-            <p className="text-sm text-[#8b8ba4]">아직 글이 없습니다.</p>
-            <p className="text-xs text-[#52526c] mt-1">
-              위에서 첫 글을 등록해주세요 — 글이 없으면 앱 Feed 탭이 빈 화면이 됩니다.
-            </p>
+        ) : error && !posts.length ? (
+          <div className="ui-empty">
+            <strong>피드를 확인할 수 없습니다</strong>
+            <span>연결을 확인한 뒤 다시 시도해 주세요.</span>
+          </div>
+        ) : !visible.length ? (
+          <div className="ui-empty">
+            <Rss size={25} strokeWidth={1.3} />
+            <strong>
+              {posts.length
+                ? "일치하는 글이 없습니다"
+                : "첫 공식 글을 등록해 보세요"}
+            </strong>
+            <span>
+              {posts.length
+                ? "검색어나 상태 필터를 바꿔 보세요."
+                : "지금 공개된 글이 없어 앱 피드도 비어 있습니다."}
+            </span>
+            {!posts.length && (
+              <button
+                className="ui-button mt-3"
+                onClick={() => setCreateOpen(true)}
+              >
+                <Plus size={13} />
+                공식 글 등록
+              </button>
+            )}
           </div>
         ) : (
-          <ul className="divide-y divide-white/6">
-            {posts.map((post) => {
-              const isPending = pendingId === post.id;
-              const isGone = Boolean(post.deletedAt);
-              return (
-                <li
-                  key={post.id}
-                  className={`flex items-start gap-4 px-5 py-4 ${isGone ? "opacity-40" : ""}`}
-                >
-                  <span
-                    className="text-lg font-bold tabular-nums w-10 text-right flex-shrink-0"
-                    style={{ color: scoreColor(post.score) }}
-                  >
-                    {post.score}
-                  </span>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-medium text-[#f4f4f6]">
-                        {post.isOfficial ? "Scoor" : (post.authorName ?? "익명")}
-                      </span>
-                      {post.isOfficial && (
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[#ff4d4d]/15 text-[#ff4d4d]">
-                          공식
-                        </span>
-                      )}
-                      <span className="text-[10px] text-[#52526c]">
-                        #{moodLabel(post.primaryMood)}
-                        {post.extraMoods.map((m) => ` #${moodLabel(m)}`).join("")}
-                        {post.weather ? ` ${WEATHER_GLYPH[post.weather] ?? ""}` : ""}
-                      </span>
-                    </div>
-                    <p className="text-sm text-[#8b8ba4] break-words">{post.message}</p>
-                    <div className="flex items-center gap-3 mt-2 text-[10px] text-[#52526c]">
-                      <span className="flex items-center gap-1">
-                        <Heart className="h-3 w-3" /> {post.likesCount}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MessageCircle className="h-3 w-3" /> {post.commentsCount}
-                      </span>
-                      <span>{new Date(post.createdAt).toLocaleString("ko-KR")}</span>
-                      {isGone && <span className="text-[#f59e0b]">삭제됨</span>}
-                      {post.isHidden && !isGone && <span className="text-[#f59e0b]">숨김</span>}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 flex-shrink-0 w-20 justify-end pt-1">
-                    {isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-[#52526c]" />
-                    ) : isGone ? null : (
-                      <>
-                        <IconButton
-                          title={post.isHidden ? "숨김 해제" : "숨기기"}
-                          onClick={() => void setHidden(post, !post.isHidden)}
-                          icon={post.isHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                        />
-                        <IconButton
-                          title="삭제"
-                          onClick={() => void remove(post)}
-                          icon={<Trash2 className="h-3.5 w-3.5" />}
-                        />
-                      </>
+          <ul>
+            {visible.map((post) => (
+              <li key={post.id} className="ui-row !items-start">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/3 text-base font-medium tabular-nums">
+                  {post.score}
+                </div>
+                <div className="min-w-[140px] flex-1">
+                  <div className="mb-1 flex items-center gap-2 text-xs">
+                    <span className="font-medium">
+                      {post.isOfficial ? "Scoor" : (post.authorName ?? "익명")}
+                    </span>
+                    {post.isOfficial && (
+                      <span className="text-[10px] text-brand-light">공식</span>
                     )}
+                    <span className="text-text-tertiary">
+                      · {moodLabel(post.primaryMood)}
+                    </span>
                   </div>
-                </li>
-              );
-            })}
+                  <p
+                    className={`text-[13px] leading-relaxed ${post.deletedAt ? "text-text-tertiary line-through" : "text-text-primary"}`}
+                  >
+                    {post.message}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-text-tertiary">
+                    <span className="flex items-center gap-1">
+                      <Heart size={11} />
+                      {post.likesCount}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MessageCircle size={11} />
+                      {post.commentsCount}
+                    </span>
+                    <time dateTime={post.createdAt}>
+                      {new Date(post.createdAt).toLocaleDateString("ko-KR")}
+                    </time>
+                  </div>
+                </div>
+                <span
+                  className={`ui-pill ${status(post) === "live" ? "live" : "draft"}`}
+                >
+                  {labels[status(post)]}
+                </span>
+                <fieldset
+                  className="flex min-w-[64px] justify-end gap-1"
+                  disabled={pendingId !== null}
+                  aria-label={`${post.message} 작업`}
+                >
+                  {pendingId === post.id ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    !post.deletedAt && (
+                      <>
+                        <button
+                          className="ui-icon"
+                          aria-label={`${post.message} ${post.isHidden ? "숨김 해제" : "숨기기"}`}
+                          title={post.isHidden ? "숨김 해제" : "숨기기"}
+                          onClick={() => void update(post)}
+                        >
+                          {post.isHidden ? (
+                            <Eye size={15} />
+                          ) : (
+                            <EyeOff size={15} />
+                          )}
+                        </button>
+                        <button
+                          className="ui-icon hover:!text-red-300"
+                          aria-label={`${post.message} 삭제`}
+                          title="삭제"
+                          onClick={() => {
+                            setError(null);
+                            setDeleteTarget(post);
+                          }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </>
+                    )
+                  )}
+                </fieldset>
+              </li>
+            ))}
           </ul>
         )}
-      </div>
+        <div className="border-t border-white/8 px-4 py-3 text-[11px] text-text-tertiary">
+          {visible.length}개 표시 · 최근 200개 범위
+        </div>
+      </section>
+      <Dialog.Root
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open && !pendingId) setDeleteTarget(null);
+        }}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay className="dialog-overlay" />
+          <Dialog.Content className="dialog-content !max-w-[440px]">
+            <Dialog.Title className="text-lg font-semibold">
+              이 글을 삭제할까요?
+            </Dialog.Title>
+            <Dialog.Description className="mt-2 text-sm text-text-secondary">
+              앱에서 즉시 사라지며, 이 화면에서 되돌릴 수 없습니다.
+            </Dialog.Description>
+            <blockquote className="my-5 rounded-md border border-white/10 bg-black/10 p-3 text-sm text-text-secondary">
+              {deleteTarget?.message}
+            </blockquote>
+            {error && (
+              <p role="alert" className="mb-4 text-xs text-red-300">
+                {error}
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <Dialog.Close className="ui-button" disabled={pendingId !== null}>
+                취소
+              </Dialog.Close>
+              <button
+                className="ui-button primary"
+                disabled={pendingId !== null}
+                onClick={() => deleteTarget && void update(deleteTarget, true)}
+              >
+                {pendingId ? "삭제 중…" : "글 삭제"}
+              </button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
-  );
-}
-
-function IconButton({ title, onClick, icon }: { title: string; onClick: () => void; icon: React.ReactNode }) {
-  return (
-    <button
-      title={title}
-      onClick={onClick}
-      className="p-1.5 rounded-md text-[#8b8ba4] hover:text-[#f4f4f6] hover:bg-white/5 transition-colors"
-    >
-      {icon}
-    </button>
   );
 }
 
@@ -275,10 +376,16 @@ function CreatePostForm({ onCreated }: { onCreated: () => Promise<void> }) {
       const response = await fetch("/api/feed", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ score, message: message.trim(), primaryMood, weather: weather || undefined }),
+        body: JSON.stringify({
+          score,
+          message: message.trim(),
+          primaryMood,
+          weather: weather || undefined,
+        }),
       });
       const body = (await response.json()) as { error?: string };
-      if (!response.ok) throw new Error(body.error ?? "글을 등록하지 못했습니다.");
+      if (!response.ok)
+        throw new Error(body.error ?? "글을 등록하지 못했습니다.");
       setMessage("");
       await onCreated();
     } catch (e) {
@@ -289,62 +396,58 @@ function CreatePostForm({ onCreated }: { onCreated: () => Promise<void> }) {
   }
 
   return (
-    <form onSubmit={submit} className="bg-[#0d0d1f] border border-white/6 rounded-xl p-5 space-y-4">
-      <div className="flex items-center gap-2">
-        <Plus className="h-4 w-4 text-[#8b8ba4]" />
-        <h2 className="text-sm font-semibold text-[#f4f4f6]">공식 글 등록</h2>
-        <span className="text-xs text-[#52526c]">
-          앱에서 &ldquo;Scoor · 공식&rdquo; 배지와 함께 보입니다
-        </span>
-      </div>
-
-      <div className="grid grid-cols-[120px_1fr] gap-3">
+    <form onSubmit={submit} className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-3">
         <label className="space-y-1.5">
-          <span className="block text-xs text-[#8b8ba4]">점수</span>
+          <span className="block text-xs text-[#a2a4ac]">점수</span>
           <input
             type="number"
             min={0}
             max={100}
             value={score}
             onChange={(e) => setScore(Number(e.target.value))}
-            className="w-full bg-[#08081a] border border-white/8 rounded-lg px-3 py-2 text-sm text-[#f4f4f6] tabular-nums"
+            className="w-full bg-[#141517] border border-white/8 rounded-lg px-3 py-2 text-sm text-[#ededee] tabular-nums"
           />
         </label>
         <label className="space-y-1.5">
-          <span className="block text-xs text-[#8b8ba4]">본문 (280자)</span>
+          <span className="block text-xs text-[#a2a4ac]">본문 (280자)</span>
           <input
             value={message}
             maxLength={280}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="오늘 하루는 몇 점인가요?"
-            className="w-full bg-[#08081a] border border-white/8 rounded-lg px-3 py-2 text-sm text-[#f4f4f6]"
+            className="w-full bg-[#141517] border border-white/8 rounded-lg px-3 py-2 text-sm text-[#ededee]"
           />
         </label>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <label className="space-y-1.5">
-          <span className="block text-xs text-[#8b8ba4]">감정</span>
+          <span className="block text-xs text-[#a2a4ac]">감정</span>
           <select
             value={primaryMood}
             onChange={(e) => setPrimaryMood(e.target.value as PostMood)}
-            className="w-full bg-[#08081a] border border-white/8 rounded-lg px-3 py-2 text-sm text-[#f4f4f6]"
+            className="w-full bg-[#141517] border border-white/8 rounded-lg px-3 py-2 text-sm text-[#ededee]"
           >
             {POST_MOODS.map((m) => (
-              <option key={m} value={m}>{POST_MOOD_LABELS[m]}</option>
+              <option key={m} value={m}>
+                {POST_MOOD_LABELS[m]}
+              </option>
             ))}
           </select>
         </label>
         <label className="space-y-1.5">
-          <span className="block text-xs text-[#8b8ba4]">날씨 (선택)</span>
+          <span className="block text-xs text-[#a2a4ac]">날씨 (선택)</span>
           <select
             value={weather}
             onChange={(e) => setWeather(e.target.value)}
-            className="w-full bg-[#08081a] border border-white/8 rounded-lg px-3 py-2 text-sm text-[#f4f4f6]"
+            className="w-full bg-[#141517] border border-white/8 rounded-lg px-3 py-2 text-sm text-[#ededee]"
           >
             <option value="">없음</option>
             {POST_WEATHERS.map((w) => (
-              <option key={w} value={w}>{WEATHER_GLYPH[w]} {w}</option>
+              <option key={w} value={w}>
+                {WEATHER_GLYPH[w]} {w}
+              </option>
             ))}
           </select>
         </label>

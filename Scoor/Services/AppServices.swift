@@ -10,7 +10,9 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+@MainActor
 final class AppServices: ObservableObject {
+    let legalConsent: LegalConsentService
     let scoreService: ScoreServiceProtocol
     let userService: UserServiceProtocol
     let guestbookService: GuestbookServiceProtocol
@@ -49,8 +51,10 @@ final class AppServices: ObservableObject {
         remoteScoreService: RemoteScoreService? = nil,
         worldService: RemoteWorldService? = nil,
         moderationService: RemoteModerationService? = nil,
-        feedService: RemoteFeedService? = nil
+        feedService: RemoteFeedService? = nil,
+        legalConsent: LegalConsentService? = nil
     ) {
+        self.legalConsent = legalConsent ?? LegalConsentService()
         self.scoreService = scoreService
         self.userService = userService
         self.guestbookService = guestbookService
@@ -85,7 +89,10 @@ final class AppServices: ObservableObject {
         if let config = SupabaseConfig.current, let authService {
             let client = SupabaseHTTPClient(config: config, tokenProvider: authService)
             httpClient = client
-            remoteScores = RemoteScoreService(local: localScores, client: client)
+            remoteScores = RemoteScoreService(local: localScores, client: client,
+                                              currentUserID: { [weak authService] in
+                authService?.currentSession?.userID
+            })
             // Reads the id at call time rather than capturing it: the session can
             // change (sign-out, account switch) while these services live on.
             let currentUserID: () -> UUID? = { [weak authService] in
@@ -105,8 +112,12 @@ final class AppServices: ObservableObject {
             remoteScoreService: remoteScores,
             worldService: world,
             moderationService: moderation,
-            feedService: feed
+            feedService: feed,
+            legalConsent: LegalConsentService(client: httpClient)
         )
+        remoteScores?.consentAllowsSync = { [weak legalConsent = self.legalConsent] userID in
+            legalConsent?.allowsWrites(userID) == true
+        }
         self.accountMigrator = AccountMigrator(
             scoreService: scoreService,
             guestbookService: guestbook,
@@ -121,7 +132,7 @@ final class AppServices: ObservableObject {
     /// backend or no signed-in user.
     @MainActor
     func syncScores(userId: UUID?) {
-        guard let userId, let remoteScoreService else { return }
+        guard let userId, legalConsent.allowsWrites(userId), let remoteScoreService else { return }
         remoteScoreService.sync(userId: userId)
     }
 
@@ -132,6 +143,7 @@ final class AppServices: ObservableObject {
     ///   `applyAuthenticatedIdentity` swapped it.
     @MainActor
     func adoptSignedInAccount(previousLocalUserID: UUID?, accountUserID: UUID) async {
+        guard legalConsent.permits(accountUserID) else { return }
         await accountMigrator?.migrateIfNeeded(from: previousLocalUserID, to: accountUserID)
         syncScores(userId: accountUserID)
     }
@@ -142,3 +154,50 @@ final class AppServices: ObservableObject {
         await remoteScoreService?.lastSyncedAt()
     }
 }
+
+#if DEBUG
+// MARK: - App Store screenshot fixture
+
+extension AppServices {
+    /// A strictly in-memory, private journal fixture for App Store UI capture.
+    /// This is compiled only into DEBUG builds and deliberately has no remote
+    /// services, auth token provider, SwiftData store, or notification center.
+    @MainActor
+    static func appStoreScreenshotFixture() -> AppServices {
+        let isKorean = Locale.preferredLanguages.first?.hasPrefix("ko") == true
+        let userID = UUID(uuidString: "A55A5A55-0000-4000-8000-000000000001")!
+        let user = User(
+            id: userID,
+            username: "scoor_demo",
+            email: "demo@scoor.local",
+            bio: isKorean ? "예시로 작성한 개인 기록" : "Sample private journal entries"
+        )
+        let reasons = isKorean
+            ? ["오랜만에 여유 있는 저녁", "집중해서 마무리한 하루", "가벼운 산책으로 환기", "좋아하는 사람과의 저녁", "차분히 나를 돌본 날", "작지만 분명한 진전", "일찍 잠든 덕분에 개운함"]
+            : ["An unhurried evening", "A focused finish to the day", "A refreshing walk", "Dinner with someone I love", "A calm moment for myself", "Small but real progress", "Rested well and woke up clear"]
+        let values = [86, 78, 72, 91, 68, 83, 76, 88, 74, 80, 66, 85, 70, 93, 77, 82, 71, 89, 75, 84, 79]
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let scores = values.enumerated().compactMap { index, value -> Score? in
+            guard let date = calendar.date(byAdding: .day, value: -index, to: today) else { return nil }
+            return Score(
+                userId: userID,
+                value: value,
+                reason: reasons[index % reasons.count],
+                date: date,
+                createdAt: date.addingTimeInterval(43_200)
+            )
+        }
+
+        return AppServices(
+            scoreService: MockScoreService(seedScores: scores),
+            userService: MockUserService(seedCurrentUser: user),
+            guestbookService: MockGuestbookService(),
+            notificationService: MockNotificationService(),
+            socialService: MockSocialService(),
+            worldService: ProcessInfo.processInfo.arguments.contains("-appstore-world-screenshot-fixture")
+                ? AppStoreWorldScreenshotFixture.makeService() : nil
+        )
+    }
+}
+#endif

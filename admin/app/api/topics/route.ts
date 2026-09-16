@@ -10,8 +10,17 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/server/guard";
-import { supabaseAdminConfig, supabaseRest, SupabaseRestError } from "@/lib/server/supabase";
-import { TOPIC_CATEGORIES, TOPIC_STATUSES, type AdminTopic, type TopicStatus } from "@/types";
+import {
+  supabaseAdminConfig,
+  supabaseRest,
+  SupabaseRestError,
+} from "@/lib/server/supabase";
+import {
+  TOPIC_CATEGORIES,
+  TOPIC_STATUSES,
+  type AdminTopic,
+  type TopicStatus,
+} from "@/types";
 
 /** Mirrors `public.topics` plus the aggregate columns of `topics_feed`. */
 interface TopicRow {
@@ -38,7 +47,13 @@ export async function GET() {
 
   const config = supabaseAdminConfig();
   if (!config) {
-    return NextResponse.json({ error: "백엔드가 설정되지 않았습니다. admin/.env.local의 SUPABASE_URL·SUPABASE_SERVICE_ROLE_KEY를 확인해주세요." }, { status: 503 });
+    return NextResponse.json(
+      {
+        error:
+          "백엔드가 설정되지 않았습니다. admin/.env.local의 SUPABASE_URL·SUPABASE_SERVICE_ROLE_KEY를 확인해주세요.",
+      },
+      { status: 503 },
+    );
   }
 
   try {
@@ -81,14 +96,23 @@ export async function POST(request: NextRequest) {
 
   const config = supabaseAdminConfig();
   if (!config) {
-    return NextResponse.json({ error: "백엔드가 설정되지 않았습니다. admin/.env.local의 SUPABASE_URL·SUPABASE_SERVICE_ROLE_KEY를 확인해주세요." }, { status: 503 });
+    return NextResponse.json(
+      {
+        error:
+          "백엔드가 설정되지 않았습니다. admin/.env.local의 SUPABASE_URL·SUPABASE_SERVICE_ROLE_KEY를 확인해주세요.",
+      },
+      { status: 503 },
+    );
   }
 
   let payload: unknown;
   try {
     payload = await request.json();
   } catch {
-    return NextResponse.json({ error: "요청 본문 형식이 올바르지 않습니다." }, { status: 400 });
+    return NextResponse.json(
+      { error: "요청 본문 형식이 올바르지 않습니다." },
+      { status: 400 },
+    );
   }
 
   const parsed = parseCreate(payload);
@@ -123,8 +147,11 @@ interface CreatePayload {
  * guarantee; this layer exists so a typo comes back as a readable message
  * instead of a raw constraint violation.
  */
-function parseCreate(input: unknown): { value: CreatePayload } | { error: string } {
-  if (typeof input !== "object" || input === null) return { error: "요청 본문은 객체여야 합니다." };
+function parseCreate(
+  input: unknown,
+): { value: CreatePayload } | { error: string } {
+  if (typeof input !== "object" || input === null)
+    return { error: "요청 본문은 객체여야 합니다." };
   const body = input as Record<string, unknown>;
 
   const title = typeof body.title === "string" ? body.title.trim() : "";
@@ -133,8 +160,12 @@ function parseCreate(input: unknown): { value: CreatePayload } | { error: string
   }
 
   const category = typeof body.category === "string" ? body.category : "";
-  if (!TOPIC_CATEGORIES.includes(category as (typeof TOPIC_CATEGORIES)[number])) {
-    return { error: `Category must be one of: ${TOPIC_CATEGORIES.join(", ")}.` };
+  if (
+    !TOPIC_CATEGORIES.includes(category as (typeof TOPIC_CATEGORIES)[number])
+  ) {
+    return {
+      error: `Category must be one of: ${TOPIC_CATEGORIES.join(", ")}.`,
+    };
   }
 
   const status = typeof body.status === "string" ? body.status : "draft";
@@ -142,10 +173,13 @@ function parseCreate(input: unknown): { value: CreatePayload } | { error: string
     return { error: `Status must be one of: ${TOPIC_STATUSES.join(", ")}.` };
   }
 
-  const subtitleRaw = typeof body.subtitle === "string" ? body.subtitle.trim() : "";
-  if (subtitleRaw.length > 200) return { error: "부제는 200자 이하여야 합니다." };
+  const subtitleRaw =
+    typeof body.subtitle === "string" ? body.subtitle.trim() : "";
+  if (subtitleRaw.length > 200)
+    return { error: "부제는 200자 이하여야 합니다." };
 
-  const emojiRaw = typeof body.coverEmoji === "string" ? body.coverEmoji.trim() : "";
+  const emojiRaw =
+    typeof body.coverEmoji === "string" ? body.coverEmoji.trim() : "";
 
   return {
     value: {
@@ -164,5 +198,8 @@ function errorResponse(error: unknown): NextResponse {
     const status = error.status >= 400 && error.status < 500 ? 400 : 502;
     return NextResponse.json({ error: error.message }, { status });
   }
-  return NextResponse.json({ error: "백엔드에 연결하지 못했습니다." }, { status: 502 });
+  return NextResponse.json(
+    { error: "백엔드에 연결하지 못했습니다." },
+    { status: 502 },
+  );
 }

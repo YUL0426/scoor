@@ -11,13 +11,16 @@
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { adminAuthConfig } from "@/lib/server/env";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/server/session";
 
 export async function proxy(request: NextRequest) {
-  const secret = process.env.ADMIN_SESSION_SECRET;
+  const authConfig = adminAuthConfig();
+  const secret = authConfig?.sessionSecret;
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   // Fail closed: without a configured secret no session can ever verify.
-  const session = secret ? await verifySessionToken(token, secret) : null;
+  const verified = secret ? await verifySessionToken(token, secret) : null;
+  const session = verified?.email === authConfig?.email ? verified : null;
 
   const { pathname } = request.nextUrl;
   const isLogin = pathname === "/login";

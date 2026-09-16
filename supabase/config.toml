@@ -4,6 +4,10 @@
 # working directory name when running `supabase init`.
 project_id = "Scoor"
 
+# The handler verifies user JWTs via Auth and consumes one-use DB nonces for cron.
+[functions.account-delete]
+verify_jwt = false
+
 [api]
 enabled = true
 # Port to use for the API URL.

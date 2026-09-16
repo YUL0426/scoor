@@ -39,7 +39,7 @@ struct FirstScoorPromptView: View {
                 Spacer(minLength: 0)
 
                 VStack(spacing: 6) {
-                    Text("How was your day today?")
+                    Text("How's your day? scoor!")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(ScoorPalette.inkPrimary)
                     Text("Tap your score. Trust the first feeling.")
@@ -60,7 +60,7 @@ struct FirstScoorPromptView: View {
                 ScoorKeypadView(
                     inputText: $keypadInput,
                     onDone: { Task { await submit() } },
-                    doneLabel: isSubmitting ? "···" : "Save my first Scoor",
+                    doneLabel: isSubmitting ? "···" : String(localized: "Save my first Scoor"),
                     isDoneDisabled: isSubmitting
                 )
                 .padding(.horizontal, 12)

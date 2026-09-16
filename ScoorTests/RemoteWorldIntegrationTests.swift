@@ -34,6 +34,20 @@ final class RemoteWorldIntegrationTests: XCTestCase {
     }
 
     @MainActor
+    func testPublicScoreFeedAndCategoryFilter() async throws {
+        let config = try requireConfig()
+        let client = SupabaseHTTPClient(config: config, tokenProvider: nil)
+        let service = RemoteWorldService(client: client, currentUserID: { nil })
+        let rows = try await service.scoreFeed(category: nil, limit: 5)
+        XCTAssertLessThanOrEqual(rows.count, 5)
+        for row in rows where row.reaction.isAnonymous {
+            XCTAssertEqual(row.reaction.identity.name, "익명")
+        }
+        let sports = try await service.scoreFeed(category: .sports, limit: 5)
+        XCTAssertTrue(sports.allSatisfy { $0.topic.category == "sports" })
+    }
+
+    @MainActor
     func testLoadReactionsAgainstLiveServer() async throws {
         let config = try requireConfig()
         let client = SupabaseHTTPClient(config: config, tokenProvider: nil)

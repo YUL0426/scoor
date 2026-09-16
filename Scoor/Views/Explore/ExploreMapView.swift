@@ -116,7 +116,7 @@ struct GlobalLocalToggle: View {
 
     private func toggleButton(_ title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(title)
+            Text(LocalizedStringKey(title))
                 .font(.system(size: 11, weight: .heavy))
                 .foregroundColor(isSelected ? .scoorRed : .gray)
                 .padding(.horizontal, 16)

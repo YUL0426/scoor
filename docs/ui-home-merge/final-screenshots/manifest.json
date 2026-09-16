@@ -1,0 +1,35 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "C671A78B-E9A1-46F7-8E56-11462026FEA9",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "F0EDB6DE-310F-4C3E-A6DE-5ED629D8A0A8.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "My Page — personal day archive_0_D520E9A3-F0E7-4AA4-8264-800555428CD6.png",
+        "timestamp" : 1788678206.546
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "C671A78B-E9A1-46F7-8E56-11462026FEA9",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "151DFA55-FE84-4AEB-AC8D-364240D63469.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Reason — text keyboard only_0_1351E6AE-E431-468F-BDD4-DB970850CEDD.png",
+        "timestamp" : 1788678201.676
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "C671A78B-E9A1-46F7-8E56-11462026FEA9",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "686CB12B-A866-489B-94A4-F91A78669901.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Home — shared days and inline navigation_0_FCFB6357-5489-4DDE-A7B9-AA49C7A8C7A3.png",
+        "timestamp" : 1788678198.291
+      }
+    ],
+    "testIdentifier" : "ScoorSprint1UITests/testHomeMergeAndReasonKeyboard()",
+    "testIdentifierURL" : "test://com.apple.xcode/Scoor/ScoorUITests/ScoorSprint1UITests/testHomeMergeAndReasonKeyboard"
+  }
+]

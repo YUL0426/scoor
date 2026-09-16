@@ -1,0 +1,128 @@
+{
+  "date": "2026-09-11",
+  "status": "passed",
+  "file_count": 10,
+  "domestic_originals_unchanged": true,
+  "files": [
+    {
+      "file": "upload/ko-KR/iphone-6.9/01-score.png",
+      "locale": "ko-KR",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 252371,
+      "sha256": "f627732d2b19362fbfe718fb4cfce05fa86da6a21a6e348b074cfc8ca6552010"
+    },
+    {
+      "file": "upload/ko-KR/iphone-6.9/02-world.png",
+      "locale": "ko-KR",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 439572,
+      "sha256": "60671cfd6ed25fa5a42e94d2cbb26654ed02f8528adc68adb99fed1c7d806470"
+    },
+    {
+      "file": "upload/ko-KR/iphone-6.9/03-perspectives.png",
+      "locale": "ko-KR",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 849471,
+      "sha256": "aceaf96f6b234f155342bebf8c88d5db4d0c4fb526cf8f64f1b96a1f887e7dff"
+    },
+    {
+      "file": "upload/ko-KR/iphone-6.9/04-connection.png",
+      "locale": "ko-KR",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 536456,
+      "sha256": "4f24ec156ece7479f66f5a9fbd203fc528a2e47663763cae288f0fad371737b1"
+    },
+    {
+      "file": "upload/ko-KR/iphone-6.9/05-records.png",
+      "locale": "ko-KR",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 313910,
+      "sha256": "e59427b0f4b3dcdcd39a406706a8e73095f0c78f26d804fa37d767b88b430929"
+    },
+    {
+      "file": "upload/en-US/iphone-6.9/01-score.png",
+      "locale": "en-US",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 256815,
+      "sha256": "a540329e71b3ea8e7f9700b8ce2300c7e9c84241fcfce57a35fc7959aa42f2e9"
+    },
+    {
+      "file": "upload/en-US/iphone-6.9/02-world.png",
+      "locale": "en-US",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 474366,
+      "sha256": "b96b2ac51a28df96584475b320be5c17d677a31ebfa0653ed8822530004307e4"
+    },
+    {
+      "file": "upload/en-US/iphone-6.9/03-perspectives.png",
+      "locale": "en-US",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 885753,
+      "sha256": "2448b4274a328ce13f3769775ff8188bdfc2bc907b39097992f28e76a3f3403e"
+    },
+    {
+      "file": "upload/en-US/iphone-6.9/04-connection.png",
+      "locale": "en-US",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 572995,
+      "sha256": "3f046879ec78f38b3489554058fe53af9f25e1c8ec7d16089f7b92394bf3e4d0"
+    },
+    {
+      "file": "upload/en-US/iphone-6.9/05-records.png",
+      "locale": "en-US",
+      "width": 1320,
+      "height": 2868,
+      "bit_depth": 8,
+      "color_type": "RGB",
+      "alpha": false,
+      "profile_chunk": "sRGB",
+      "bytes": 367230,
+      "sha256": "2dabb86d5fed7de4ab02a675ea14c078db4deb44c5e3c6d669639125f48a2978"
+    }
+  ]
+}

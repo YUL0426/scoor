@@ -14,7 +14,7 @@ struct OnboardingView: View {
 
     private let pages: [TourPage] = [
         .init(
-            message: "Record your day using a score.",
+            message: "How's your day? scoor!",
             caption: "No diary pressure. Just one number that remembers how today felt.",
             kind: .score
         ),
@@ -101,13 +101,13 @@ private struct TourPageView: View {
                 .padding(.horizontal, 28)
 
             VStack(spacing: 12) {
-                Text(page.message)
+                Text(LocalizedStringKey(page.message))
                     .font(.system(size: 31, weight: .black, design: .rounded))
                     .foregroundStyle(DesignTokens.textPrimary)
                     .multilineTextAlignment(.center)
                     .lineSpacing(2)
 
-                Text(page.caption)
+                Text(LocalizedStringKey(page.caption))
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(Color.black.opacity(0.50))
                     .multilineTextAlignment(.center)
@@ -223,7 +223,7 @@ private struct WorldIntroCard: View {
                         Text(city)
                             .font(.system(size: 14, weight: .black))
                             .foregroundStyle(DesignTokens.textPrimary)
-                        Text(text)
+                        Text(LocalizedStringKey(text))
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(Color.black.opacity(0.48))
                             .lineLimit(1)

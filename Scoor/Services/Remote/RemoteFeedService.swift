@@ -20,7 +20,14 @@
 import Foundation
 
 @MainActor
-final class RemoteFeedService {
+protocol HomeFeedPublishing {
+    var isAvailable: Bool { get }
+    func isDailyScoreShared(on date: Date) async throws -> Bool
+    func setDailyScore(_ score: Score, shared: Bool) async throws
+}
+
+@MainActor
+final class RemoteFeedService: HomeFeedPublishing {
 
     private let client: SupabaseHTTPClient
     private let currentUserID: () -> UUID?
@@ -29,6 +36,8 @@ final class RemoteFeedService {
         self.client = client
         self.currentUserID = currentUserID
     }
+
+    var isAvailable: Bool { currentUserID() != nil }
 
     // MARK: - Read
 
@@ -43,6 +52,109 @@ final class RemoteFeedService {
             as: [FeedPostRow].self
         )
         return rows.map { $0.toDomain() }
+    }
+
+    func loadReposts(page: Int, pageSize: Int) async throws -> [FeedEntry] {
+        guard currentUserID() != nil else { throw APIError.unauthorized }
+        let rows: [FeedPostRow] = try await client.send(
+            .select("feed_posts",
+                    filters: ["reposted_by_me": "eq.true"],
+                    order: "reposted_at.desc,id.desc", limit: pageSize, offset: page * pageSize),
+            as: [FeedPostRow].self
+        )
+        return rows.map { $0.toDomain() }
+    }
+
+    func setRepost(postId: UUID, reposted: Bool) async throws {
+        guard let userId = currentUserID() else { throw APIError.unauthorized }
+        if reposted {
+            try await client.send(try .upsert("post_reposts",
+                values: [PostLikeRow(postId: postId, userId: userId)], onConflict: "post_id,user_id"))
+        } else {
+            try await client.send(.delete("post_reposts", filters: [
+                "post_id": SupabaseRequest.eq(postId.uuidString.lowercased()),
+                "user_id": SupabaseRequest.eq(userId.uuidString.lowercased())
+            ]))
+        }
+        NotificationCenter.default.post(name: .scoorRepostsDidChange, object: nil)
+    }
+
+    // MARK: - Daily score sharing
+
+    func isDailyScoreShared(on date: Date) async throws -> Bool {
+        guard let userId = currentUserID() else { return false }
+        let rows: [ExistingDailyPostRow] = try await client.send(
+            .select(
+                "posts",
+                columns: "id",
+                filters: dailyPostFilters(userId: userId, date: date),
+                limit: 1
+            ),
+            as: [ExistingDailyPostRow].self
+        )
+        return !rows.isEmpty
+    }
+
+    /// Keeps one active home post per user/day. Editing a shared score updates
+    /// the existing post; turning sharing off soft-deletes it.
+    func setDailyScore(_ score: Score, shared: Bool) async throws {
+        guard let userId = currentUserID(), userId == score.userId else {
+            throw APIError.unauthorized
+        }
+        let filters = dailyPostFilters(userId: userId, date: score.date)
+        let existing: [ExistingDailyPostRow] = try await client.send(
+            .select("posts", columns: "id", filters: filters, limit: 1),
+            as: [ExistingDailyPostRow].self
+        )
+
+        if shared {
+            let message = score.reason?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            guard !message.isEmpty else { throw HomeFeedPublishError.reasonRequired }
+            let values = DailyPostWrite(
+                authorId: userId,
+                score: score.value,
+                message: String(message.prefix(280)),
+                primaryMood: (score.mood ?? Self.fallbackMood(for: score.value)).rawValue,
+                sourceDay: Self.dayString(score.date)
+            )
+            if let post = existing.first {
+                try await client.send(try .update(
+                    "posts",
+                    values: values,
+                    filters: ["id": SupabaseRequest.eq(post.id.uuidString.lowercased())]
+                ))
+            } else {
+                try await client.send(try .insert("posts", values: values))
+            }
+        } else if let post = existing.first {
+            try await client.send(try .update(
+                "posts",
+                values: DailyPostSoftDelete(deletedAt: Date()),
+                filters: ["id": SupabaseRequest.eq(post.id.uuidString.lowercased())]
+            ))
+        }
+
+        NotificationCenter.default.post(name: .scoorHomeFeedDidChange, object: nil)
+    }
+
+    private func dailyPostFilters(userId: UUID, date: Date) -> [String: String] {
+        [
+            "author_id": SupabaseRequest.eq(userId.uuidString.lowercased()),
+            "source_day": SupabaseRequest.eq(Self.dayString(date)),
+            "is_official": SupabaseRequest.eq("false"),
+            "deleted_at": "is.null",
+        ]
+    }
+
+    private static func dayString(_ date: Date) -> String {
+        let components = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d-%02d-%02d", components.year ?? 0, components.month ?? 0, components.day ?? 0)
+    }
+
+    private static func fallbackMood(for score: Int) -> Mood {
+        if score >= 80 { return .happy }
+        if score <= 35 { return .burnout }
+        return .calm
     }
 
     // MARK: - Likes
@@ -118,6 +230,21 @@ final class RemoteFeedService {
     }
 }
 
+enum HomeFeedPublishError: LocalizedError, Equatable {
+    case reasonRequired
+
+    var errorDescription: String? {
+        switch self {
+        case .reasonRequired: return String(localized: "홈에 공유하려면 오늘의 이유를 입력해주세요.")
+        }
+    }
+}
+
+extension Notification.Name {
+    static let scoorRepostsDidChange = Notification.Name("scoor.repostsDidChange")
+    static let scoorHomeFeedDidChange = Notification.Name("scoor.homeFeedDidChange")
+}
+
 // MARK: - Wire models
 
 /// `public.feed_posts` 한 행.
@@ -139,6 +266,8 @@ struct FeedPostRow: Decodable {
     let likesCount: Int
     let commentsCount: Int
     let likedByMe: Bool
+    let repostsCount: Int?
+    let repostedByMe: Bool?
 
     enum CodingKeys: String, CodingKey {
         case id, score, message, weather, city
@@ -154,10 +283,12 @@ struct FeedPostRow: Decodable {
         case likesCount = "likes_count"
         case commentsCount = "comments_count"
         case likedByMe = "liked_by_me"
+        case repostsCount = "reposts_count"
+        case repostedByMe = "reposted_by_me"
     }
 
     func toDomain() -> FeedEntry {
-        let name = authorName ?? "익명"
+        let name = authorName ?? String(localized: "익명")
         return FeedEntry(
             id: id,
             identity: LightIdentity(name: name,
@@ -174,10 +305,11 @@ struct FeedPostRow: Decodable {
             reactions: PostReactions(
                 likes: likesCount,
                 comments: commentsCount,
-                reposts: 0,
+                reposts: repostsCount ?? 0,
                 empathyTotal: 0,
                 likedByMe: likedByMe,
-                empathyByMe: nil
+                empathyByMe: nil,
+                repostedByMe: repostedByMe ?? false
             ),
             isOfficial: isOfficial,
             authorId: authorId
@@ -192,6 +324,36 @@ private struct PostLikeRow: Encodable {
         case postId = "post_id"
         case userId = "user_id"
     }
+}
+
+private struct ExistingDailyPostRow: Decodable {
+    let id: UUID
+}
+
+private struct DailyPostWrite: Encodable {
+    let authorId: UUID
+    let score: Int
+    let message: String
+    let primaryMood: String
+    let sourceDay: String
+    let isOfficial = false
+    let isAnonymous = false
+    let extraMoods: [String] = []
+
+    enum CodingKeys: String, CodingKey {
+        case score, message
+        case authorId = "author_id"
+        case primaryMood = "primary_mood"
+        case sourceDay = "source_day"
+        case isOfficial = "is_official"
+        case isAnonymous = "is_anonymous"
+        case extraMoods = "extra_moods"
+    }
+}
+
+private struct DailyPostSoftDelete: Encodable {
+    let deletedAt: Date
+    enum CodingKeys: String, CodingKey { case deletedAt = "deleted_at" }
 }
 
 private struct NewCommentRow: Encodable {
@@ -241,7 +403,7 @@ struct CommentRow: Decodable {
     }
 
     func toDomain(currentUserID: UUID?) -> SocialComment {
-        let name = isAnonymous ? "익명" : (profiles?.username ?? "이름 없음")
+        let name = isAnonymous ? String(localized: "익명") : (profiles?.username ?? String(localized: "이름 없음"))
         return SocialComment(
             id: id,
             postId: postId,
@@ -250,7 +412,8 @@ struct CommentRow: Decodable {
             isMine: authorId == currentUserID,
             text: text,
             createdAt: createdAt,
-            editedAt: editedAt
+            editedAt: editedAt,
+            authorId: authorId
         )
     }
 }

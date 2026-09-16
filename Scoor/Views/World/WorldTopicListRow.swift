@@ -27,6 +27,9 @@ struct WorldTopicListRow: View {
                     .background(ScoorPalette.bgRaised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 3) {
+                    if topic.origin == "community" {
+                        Text("커뮤니티 제안").font(.system(size: 10, weight: .semibold)).foregroundStyle(ScoorPalette.accent)
+                    }
                     Text(topic.title)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(ScoorPalette.inkPrimary)

@@ -28,6 +28,8 @@ final class FeedViewModel: ObservableObject {
     private let service: SocialServiceProtocol
     /// 서버 피드. nil이면 백엔드가 없는 빌드이고, 그때만 로컬 시드 경로를 쓴다.
     private let remote: RemoteFeedService?
+    private let repostsOnly: Bool
+    @Published private(set) var pendingReposts: Set<UUID> = []
     private let pageSize: Int
     private var loadedPages = 0
 
@@ -38,7 +40,8 @@ final class FeedViewModel: ObservableObject {
 
     init(service: SocialServiceProtocol,
          remote: RemoteFeedService? = nil,
-         pageSize: Int = 8) {
+         pageSize: Int = 8, repostsOnly: Bool = false) {
+        self.repostsOnly = repostsOnly
         self.service = service
         self.remote = remote
         self.pageSize = pageSize
@@ -47,6 +50,10 @@ final class FeedViewModel: ObservableObject {
     /// 한 페이지 로드. 서버 경로에서는 실패를 그대로 위로 던진다 — 시드로
     /// 폴백하면 "불러오지 못함"이 "가짜 글 20개"로 둔갑한다.
     private func fetch(page: Int) async throws -> [FeedEntry] {
+        if repostsOnly {
+            guard let remote else { return [] }
+            return try await remote.loadReposts(page: page, pageSize: pageSize)
+        }
         if let remote { return try await remote.loadFeed(page: page, pageSize: pageSize) }
         return await service.loadFeed(page: page, pageSize: pageSize)
     }
@@ -55,6 +62,7 @@ final class FeedViewModel: ObservableObject {
 
     /// 감정 필터 + 정렬 적용된 표시용 목록.
     var visible: [FeedEntry] {
+        if repostsOnly { return entries }
         var list = entries
         if let mood = selectedMood {
             list = list.filter { $0.primaryMood == mood || $0.extraTags.contains(mood) }
@@ -145,10 +153,32 @@ final class FeedViewModel: ObservableObject {
     /// 필터/정렬된 목록은 복사본이므로 id로 원본 인덱스를 찾아 바인딩한다.
     func binding(for id: UUID) -> Binding<FeedEntry>? {
         guard let idx = entries.firstIndex(where: { $0.id == id }) else { return nil }
+        let snapshot = entries[idx]
         return Binding(
-            get: { self.entries[idx] },
-            set: { self.entries[idx] = $0 }
+            get: { self.entries.first(where: { $0.id == id }) ?? snapshot },
+            set: { value in
+                if let index = self.entries.firstIndex(where: { $0.id == id }) { self.entries[index] = value }
+            }
         )
+    }
+
+    func toggleRepost(entryId: UUID) {
+        guard let remote, !pendingReposts.contains(entryId),
+              let entry = entries.first(where: { $0.id == entryId }) else { return }
+        pendingReposts.insert(entryId)
+        Task {
+            defer { pendingReposts.remove(entryId) }
+            do {
+                try await remote.setRepost(postId: entryId, reposted: !entry.reactions.repostedByMe)
+                if let idx = entries.firstIndex(where: { $0.id == entryId }) {
+                    entries[idx].reactions.repostedByMe = !entry.reactions.repostedByMe
+                    entries[idx].reactions.reposts = max(0, entry.reactions.reposts + (entry.reactions.repostedByMe ? -1 : 1))
+                    if repostsOnly && entry.reactions.repostedByMe { entries.remove(at: idx) }
+                }
+            } catch {
+                transientError = String(localized: "리포스트 저장에 실패했어요. 다시 시도해주세요.")
+            }
+        }
     }
 
     // MARK: - Likes (낙관적 → 영속 → 롤백)
@@ -170,7 +200,7 @@ final class FeedViewModel: ObservableObject {
                     r.likes = max(0, r.likes + (nowLiked ? -1 : 1))
                     entries[idx].reactions = r
                 }
-                transientError = "좋아요 저장에 실패했어요. 다시 시도해주세요."
+                transientError = String(localized: "좋아요 저장에 실패했어요. 다시 시도해주세요.")
             }
         }
     }

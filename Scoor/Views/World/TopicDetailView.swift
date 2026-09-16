@@ -39,13 +39,19 @@ struct TopicDetailView: View {
     /// 걸러주지만, 그 사이에도 화면에 남아 있으면 안 된다.
     @State private var hiddenReactionIds: Set<UUID> = []
     @State private var reportTarget: TopicReactionRow? = nil
-    @State private var showGuidelines = false
-    @State private var pendingSubmission: (score: Int, comment: String?)? = nil
+    @State private var sensitiveSubmission: SensitiveSubmission?
+    private struct SensitiveSubmission: Identifiable { let id = UUID(); let score: Int; let comment: String? }
     @State private var submitError: String? = nil
     /// 게시 단위 익명 선택 (§15-2: 닉네임 기본, 게시별 토글).
     @AppStorage("scoor.world.anonymousDefault") private var isAnonymous = false
 
-    private var detail: TopicDetail { MockWorld.detail(for: topic) }
+    @State private var showTopicReport = false
+    private var detail: TopicDetail {
+        guard worldService != nil else { return MockWorld.detail(for: topic) }
+        return TopicDetail(source: topic.origin == "community" ? String(localized: "커뮤니티 제안 · \(topic.proposerName ?? String(localized: "탈퇴한 사용자"))") : topic.category.label,
+                           summary: topic.subtitle ?? "", coverHue: 0.58,
+                           globalParticipants: topic.postsCount, regional: [], sports: nil, recent: [])
+    }
 
     private var tone: ScoreTone { .from(score: topic.globalScore) }
 
@@ -59,7 +65,7 @@ struct TopicDetailView: View {
                     metaBlock
                     heatBadge
                     globalScoreSection
-                    countrySection
+                    if !detail.regional.isEmpty { countrySection }
                     if let sports = detail.sports {
                         sportsPanel(sports)
                     }
@@ -67,12 +73,13 @@ struct TopicDetailView: View {
                     Color.clear.frame(height: 140)
                 }
             }
+            .accessibilityIdentifier("world-topic-detail-scroll")
             .ignoresSafeArea(edges: .top)
 
             VStack(spacing: 0) {
                 topBar
                 Spacer()
-                bottomCTA
+                if topic.status == "live" { bottomCTA }
             }
 
             if let s = feedbackScore {
@@ -86,6 +93,14 @@ struct TopicDetailView: View {
             await loadMySubmissions()
             await loadLiveReactions()
         }
+        .sheet(item: $sensitiveSubmission) { pending in
+            SensitiveTopicsConsentView {
+                guard let worldService else { throw APIError.unauthorized }
+                try await worldService.acceptSensitiveTopics()
+            } onAccepted: {
+                handleSubmission(score: pending.score, comment: pending.comment)
+            }
+        }
         .sheet(isPresented: $showScoreSheet) {
             TopicScoreSheet(
                 topic: topic,
@@ -94,10 +109,14 @@ struct TopicDetailView: View {
                 // 서버에 올릴 때만 익명 선택이 의미가 있다.
                 isAnonymous: worldService == nil ? nil : $isAnonymous
             ) { submitted, comment in
-                submitWithGuidelineGate(score: submitted, comment: comment)
+                handleSubmission(score: submitted, comment: comment)
             }
-            .presentationDetents([.medium, .large])
+            .presentationDetents([.large])
             .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showTopicReport) {
+            ReportSheet(targetType: .topic, targetId: topic.id, authorId: topic.proposedBy,
+                        service: moderationService, onCompleted: { dismiss() })
         }
         .sheet(item: $reportTarget) { row in
             ReportSheet(
@@ -111,14 +130,7 @@ struct TopicDetailView: View {
                 }
             )
         }
-        .sheet(isPresented: $showGuidelines) {
-            CommunityGuidelinesSheet(service: moderationService) {
-                if let pending = pendingSubmission {
-                    pendingSubmission = nil
-                    handleSubmission(score: pending.score, comment: pending.comment)
-                }
-            }
-        }
+
         .alert("게시하지 못했어요", isPresented: Binding(
             get: { submitError != nil },
             set: { if !$0 { submitError = nil } }
@@ -133,6 +145,7 @@ struct TopicDetailView: View {
     @MainActor
     private func loadLiveReactions() async {
         guard let worldService else { return }
+        liveReactions = []
         do {
             liveReactions = try await worldService.reactions(topicId: topic.id)
         } catch {
@@ -147,6 +160,14 @@ struct TopicDetailView: View {
     /// 이전에 이 토픽에 매긴 내 점수(영속)를 복원한다.
     @MainActor
     private func loadMySubmissions() async {
+        if let worldService {
+            if let scores = try? await worldService.myWorldScores() {
+                for score in scores where score.topicId == topic.id && score.targetId == "match" {
+                    mySubmissions[.match] = score.value
+                }
+            }
+            return
+        }
         var targets: [ScoorTarget] = [.match]
         if let sports = detail.sports {
             targets.append(.team(sports.home.abbr))
@@ -165,6 +186,11 @@ struct TopicDetailView: View {
     private var topBar: some View {
         HStack {
             Spacer()
+            if moderationService != nil {
+                Button { showTopicReport = true } label: {
+                    Image(systemName: "flag").foregroundStyle(.white).padding(10).background(.black.opacity(0.45), in: Circle())
+                }.accessibilityLabel("토픽 신고 또는 제안자 차단")
+            }
             Button {
                 #if canImport(UIKit)
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -249,9 +275,16 @@ struct TopicDetailView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(ScoorPalette.inkSecondary)
                 Text("·").font(.system(size: 11)).foregroundStyle(ScoorPalette.inkTertiary)
-                Text(RelativeTime.short(from: topic.lastActivityAt) + " 전")
+                Text("\(RelativeTime.short(from: topic.lastActivityAt)) 전")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(ScoorPalette.inkTertiary)
+            }
+            if worldService != nil {
+                Text("0: \(topic.lowLabel) · 100: \(topic.highLabel)").font(.subheadline).foregroundStyle(ScoorPalette.accent)
+                if let raw = topic.sourceURL, let url = URL(string: raw), url.scheme == "https" {
+                    Link("출처 보기", destination: url).font(.subheadline)
+                }
+                if topic.status != "live" { Text("마감된 토픽이에요").font(.caption) }
             }
             Text(detail.summary)
                 .font(.system(size: 14.5, weight: .regular))
@@ -634,7 +667,8 @@ struct TopicDetailView: View {
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(ScoorPalette.inkPrimary)
                 Spacer()
-                Text("\(detail.recent.count)+")
+                Text(liveReactions.map { String($0.filter { !hiddenReactionIds.contains($0.id) }.count) }
+                     ?? "\(detail.recent.count)+")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(ScoorPalette.inkTertiary)
             }
@@ -819,6 +853,7 @@ struct TopicDetailView: View {
                     .shadow(color: ScoorPalette.accent.opacity(0.45), radius: 16, y: 6)
                 }
                 .buttonStyle(PressableScale())
+                .accessibilityIdentifier("topic-enter-score")
             }
             .padding(.horizontal, 18)
             .padding(.bottom, 28)
@@ -878,65 +913,41 @@ struct TopicDetailView: View {
 
     private func feedbackMessage(for score: Int) -> String {
         switch score {
-        case 90...100: return "당신의 Scoor가 세계에 더해졌어요."
-        case 70...89:  return "당신은 \(score)점으로 반응했어요."
-        case 40...69:  return "기록되었습니다. 세계가 같이 느낍니다."
-        case 10...39:  return "당신의 감정도 세계의 일부에요."
-        default:       return "Scoor 기록 완료."
+        case 90...100: return String(localized: "당신의 Scoor가 세계에 더해졌어요.")
+        case 70...89:  return String(localized: "당신은 \(score)점으로 반응했어요.")
+        case 40...69:  return String(localized: "기록되었습니다. 세계가 같이 느낍니다.")
+        case 10...39:  return String(localized: "당신의 감정도 세계의 일부에요.")
+        default:       return String(localized: "Scoor 기록 완료.")
         }
     }
 
     // MARK: - Submission handling
 
-    /// 첫 게시 전에 커뮤니티 가이드라인 동의를 한 번 받는다 (§9).
-    /// 이미 동의했거나 백엔드가 없으면 그대로 통과시킨다.
-    private func submitWithGuidelineGate(score: Int, comment: String?) {
-        guard let moderation = moderationService else {
-            handleSubmission(score: score, comment: comment)
-            return
-        }
-        Task {
-            if await moderation.hasAcceptedGuidelines() {
-                handleSubmission(score: score, comment: comment)
-            } else {
-                pendingSubmission = (score, comment)
-                showGuidelines = true
-            }
-        }
-    }
 
     private func handleSubmission(score: Int, comment: String?) {
         let target = scoreTarget
-        mySubmissions[target] = score
-
-        // 영속: 월드 토픽에 매긴 내 점수 저장(작성 후 토픽/상세 집계 반영의 기반).
         if let worldService {
-            let topicId = topic.id
-            let targetId = target.id
-            let anonymous = isAnonymous
+            showScoreSheet = false
             Task {
                 do {
-                    try await worldService.submitWorldScore(
-                        topicId: topicId,
-                        targetId: targetId,
-                        score: score,
-                        comment: comment,
-                        isAnonymous: anonymous,
-                        countryCode: nil
-                    )
-                    // 내 반응이 목록에 바로 보이도록 다시 읽는다.
+                    try await worldService.submitWorldScore(topicId: topic.id, targetId: target.id, score: score,
+                        comment: comment, isAnonymous: isAnonymous, countryCode: nil)
+                    mySubmissions[target] = score
+                    if let refreshed = try? await worldService.topic(id: topic.id) { topic = refreshed }
                     await loadLiveReactions()
+                    withAnimation { feedbackScore = score }
                 } catch {
-                    // 피드 게시는 오프라인 우선이 아니다 — 실패하면 알려야 한다 (spec-13 §5).
-                    submitError = (error as? LocalizedError)?.errorDescription
-                        ?? error.localizedDescription
+                    if error.localizedDescription.contains("SENSITIVE_CONSENT_REQUIRED") {
+                        sensitiveSubmission = .init(score: score, comment: comment)
+                    } else { submitError = error.localizedDescription }
                 }
             }
-        } else {
-            let title = topic.title
-            let targetId = target.id
-            Task { try? await socialService.submitWorldScore(topicTitle: title, targetId: targetId, score: score, comment: comment) }
+            return
         }
+        mySubmissions[target] = score
+        let title = topic.title
+        let targetId = target.id
+        Task { try? await socialService.submitWorldScore(topicTitle: title, targetId: targetId, score: score, comment: comment) }
 
         if target == .match {
             // Rough blend: globalScore = (오래된 평균 * 99 + 내 점수 * 1) / 100
@@ -950,7 +961,9 @@ struct TopicDetailView: View {
                 scoreDelta: topic.scoreDelta + (score > topic.globalScore ? 1 : -1),
                 postsCount: topic.postsCount + 1,
                 lastActivityAt: Date(),
-                heat: topic.heat
+                heat: topic.heat, subtitle: topic.subtitle, status: topic.status, origin: topic.origin,
+                proposedBy: topic.proposedBy, proposerName: topic.proposerName, sourceURL: topic.sourceURL,
+                lowLabel: topic.lowLabel, highLabel: topic.highLabel
             )
         }
 

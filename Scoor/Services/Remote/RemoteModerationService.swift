@@ -16,7 +16,7 @@ final class RemoteModerationService {
 
     /// Matches `reports.target_type`.
     enum ReportTarget: String {
-        case post, comment, guestbook, user, worldScore = "world_score"
+        case post, comment, guestbook, user, topic, worldScore = "world_score"
     }
 
     /// Matches `reports.reason`. `selfHarm` routes to support resources rather
@@ -27,16 +27,13 @@ final class RemoteModerationService {
 
         var label: String {
             switch self {
-            case .spam:     return "스팸 또는 광고"
-            case .abuse:    return "괴롭힘 또는 혐오"
-            case .selfHarm: return "자해 또는 자살 위험"
-            case .other:    return "기타"
+            case .spam:     return String(localized: "스팸 또는 광고")
+            case .abuse:    return String(localized: "괴롭힘 또는 혐오")
+            case .selfHarm: return String(localized: "자해 또는 자살 위험")
+            case .other:    return String(localized: "기타")
             }
         }
     }
-
-    /// Bump when the guidelines change materially — users re-consent.
-    static let guidelineVersion = "1.0"
 
     private let client: SupabaseHTTPClient
     private let currentUserID: () -> UUID?
@@ -62,7 +59,7 @@ final class RemoteModerationService {
         )
         do {
             try await client.send(try .insert("reports", values: [row]))
-        } catch APIError.rejected {
+        } catch APIError.rejected(let message) where message.contains("duplicate key") && message.contains("reports_reporter_id_target_type_target_id_key") {
             // The unique (reporter, target) index means this user already reported
             // this item. That is success from their point of view — the report is
             // filed — so don't show an error for pressing the button twice.
@@ -76,7 +73,7 @@ final class RemoteModerationService {
     /// guestbook immediately, enforced by RLS rather than client filtering.
     func block(_ userId: UUID) async throws {
         guard let blockerId = currentUserID() else { throw APIError.unauthorized }
-        guard blockerId != userId else { throw APIError.rejected("자신을 차단할 수 없습니다.") }
+        guard blockerId != userId else { throw APIError.rejected(String(localized: "자신을 차단할 수 없습니다.")) }
         try await client.send(
             try .upsert("blocks",
                         values: [BlockRow(blockerId: blockerId, blockedId: userId)],
@@ -104,29 +101,6 @@ final class RemoteModerationService {
         )
     }
 
-    // MARK: - Guidelines
-
-    /// Whether this user has accepted the current guideline version. Checked
-    /// before their first publish, not at sign-up — consent should sit next to
-    /// the action it governs.
-    func hasAcceptedGuidelines() async -> Bool {
-        guard let userId = currentUserID() else { return false }
-        let rows: [GuidelineRow]? = try? await client.send(
-            .select("guideline_acceptances",
-                    filters: ["user_id": SupabaseRequest.eq(userId.uuidString.lowercased())]),
-            as: [GuidelineRow].self
-        )
-        return rows?.first?.version == Self.guidelineVersion
-    }
-
-    func acceptGuidelines() async throws {
-        guard let userId = currentUserID() else { throw APIError.unauthorized }
-        try await client.send(
-            try .upsert("guideline_acceptances",
-                        values: [GuidelineRow(userId: userId, version: Self.guidelineVersion)],
-                        onConflict: "user_id")
-        )
-    }
 }
 
 // MARK: - Wire models
@@ -162,7 +136,7 @@ struct BlockedUser: Codable, Identifiable {
     let profile: Profile?
 
     var id: UUID { blockedId }
-    var username: String { profile?.username ?? "알 수 없는 사용자" }
+    var username: String { profile?.username ?? String(localized: "알 수 없는 사용자") }
 
     enum CodingKeys: String, CodingKey {
         case blockedId = "blocked_id"

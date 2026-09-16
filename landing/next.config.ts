@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Legal pages share the versioned policy bundled with the iOS app.
+  turbopack: {
+    root: path.resolve(__dirname, ".."),
+  },
   images: {
     formats: ["image/avif", "image/webp"],
   },

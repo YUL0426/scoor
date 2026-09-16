@@ -18,6 +18,8 @@ final class ScoreInputViewModel: ObservableObject {
     @Published var feedbackMessage: String?
     @Published var feedbackType: FeedbackType = .neutral
     @Published var todaysScore: Score?
+    @Published var shareToHome = false
+    @Published private(set) var isCheckingHomeShare = false
 
     private let scoreService: ScoreServiceProtocol
     private let userService: UserServiceProtocol
@@ -25,7 +27,9 @@ final class ScoreInputViewModel: ObservableObject {
     private let moodAnalyzer: MoodAnalyzing
     /// 기록 직후 리마인더 연계용. 오늘 기록 완료 시 배너 정리/스케줄 동기화.
     private let notificationService: NotificationServiceProtocol
+    private let homeFeedPublisher: HomeFeedPublishing?
     private var currentUserId: UUID?
+    private var wasSharedToHome = false
 
     let targetDate: Date
     private let maxReasonLength = 200
@@ -35,12 +39,14 @@ final class ScoreInputViewModel: ObservableObject {
         userService: UserServiceProtocol,
         moodAnalyzer: MoodAnalyzing = DisabledMoodAnalyzer(),
         notificationService: NotificationServiceProtocol = MockNotificationService(),
+        homeFeedPublisher: HomeFeedPublishing? = nil,
         targetDate: Date = Date()
     ) {
         self.scoreService = scoreService
         self.userService = userService
         self.moodAnalyzer = moodAnalyzer
         self.notificationService = notificationService
+        self.homeFeedPublisher = homeFeedPublisher
         self.targetDate = Calendar.current.startOfDay(for: targetDate)
         self.score = 0
         self.reason = ""
@@ -50,6 +56,10 @@ final class ScoreInputViewModel: ObservableObject {
     var canSubmit: Bool { !isSubmitting }
     var isUpdateMode: Bool { todaysScore != nil }
     var isTargetToday: Bool { Calendar.current.isDateInToday(targetDate) }
+    var canShareToHome: Bool {
+        homeSharingAvailable && !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    var homeSharingAvailable: Bool { homeFeedPublisher?.isAvailable == true }
 
     func loadTodaysScore() async {
         guard let user = await userService.getCurrentUser() else { return }
@@ -78,6 +88,17 @@ final class ScoreInputViewModel: ObservableObject {
             #if DEBUG
             print("[Scoor] ScoreInputViewModel.load target=\(targetDate) none")
             #endif
+        }
+
+        if let homeFeedPublisher, homeFeedPublisher.isAvailable {
+            isCheckingHomeShare = true
+            let isShared = (try? await homeFeedPublisher.isDailyScoreShared(on: targetDate)) ?? false
+            shareToHome = isShared
+            wasSharedToHome = isShared
+            isCheckingHomeShare = false
+        } else {
+            shareToHome = false
+            wasSharedToHome = false
         }
     }
 
@@ -124,12 +145,27 @@ final class ScoreInputViewModel: ObservableObject {
             // 파생 감정 연계: 기존 mood가 없을 때만 분석기에 위임하고, 신호가
             // 있으면 같은 레코드에 써넣는다. 기본 분석기(Disabled)는 nil을 돌려
             // 주므로 이 경로는 무동작 — 규칙기반/AI로 교체하면 자동 점등된다.
+            var finalScore = newScore
             if newScore.mood == nil,
                let derivedMood = await moodAnalyzer.analyze(score: newScore.value, reason: newScore.reason) {
                 var withMood = newScore
                 withMood.mood = derivedMood
                 try? await scoreService.saveScore(withMood)
                 todaysScore = withMood
+                finalScore = withMood
+            }
+
+            // A private score does not need a feed request. The false write is
+            // only needed when an existing public post is being unshared.
+            if let homeFeedPublisher, shareToHome || wasSharedToHome {
+                do {
+                    try await homeFeedPublisher.setDailyScore(finalScore, shared: shareToHome)
+                    wasSharedToHome = shareToHome
+                } catch {
+                    feedbackMessage = String(localized: "점수는 저장됐지만 홈 공유에 실패했어요. 다시 시도해주세요.")
+                    feedbackType = .encouragement
+                    return
+                }
             }
 
             // 리마인더 연계: 오늘 기록을 마쳤으면 전달된 배너 정리 + 스케줄 동기화.
@@ -157,6 +193,9 @@ final class ScoreInputViewModel: ObservableObject {
 
     func setReason(_ text: String) {
         reason = String(text.prefix(maxReasonLength))
+        if reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            shareToHome = false
+        }
     }
 
     func clearFeedback() {

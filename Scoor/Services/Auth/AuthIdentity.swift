@@ -94,12 +94,12 @@ enum AuthError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .cancelled:            return "로그인이 취소되었습니다."
-        case .notConfigured(let w): return "설정이 필요합니다: \(w)"
-        case .failed(let m):        return "로그인에 실패했습니다: \(m)"
-        case .invalidResponse:      return "로그인 응답이 올바르지 않습니다."
+        case .cancelled:            return String(localized: "로그인이 취소되었습니다.")
+        case .notConfigured(let w): return String(localized: "설정이 필요합니다: \(w)")
+        case .failed(let m):        return String(localized: "로그인에 실패했습니다: \(m)")
+        case .invalidResponse:      return String(localized: "로그인 응답이 올바르지 않습니다.")
         case .emailConfirmationRequired(let email):
-            return "\(email)로 확인 메일을 보냈습니다. 메일의 링크를 눌러 가입을 완료해 주세요."
+            return String(localized: "\(email)로 확인 메일을 보냈습니다. 메일의 링크를 눌러 가입을 완료해 주세요.")
         }
     }
 }

@@ -267,7 +267,7 @@ struct SignupNicknameView: View {
             return
         }
         guard value.count >= 3 else {
-            availability = .invalid("Use at least 3 characters.")
+            availability = .invalid(String(localized: "Use at least 3 characters."))
             return
         }
 
@@ -298,13 +298,13 @@ private enum UsernameAvailability: Equatable {
     var message: String {
         switch self {
         case .idle:
-            return "Letters, numbers, and underscores only."
+            return String(localized: "Letters, numbers, and underscores only.")
         case .checking:
-            return "Checking availability..."
+            return String(localized: "Checking availability...")
         case .available:
-            return "Looks good. It is yours."
+            return String(localized: "Looks good. It is yours.")
         case .taken:
-            return "That name is already taken."
+            return String(localized: "That name is already taken.")
         case .invalid(let reason):
             return reason
         }

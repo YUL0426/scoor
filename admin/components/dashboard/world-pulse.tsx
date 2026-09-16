@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { cn, scoorToColor, formatDelta } from "@/lib/utils";
@@ -16,13 +17,16 @@ function CountryRow({ pulse }: { pulse: CountryPulse }) {
       ? "text-emerald-400"
       : pulse.trend === "down"
       ? "text-red-400"
-      : "text-[#8b8ba4]";
+      : "text-[#a2a4ac]";
 
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-white/4 last:border-0 hover:bg-white/2 rounded-lg px-2 -mx-2 transition-colors group">
       {/* Flag */}
       <div className="w-6 h-4 rounded-sm overflow-hidden flex-shrink-0 bg-white/10">
-        <img
+        <Image
+          width={24}
+          height={18}
+          unoptimized
           src={`${FLAG_BASE}/${pulse.countryCode.toLowerCase()}.png`}
           alt={pulse.country}
           className="w-full h-full object-cover"
@@ -34,14 +38,14 @@ function CountryRow({ pulse }: { pulse: CountryPulse }) {
 
       {/* Country info */}
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-[#f4f4f6] truncate">{pulse.country}</p>
+        <p className="text-xs font-medium text-[#ededee] truncate">{pulse.country}</p>
         {pulse.topAgendaTitle && (
-          <p className="text-[10px] text-[#52526c] truncate">{pulse.topAgendaTitle}</p>
+          <p className="text-[10px] text-[#8b8e98] truncate">{pulse.topAgendaTitle}</p>
         )}
       </div>
 
       {/* Participants */}
-      <span className="text-[10px] text-[#52526c] tabular-nums hidden group-hover:inline">
+      <span className="text-[10px] text-[#8b8e98] tabular-nums hidden group-hover:inline">
         {pulse.participantCount.toLocaleString()}
       </span>
 
@@ -73,7 +77,7 @@ export function WorldPulse({ data }: WorldPulseProps) {
     <Card>
       <CardHeader>
         <CardTitle>월드 펄스</CardTitle>
-        <span className="text-xs text-[#52526c]">Live emotional climate</span>
+        <span className="text-xs text-[#8b8e98]">Live emotional climate</span>
       </CardHeader>
       <CardContent className="py-2">
         <div className="space-y-0">

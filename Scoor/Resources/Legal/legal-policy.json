@@ -1,0 +1,188 @@
+{
+  "version": "2026-09-16.1",
+  "contact": "officialscoor@gmail.com",
+  "terms": {
+    "ko": {
+      "title": "이용약관",
+      "sections": [
+        {
+          "title": "운영자와 적용",
+          "body": "Scoor는 YUL HEO가 운영합니다. 문의: officialscoor@gmail.com. 이 약관은 Scoor 앱의 개인 기록, 계정 동기화 및 공개 커뮤니티 기능에 적용됩니다."
+        },
+        {
+          "title": "가입과 약관 적용",
+          "body": "가입 화면의 이용 안내와 연결된 약관을 확인한 뒤 Apple·Google 또는 이메일로 계속하기를 선택하고 인증을 완료하면 이 약관에 동의하고 안내된 가입 자격을 확인한 것으로 기록합니다. 이미 로그인한 이용자는 안내 화면의 계속하기로 수락할 수 있습니다. 별도 필수 체크박스를 요구하지 않으며, 문서 열람·앱 실행·로그인 취소만으로 수락을 기록하지 않습니다. 중요한 약관 변경은 새 내용과 적용 시점을 안내하고 필요한 경우 다시 수락받습니다. 수락하지 않아도 계정 관리·로그아웃·삭제 요청은 가능합니다."
+        },
+        {
+          "title": "이용 가능 연령과 계정",
+          "body": "만 14세 이상이며 거주 국가에서 스스로 유효하게 동의할 수 있는 최소 연령 및 계약 요건을 충족해야 합니다. 필요한 보호자 동의 절차를 지원하지 않으므로 그러한 동의가 필요한 경우 가입할 수 없습니다. 이는 모든 국가의 법정 연령이 14세라는 뜻이 아닙니다. 계정을 도용하거나 타인을 사칭하지 마세요."
+        },
+        {
+          "title": "개인 기록과 공개 선택",
+          "body": "개인 기록은 공개 게시물과 구분됩니다. 로그인한 계정의 기록은 서버에 동기화될 수 있습니다. 홈 공유를 켜거나 World·댓글 등 공개 영역에 제출하면 다른 이용자가 볼 수 있습니다. 익명 표시는 공개 이름만 바꾸며 운영상 계정 연결을 제거하지 않습니다."
+        },
+        {
+          "title": "콘텐츠 소유권과 제한적 이용허락",
+          "body": "게시물의 권리는 이용자 또는 적법한 권리자에게 남습니다. 이용자는 서비스를 제공하는 데 필요한 범위에서 Scoor가 콘텐츠를 저장·복제·전송하고, 공개를 선택한 콘텐츠를 서비스 안에서 표시하며 표시 형식을 조정하고 기능상 집계하도록 비독점적으로 허락합니다. 필요한 처리업체는 이 서비스 목적 안에서만 처리합니다."
+        },
+        {
+          "title": "허락의 한계와 종료",
+          "body": "이 허락에는 서비스 밖 광고, 콘텐츠 판매, 외부 AI 학습을 위한 포괄적인 재이용이 포함되지 않습니다. 별도 이용에는 필요한 허락을 따로 받습니다. 콘텐츠 삭제 또는 계정 종료 시 서비스 이용허락도 종료하며, 삭제 처리·백업 만료·법정 보존에 필요한 제한적인 처리는 예외입니다. 다른 이용자가 이미 만든 사본의 회수를 보장하지는 않습니다."
+        },
+        {
+          "title": "게시자의 권리와 금지행위",
+          "body": "본인이 작성했거나 필요한 권리가 있는 내용만 게시하세요. 타인의 저작권·사생활을 침해하는 내용, 동의 없는 개인정보, 불법 성적 콘텐츠, 괴롭힘·혐오·위협, 스팸 및 자해를 부추기는 내용을 게시할 수 없습니다. 운영자가 만든 토픽과 다른 이용자의 게시물은 구분됩니다."
+        },
+        {
+          "title": "신고·차단·제한",
+          "body": "앱의 신고·차단 또는 officialscoor@gmail.com으로 문제를 알려 주세요. 게시 전 유해 표현을 검사하며, 신고를 검토해 위반 콘텐츠를 제한·삭제하거나 계정 이용을 제한할 수 있습니다. 잘못된 조치는 같은 연락처로 이의를 제기할 수 있습니다."
+        },
+        {
+          "title": "이용 중단·삭제와 서비스 책임",
+          "body": "설정의 이용 안내와 선택 동의에서 계정 서비스 이용을 중단하면 새 기록의 서버 전송 및 게시를 멈춥니다. 이용 중단이 기존 콘텐츠를 자동으로 삭제하는 것은 아닙니다. 콘텐츠 삭제·공유 해제 또는 계정 및 데이터 삭제를 별도로 요청할 수 있습니다. 민감정보 등 선택 동의의 철회는 기본 계정 이용과 구분됩니다. 운영자의 고의·과실에 따른 책임과 이용자의 강행법상 권리를 제한하지 않습니다."
+        },
+        {
+          "title": "개인정보와 별도 동의",
+          "body": "개인정보의 항목·목적·보유·권리는 개인정보처리방침과 수집·이용 안내에서 설명합니다. 콘텐츠 이용허락을 민감정보 처리, 마케팅, 제3자 제공 등 별도 동의가 필요한 처리에 대한 포괄 동의로 사용하지 않습니다."
+        }
+      ]
+    },
+    "en": {
+      "title": "Terms of Service",
+      "sections": [
+        {
+          "title": "Operator and scope",
+          "body": "Scoor is operated by YUL HEO. Contact: officialscoor@gmail.com. These terms govern the app’s private journal, account synchronization and public community features."
+        },
+        {
+          "title": "Signup and agreement",
+          "body": "After reviewing the entry notice and linked terms, choosing Continue with Apple, Google or Email and completing authentication records acceptance of these terms and confirmation of the stated signup eligibility. Signed-in users may accept through Continue on the notice screen. No separate required checkboxes are used. Viewing a document, opening the app or cancelling sign-in does not record acceptance. Material terms changes are communicated with their effective date and renewed acceptance where needed. Account management, sign-out and deletion remain available without accepting new terms."
+        },
+        {
+          "title": "Age and accounts",
+          "body": "You must be at least 14 and meet your country’s age and capacity requirements for valid consent and use of the service. We do not support parental authorization; do not register if it is required for you. This does not mean every country’s legal threshold is 14. Do not impersonate others or misuse their accounts."
+        },
+        {
+          "title": "Private records and sharing",
+          "body": "Private entries are distinct from public posts. Signed-in entries may synchronize to the server. Enabling Home sharing or submitting to World or comments makes that content visible to others. Anonymous posting changes the displayed name, not the operational link to your account."
+        },
+        {
+          "title": "Ownership and limited content license",
+          "body": "You or the lawful rightsholder retain ownership. You grant Scoor a non-exclusive license, limited to providing the service, to store, reproduce and transmit your content, display content you choose to publish within the service, format it for display and aggregate it for service features. Necessary processors may act only for these service purposes."
+        },
+        {
+          "title": "Limits and termination of the license",
+          "body": "This license does not cover advertising outside the service, selling content or blanket reuse for external AI training. Separate uses require the necessary separate permission. The service license ends when content is deleted or the account closes, subject to limited deletion processing, backup expiry and legally required retention. Copies already made by other users may not be recoverable."
+        },
+        {
+          "title": "Posting rights and prohibited conduct",
+          "body": "Post only content you created or have the necessary rights to use. Do not infringe copyright or privacy, expose personal data without permission, or post illegal sexual content, harassment, hate, threats, spam or encouragement of self-harm. Operator-created topics are distinct from user posts."
+        },
+        {
+          "title": "Reports, blocks and restrictions",
+          "body": "Use in-app reports and blocking or contact officialscoor@gmail.com. We check for prohibited expressions before publication, review reports and may restrict or remove violating content or accounts. You may appeal a mistaken action through the same contact."
+        },
+        {
+          "title": "Stopping services, deletion and responsibility",
+          "body": "Stopping account services in Terms and optional consent settings pauses new server submissions and publishing. It does not automatically delete existing content. You can separately delete content, unshare it or request account and data deletion. Withdrawal of optional consent, such as sensitive-data consent, is separate from basic account use. These terms do not exclude liability for our fault or limit your mandatory legal rights."
+        },
+        {
+          "title": "Privacy and separate permissions",
+          "body": "Our privacy policy and collection notice explain data, purposes, retention and rights. The content license is not blanket consent for sensitive data, marketing, third-party disclosure or other processing that needs separate permission."
+        }
+      ]
+    }
+  },
+  "privacy": {
+    "ko": {
+      "title": "개인정보처리방침",
+      "sections": [
+        {
+          "title": "운영자와 연락처",
+          "body": "운영자 YUL HEO · officialscoor@gmail.com. Scoor 앱의 실제 계정·기록·공개 참여와 관련된 처리를 안내합니다."
+        },
+        {
+          "title": "계정 제공에 필요한 처리와 법적 근거",
+          "body": "계정 식별자, 로그인 제공자가 전달한 이메일·인증 정보·이름, 닉네임과 약관 버전·수락 동작·시각을 로그인, 계정 제공, 이용계약 및 이력 관리에 사용합니다. 대한민국 개인정보 보호법 제15조 제1항 제4호의 계약 체결 및 이행에 필요한 처리를 근거로 하며, 이 범위에 별도의 개인정보 수집·이용 동의를 요구하지 않습니다. 제공자가 전달하는 정보와 이용자가 요청한 기능에 필요한 범위로 제한합니다. Apple·Google 비밀번호는 받지 않습니다. 개인정보처리방침을 열람했다는 사실을 선택 동의로 기록하지 않습니다."
+        },
+        {
+          "title": "직접 선택하는 기능과 정보",
+          "body": "점수·날짜, 선택한 이유, 소개·아바타, 수동 국가 설정, 공개 게시물·댓글·World 참여·좋아요·제안, 신고·차단 및 문의 내용은 이용자가 해당 기능을 요청할 때 그 제공·관리에 필요한 범위에서 처리합니다. 일반 정보의 처리는 요청한 서비스 계약의 이행을 근거로 하며, 선택한 이유·소개·사진 등을 입력하지 않아도 기본 계정을 사용할 수 있습니다. 민감정보 등 별도 동의가 필요한 처리는 해당 기능 사용 시 항목·목적·보유기간·거부 가능성을 안내하고 따로 동의받습니다. 가입 버튼으로 이러한 선택 동의를 받지 않습니다."
+        },
+        {
+          "title": "기기·서버·공개 범위",
+          "body": "기기에는 기록과 설정을 보관하고 인증 토큰은 키체인에 저장합니다. 로그인 계정의 기록은 Supabase 서버와 동기화됩니다. 가입 화면에서 계속하기를 선택한 뒤 인증과 약관 수락 기록이 완료되어야 기존 기기 기록을 계정으로 옮겨 전송합니다. 공개를 선택한 내용만 다른 이용자에게 표시합니다. 개인 기록은 홈 공유 또는 공개 제출과 구분됩니다."
+        },
+        {
+          "title": "서비스 제공자와 위치",
+          "body": "인증·데이터베이스·API는 Supabase Pte. Ltd.를 사용합니다(개인정보 문의: privacy@supabase.io). 주 데이터베이스는 대한민국 서울에 있습니다. 지원·보안·하위 처리업체의 처리가 모두 국내에 한정되는 것은 아닙니다. 문의 메일의 발신 주소와 본문은 Google Gmail로 수신·회신합니다. Apple·Google 로그인에는 각 제공자의 정책이 적용됩니다. 서버 계정 기능에 필요한 처리와 사용자가 선택한 공개 기능만 제공하며, 광고 판매나 외부 AI 학습에 사용자 기록을 제공하지 않습니다."
+        },
+        {
+          "title": "보유와 삭제",
+          "body": "계정과 콘텐츠는 해당 기능을 제공하는 동안 보유합니다. 기록 삭제 시 연결된 홈 공유도 해제하며, 서버에 삭제가 반영되면 삭제 본문과 점수·감정 내용을 제거합니다. 다른 기기의 오래된 기록이 복원되지 않도록 계정 ID·기록일·삭제 시각 등 최소 동기화 표식은 계정 유지 중 보관합니다. 삭제된 글·댓글의 관계 표식과 철회·반려된 토픽 제안은 최대 30일 뒤 정리합니다. 탈퇴 시 계정에 연결된 기록·게시물·승인 토픽을 삭제합니다. Apple 인증 해제에 실패하면 제한된 폐기 대기열에서 재처리합니다. 다른 이용자가 저장한 사본이나 기기 백업은 동시에 삭제되지 않을 수 있습니다."
+        },
+        {
+          "title": "민감정보는 별도",
+          "body": "일상 점수 자체를 의료 진단이나 건강정보로 취급하지 않습니다. 정치 등 민감정보를 드러내는 지정 토픽은 별도 선택 동의 후 참여할 수 있습니다. 해당 점수·댓글·계정 식별자를 의견 공개와 집계에 사용하며, 참여 내역 삭제·동의 철회·탈퇴 시까지 보유합니다. 익명 표시도 서버에서는 계정과 연결됩니다. 설정에서 동의를 철회하면 해당 토픽의 참여 내역도 삭제됩니다. 거부해도 일기와 일반 주제는 사용할 수 있습니다. 다른 입력란에는 민감정보나 타인의 개인정보를 입력하지 마세요."
+        },
+        {
+          "title": "선택 동의 철회와 이용자 권리",
+          "body": "계정 제공에 필요한 처리는 별도 동의가 아닌 계약 이행을 근거로 합니다. 해당 처리를 원하지 않으면 가입을 진행하지 않거나 계정 서비스 이용 중단·로그아웃·계정 삭제를 선택할 수 있습니다. 민감정보 등 별도로 받은 선택 동의는 설정에서 철회할 수 있으며, 거부하거나 철회해도 기본 계정·일기·일반 주제를 이용할 수 있습니다. 열람·정정·삭제·처리정지는 운영자에게 요청할 수 있습니다. 이용 중단만으로 기존 공개 내용이 삭제되지는 않습니다. 이전 버전에서 받은 동의·철회 이력은 당시 버전과 함께 보관하며 새 선택 동의로 바꾸지 않습니다."
+        },
+        {
+          "title": "추적·알림·변경",
+          "body": "현재 앱에는 광고 SDK나 앱 간 추적을 위한 동의 항목을 두지 않습니다. 알림은 이용자가 알림 기능을 켤 때 별도의 iOS 권한을 요청하며, 가입 중에는 요청하지 않습니다. 사진 접근 등 선택 권한도 기능을 사용할 때 요청합니다. 처리방침 변경은 내용과 적용 시점을 안내하고, 별도 동의가 필요한 새 처리는 시작 전에 동의받습니다. 개인정보 문의는 officialscoor@gmail.com으로 보내 주세요."
+        },
+        {
+          "title": "접속 및 진단 기록",
+          "body": "Supabase는 서비스 보안과 오류 해결을 위해 접속 시각, 요청 경로·응답 상태, 앱·운영체제 정보, IP 주소와 계정 식별자가 포함될 수 있는 접속·인증 기록을 보관합니다. 광고 추적에 사용하지 않습니다. 로그 보유기간은 운영 서비스의 설정과 보안상 필요한 기간에 따릅니다."
+        }
+      ]
+    },
+    "en": {
+      "title": "Privacy Notice",
+      "sections": [
+        {
+          "title": "Operator and contact",
+          "body": "Operator: YUL HEO · officialscoor@gmail.com. This notice describes processing for accounts, entries and public participation in Scoor."
+        },
+        {
+          "title": "Account processing and legal basis",
+          "body": "Account IDs, email, authentication data and names supplied by the login provider, nicknames, and the terms version, acceptance action and time are used for login, account services and contract records. This processing relies on necessity for entering into or performing the service contract under Article 15(1)(4) of Korea’s Personal Information Protection Act, rather than separate collection-and-use consent for this scope. Processing is limited to provider-supplied information needed for requested features. We do not receive Apple or Google passwords. Reading this notice is not recorded as optional consent."
+        },
+        {
+          "title": "Features and information you choose",
+          "body": "Scores and dates, optional notes, bio/avatar, manually chosen country, public posts, comments, World participation, likes, proposals, reports, blocks and support messages are processed only as needed to provide and manage the feature you request. Ordinary data processing relies on performance of that requested service contract. Optional notes, bios and photos are not required for a basic account. Processing requiring separate consent, including sensitive data, is explained and requested when the relevant feature is used, with its data, purpose, retention and refusal options. Signup does not provide that optional consent."
+        },
+        {
+          "title": "Device, server and public visibility",
+          "body": "Entries and settings are stored on the device; authentication tokens use Keychain. Signed-in records synchronize with Supabase. Existing device entries are migrated and sent only after you choose an entry action, authenticate and complete the terms receipt. Only content you choose to publish is displayed to others. Private journaling is distinct from Home sharing and public submissions."
+        },
+        {
+          "title": "Providers and locations",
+          "body": "Authentication, databases and APIs use Supabase Pte. Ltd. (privacy contact: privacy@supabase.io). The primary database is in Seoul, South Korea. Support, security and subprocessors are not necessarily limited to Korea. Inquiry email addresses and messages are received and answered using Google Gmail. Apple/Google sign-in is also subject to their policies. We process data needed for account services and public features you choose; user entries are not provided for advertising sales or external AI training."
+        },
+        {
+          "title": "Retention and deletion",
+          "body": "Accounts and content are retained while their features are provided. Deleting an entry also unshares its linked Home post. Once a deletion reaches the server, deleted text, scores and mood content are cleared. Minimal synchronization markers (account ID, entry date and deletion timestamp) remain while the account exists to prevent old devices from restoring deleted entries. Deleted post/comment relationship markers and withdrawn or rejected proposals are cleared within 30 days. Account deletion removes associated entries, posts and approved topics. Failed Apple token revocations are retried through a restricted outbox. Copies saved by others or device backups may not disappear at the same time."
+        },
+        {
+          "title": "Sensitive information is separate",
+          "body": "An everyday score is not a medical diagnosis or automatically health information. Designated topics revealing sensitive information, such as political opinions, require separate optional consent. Scores, comments and account IDs are used to publish opinions and aggregate results until you delete the participation, withdraw consent or close your account. Anonymous display remains linked to your account on the server. Withdrawal in Settings also deletes participation in those topics. Journaling and ordinary topics remain available without this consent. Do not enter sensitive information or other people’s personal data in other fields."
+        },
+        {
+          "title": "Optional consent and your rights",
+          "body": "Essential account processing relies on contract performance rather than separate consent. If you do not want that processing, do not register, or stop account services, sign out or delete your account. Separately obtained optional consent, including sensitive-data consent, can be withdrawn in Settings; refusing or withdrawing it does not prevent basic accounts, journaling or ordinary topics. Contact the operator for access, correction, erasure or restriction. Stopping services alone does not delete previously published content. Earlier consent and withdrawal records retain their original version and are not converted into new optional consent."
+        },
+        {
+          "title": "Tracking, permissions and changes",
+          "body": "The current app does not bundle advertising SDK or cross-app tracking consent into signup. Notifications request separate iOS permission when you enable that feature, not during signup. Optional permissions such as photo access are requested when used. Privacy changes are communicated with their effective date; new processing requiring separate consent starts only after consent. Contact officialscoor@gmail.com with privacy questions."
+        },
+        {
+          "title": "Access and diagnostic logs",
+          "body": "Supabase retains access and authentication logs for security and troubleshooting. These may include timestamps, request paths and response status, app/OS information, IP addresses and account identifiers. We do not use them for advertising tracking. Retention depends on the operational service settings and security needs."
+        }
+      ]
+    }
+  }
+}

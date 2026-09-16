@@ -69,7 +69,7 @@ final class DiscoverViewModel: ObservableObject {
                 try await service.setFollowing(nowFollowing, userName: user.identity.name)
             } catch {
                 setFollowingLocally(user.id, !nowFollowing)   // 롤백
-                transientError = "팔로우 상태 저장에 실패했어요."
+                transientError = String(localized: "팔로우 상태 저장에 실패했어요.")
             }
         }
     }

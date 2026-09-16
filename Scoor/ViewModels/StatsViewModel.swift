@@ -109,7 +109,7 @@ final class StatsViewModel: ObservableObject {
            let todayValue = todayEntry?.score,
            let yEntry = byDay[yesterday] {
             let delta = todayValue - yEntry.score
-            todayDeltaVsYesterdayLabel = String(format: "%+d vs yesterday", delta)
+            todayDeltaVsYesterdayLabel = String(format: String(localized: "%+d vs yesterday"), locale: Locale.current, delta)
         } else {
             todayDeltaVsYesterdayLabel = ""
         }
@@ -134,7 +134,7 @@ final class StatsViewModel: ObservableObject {
         guard let weekInterval = cal.dateInterval(of: .weekOfYear, for: now) else { return }
 
         let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d"
+        formatter.setLocalizedDateFormatFromTemplate("MMM d")
         weekRangeTitle = "\(formatter.string(from: weekInterval.start)) - \(formatter.string(from: weekInterval.end.addingTimeInterval(-86400)))"
 
         let letters = ["M", "T", "W", "T", "F", "S", "S"]
@@ -267,7 +267,7 @@ final class StatsViewModel: ObservableObject {
         else { return }
 
         let titleFmt = DateFormatter()
-        titleFmt.dateFormat = "MMMM yyyy"
+        titleFmt.setLocalizedDateFormatFromTemplate("MMMM yyyy")
         heatmapMonthTitle = "\(titleFmt.string(from: monthStart)) Heatmap"
 
         let firstWeekday = cal.component(.weekday, from: monthStart)
@@ -306,7 +306,7 @@ final class StatsViewModel: ObservableObject {
         }
         guard !sum.isEmpty else {
             return [
-                PatternSummaryRow(id: "1", symbolName: "chart.line.uptrend.xyaxis", title: "Best Day: —", subtitle: "Record scores to see patterns.", accent: .green),
+                PatternSummaryRow(id: "1", symbolName: "chart.line.uptrend.xyaxis", title: String(localized: "Best Day: —"), subtitle: String(localized: "Record scores to see patterns."), accent: .green),
             ]
         }
         var best: (Int, Double) = (1, 0)
@@ -323,23 +323,23 @@ final class StatsViewModel: ObservableObject {
             PatternSummaryRow(
                 id: "best",
                 symbolName: "chart.line.uptrend.xyaxis",
-                title: "Best Day: \(bn)",
-                subtitle: String(format: "Highest consistency with an average of %.0f pts", best.1),
+                title: String(localized: "Best Day: \(bn)"),
+                subtitle: String(format: String(localized: "Highest consistency with an average of %.0f pts"), locale: Locale.current, best.1),
                 accent: .green
             ),
             PatternSummaryRow(
                 id: "worst",
                 symbolName: "chart.line.downtrend.xyaxis",
-                title: "Worst Day: \(wn)",
-                subtitle: String(format: "Softer stretch with an average of %.0f pts", worst.1),
+                title: String(localized: "Worst Day: \(wn)"),
+                subtitle: String(format: String(localized: "Softer stretch with an average of %.0f pts"), locale: Locale.current, worst.1),
                 accent: .primary
             ),
         ]
         rows.append(PatternSummaryRow(
             id: "wk",
             symbolName: "arrow.up.arrow.down",
-            title: "Weekend vs Weekday",
-            subtitle: "Weekends are about 10pts higher on average",
+            title: String(localized: "Weekend vs Weekday"),
+            subtitle: String(localized: "Weekends are about 10pts higher on average"),
             accent: .neutral
         ))
         return rows
@@ -358,11 +358,11 @@ final class StatsViewModel: ObservableObject {
             shareTopDateLabel = ""
         } else {
             let avg = Double(inMonth.values.map(\.score).reduce(0, +)) / Double(inMonth.count)
-            shareAveragePts = String(format: "%.0f pts", avg)
+            shareAveragePts = String(format: String(localized: "%.0f pts"), locale: Locale.current, avg)
             if let top = inMonth.max(by: { $0.value.score < $1.value.score }) {
                 shareTopScore = top.value.score
                 let df = DateFormatter()
-                df.dateFormat = "MMM d"
+                df.setLocalizedDateFormatFromTemplate("MMM d")
                 shareTopDateLabel = df.string(from: top.key).uppercased()
             }
         }

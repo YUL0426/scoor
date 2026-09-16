@@ -26,15 +26,15 @@ enum Mood: String, CaseIterable, Identifiable, Hashable {
 
     var label: String {
         switch self {
-        case .happy:    return "행복"
-        case .burnout:  return "번아웃"
-        case .lonely:   return "외로움"
-        case .calm:     return "고요"
-        case .healing:  return "회복"
-        case .work:     return "일"
-        case .love:     return "사랑"
-        case .night:    return "새벽"
-        case .students: return "학생"
+        case .happy:    return String(localized: "행복")
+        case .burnout:  return String(localized: "번아웃")
+        case .lonely:   return String(localized: "외로움")
+        case .calm:     return String(localized: "고요")
+        case .healing:  return String(localized: "회복")
+        case .work:     return String(localized: "일")
+        case .love:     return String(localized: "사랑")
+        case .night:    return String(localized: "새벽")
+        case .students: return String(localized: "학생")
         }
     }
 
@@ -88,6 +88,7 @@ struct PostReactions: Hashable {
     var empathyTotal: Int
     var likedByMe: Bool
     var empathyByMe: EmpathyReaction?
+    var repostedByMe: Bool = false
 }
 
 // MARK: - Feed Entry

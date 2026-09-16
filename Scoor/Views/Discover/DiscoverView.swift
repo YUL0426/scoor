@@ -122,13 +122,13 @@ struct DiscoverView: View {
                     recommendedContentSection
                 }
 
-                sectionHeader("인기 사용자", systemImage: "flame.fill")
+                sectionHeader(String(localized: "인기 사용자"), systemImage: "flame.fill")
                 ForEach(vm.filteredPopular.prefix(8)) { user in
                     userRow(user)
                     Divider().background(ScoorPalette.hairlineSoft).padding(.leading, 64)
                 }
 
-                sectionHeader("추천 사용자", systemImage: "sparkles")
+                sectionHeader(String(localized: "추천 사용자"), systemImage: "sparkles")
                 if vm.filteredRecommended.isEmpty {
                     Text("추천할 새 사용자가 없어요. 이미 다 팔로우 중!")
                         .font(.system(size: 12.5))
@@ -151,7 +151,7 @@ struct DiscoverView: View {
 
     private var recommendedContentSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            sectionHeader("추천 콘텐츠", systemImage: "globe")
+            sectionHeader(String(localized: "추천 콘텐츠"), systemImage: "globe")
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(vm.data.recommendedContent) { content in

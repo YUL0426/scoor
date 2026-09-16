@@ -59,35 +59,11 @@ final class ScoorSprint1UITests: XCTestCase {
         return el
     }
 
-    // Drives splash → welcome → nickname → complete → tour → (skip first scoor) → Main.
+    // Drives splash → social sign-in → Main; profile setup is optional.
     // Adaptive: if the app already resumed past onboarding, it just confirms Main.
     private func reachMain(username: String) {
-        let apple = app.buttons["Continue with Apple"]
-        if apple.waitForExistence(timeout: 8) {
-            apple.tap()
-
-            let field = app.textFields.firstMatch
-            if field.waitForExistence(timeout: 8) {
-                field.tap()
-                field.typeText(username)
-                if app.staticTexts["Choose your Scoor name"].exists {
-                    app.staticTexts["Choose your Scoor name"].tap()
-                }
-                let claim = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Claim'")).firstMatch
-                if claim.waitForExistence(timeout: 6) {
-                    let enabled = NSPredicate(format: "isEnabled == true")
-                    expectation(for: enabled, evaluatedWith: claim)
-                    waitForExpectations(timeout: 8)
-                    claim.tap()
-                }
-            }
-
-            sleep(1); centerTap()
-            tapIfExists(app.buttons["Next"], 8)
-            tapIfExists(app.buttons["Try your first Scoor"], 8)
-            tapIfExists(app.buttons["Skip"], 8)
-        }
-
+        let apple = app.buttons["signup-apple"]
+        if apple.waitForExistence(timeout: 8) { apple.tap() }
         XCTAssertTrue(app.buttons["Home"].waitForExistence(timeout: 12), "Main tab bar never appeared")
         XCTAssertTrue(app.buttons["Add today's score"].waitForExistence(timeout: 6), "FAB missing on Home")
     }
@@ -114,6 +90,117 @@ final class ScoorSprint1UITests: XCTestCase {
     private func openMyPage() {
         app.buttons["My Page"].tap()
         sleep(1)
+    }
+
+    func testStatisticsDashboardAndInterestEditing() {
+        app.launch()
+        reachMain(username: "scoorqa")
+        app.buttons["feed-interests-tab"].tap()
+        let edit = app.buttons["interests-edit-button"]
+        XCTAssertTrue(edit.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.navigationBars["관심 카테고리"].exists)
+        edit.tap()
+        app.buttons["행복"].tap()
+        app.buttons["완료"].tap()
+        app.buttons["feed-interests-tab"].tap()
+        XCTAssertTrue(app.buttons["행복"].waitForExistence(timeout: 5))
+        snap("Interest editor")
+        app.buttons["완료"].tap()
+        app.buttons["Add today's score"].tap()
+        enterDigitsAndSubmit("75")
+        XCTAssertTrue(app.buttons["My Page"].waitForExistence(timeout: 8))
+        app.buttons["My Page"].tap()
+        app.buttons["mypage-section-통계"].tap()
+        XCTAssertTrue(app.buttons["stats-period-7"].waitForExistence(timeout: 8))
+        snap("Statistics — seven days")
+        app.buttons["stats-period-30"].tap()
+        snap("Statistics — thirty days")
+        app.buttons["stats-period-90"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["stats-trend-chart"].exists)
+        snap("Statistics — ninety days")
+        app.swipeUp()
+        snap("Statistics — recording rhythm and calendar")
+    }
+
+    func testCompactProfileAndBackNavigation() {
+        app.launch()
+        reachMain(username: "scoorqa")
+        XCTAssertFalse(app.buttons["home-record-button"].exists)
+        let interests = app.buttons["feed-interests-tab"]
+        XCTAssertTrue(interests.exists)
+        interests.tap()
+        XCTAssertTrue(app.buttons["interests-edit-button"].waitForExistence(timeout: 5))
+        app.buttons["완료"].tap()
+        app.buttons["Add today's score"].tap()
+        let back = app.buttons["score-back-button"]
+        XCTAssertTrue(back.waitForExistence(timeout: 5))
+        back.tap()
+        XCTAssertTrue(app.buttons["My Page"].waitForExistence(timeout: 5))
+        app.buttons["My Page"].tap()
+        let todayCard = app.buttons["mypage-today-card"]
+        XCTAssertTrue(todayCard.waitForExistence(timeout: 8))
+        XCTAssertLessThan(todayCard.frame.height, 150)
+        snap("Compact My Page")
+        app.buttons["World"].tap()
+        let sports = app.buttons.matching(NSPredicate(format: "label CONTAINS '스포츠'")).firstMatch
+        XCTAssertTrue(sports.waitForExistence(timeout: 8))
+        sports.tap()
+        XCTAssertEqual(app.staticTexts.matching(identifier: "world-topic-empty").count, 1)
+        XCTAssertFalse(app.staticTexts["world-post-empty"].exists)
+        snap("World single empty state")
+    }
+
+    func testNavigationRefinement() {
+        app.launch()
+        reachMain(username: "scoorqa")
+        XCTAssertFalse(app.buttons["행복"].exists)
+        snap("Refined Home")
+        app.buttons["World"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["world-category-menu"].waitForExistence(timeout: 8))
+        XCTAssertFalse(app.staticTexts["전체 토픽"].exists)
+        snap("Refined World")
+        app.buttons["알림"].tap()
+        for filter in ["모두", "팔로우", "대화", "언급", "리포스트"] {
+            let button = app.buttons["activity-filter-\(filter)"]
+            if !button.isHittable { app.scrollViews.firstMatch.swipeLeft() }
+            XCTAssertTrue(button.exists)
+            button.tap()
+        }
+        snap("Activity filters")
+        app.buttons["My Page"].tap()
+        XCTAssertTrue(app.buttons["mypage-section-기록"].waitForExistence(timeout: 8))
+        app.buttons["mypage-section-통계"].tap()
+        XCTAssertFalse(app.buttons["my-world-scores-button"].exists)
+        snap("My Page statistics")
+        app.buttons["mypage-section-방명록"].tap()
+        XCTAssertFalse(app.buttons["calendar-day-1"].exists)
+        snap("My Page guestbook")
+        app.buttons["mypage-section-기록"].tap()
+        snap("My Page records")
+    }
+
+    func testHomeMergeAndReasonKeyboard() {
+        app.launch()
+        reachMain(username: "scoorqa")
+        XCTAssertFalse(app.buttons["home-record-button"].exists)
+        XCTAssertFalse(app.buttons["Feed"].exists)
+        snap("Home — shared days and inline navigation")
+        app.buttons["Add today's score"].tap()
+        XCTAssertTrue(app.buttons["7"].waitForExistence(timeout: 5))
+        app.buttons["7"].tap()
+        app.buttons["5"].tap()
+        let reason = app.textFields["reason-field"]
+        reason.tap()
+        reason.typeText("A quiet afternoon")
+        XCTAssertFalse(app.buttons["7"].exists, "Number pad must hide while typing a reason")
+        snap("Reason — text keyboard only")
+        app.buttons["reason-done-button"].tap()
+        XCTAssertTrue(app.buttons["7"].waitForExistence(timeout: 5))
+        app.buttons["Scoor!"].tap()
+        XCTAssertTrue(app.buttons["My Page"].waitForExistence(timeout: 8))
+        app.buttons["My Page"].tap()
+        XCTAssertTrue(app.staticTexts["75"].waitForExistence(timeout: 8))
+        snap("My Page — personal day archive")
     }
 
     // MARK: - 1. Home recent-day card → edit flow
@@ -183,7 +270,7 @@ final class ScoorSprint1UITests: XCTestCase {
         deleteBtn.tap()
 
         // Confirmation dialog → 삭제.
-        let confirm = app.buttons["삭제"]
+        let confirm = app.buttons.matching(NSPredicate(format: "label IN %@ AND identifier != %@", ["삭제", "Delete"], "delete-score-button")).firstMatch
         XCTAssertTrue(confirm.waitForExistence(timeout: 6), "Delete confirmation not shown")
         snap("S2-03 · Delete confirmation dialog")
         confirm.tap()

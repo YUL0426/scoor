@@ -37,32 +37,8 @@ final class ScoorWorldBackendUITests: XCTestCase {
     }
 
     private func reachMain(username: String) {
-        let apple = app.buttons.matching(
-            NSPredicate(format: "label CONTAINS 'Apple'")
-        ).firstMatch
-        if apple.waitForExistence(timeout: 10) {
-            apple.tap()
-            let field = app.textFields.firstMatch
-            if field.waitForExistence(timeout: 8) {
-                field.tap(); field.typeText(username)
-                if app.staticTexts["Choose your Scoor name"].exists {
-                    app.staticTexts["Choose your Scoor name"].tap()
-                }
-                let claim = app.buttons.matching(
-                    NSPredicate(format: "label BEGINSWITH 'Claim'")
-                ).firstMatch
-                if claim.waitForExistence(timeout: 6) {
-                    expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: claim)
-                    waitForExpectations(timeout: 8)
-                    claim.tap()
-                }
-            }
-            sleep(1)
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-            tapIfExists(app.buttons["Next"], 8)
-            tapIfExists(app.buttons["Try your first Scoor"], 8)
-            tapIfExists(app.buttons["Skip"], 8)
-        }
+        let apple = app.buttons["signup-apple"]
+        if apple.waitForExistence(timeout: 8) { apple.tap() }
         XCTAssertTrue(app.buttons["Home"].waitForExistence(timeout: 12), "메인 탭바가 뜨지 않았다")
     }
 
