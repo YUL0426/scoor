@@ -49,8 +49,6 @@ struct TopicScoreSheet: View {
                         }
                         if detail.sports != nil { targetSelector }
 
-                        Spacer(minLength: 0)
-
                         bigNumber
                             .padding(.vertical, 8)
 
@@ -63,7 +61,6 @@ struct TopicScoreSheet: View {
                                 .padding(.horizontal, 22)
                                 .padding(.top, 12)
                         }
-
                     }
                     .padding(.bottom, 16)
                     .frame(maxWidth: .infinity)

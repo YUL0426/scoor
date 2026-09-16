@@ -270,7 +270,7 @@ struct FeedView: View {
             }
             if vm.isLoadingMore { loadMoreSpinner }
             bottomSpacer
-            }
+        }
     }
 
     private var loadingState: some View {
