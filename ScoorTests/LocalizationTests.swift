@@ -3,6 +3,28 @@ import XCTest
 
 @MainActor
 final class LocalizationTests: XCTestCase {
+    func testCompiledEnglishBundleContainsNoKoreanUIValues() throws {
+        let path = try XCTUnwrap(Bundle.main.path(forResource: "en", ofType: "lproj"))
+        let url = URL(fileURLWithPath: path).appendingPathComponent("Localizable.strings")
+        let strings = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil) as? [String: String])
+        XCTAssertGreaterThan(strings.count, 300)
+        for (key, value) in strings {
+            XCTAssertNil(value.range(of: "[가-힣]", options: .regularExpression), "English bundle contains Korean: \(key) → \(value)")
+        }
+        let bundle = try XCTUnwrap(Bundle(path: path))
+        for (key, expected) in [("오늘 기록하기", "Record today"), ("완료", "Done"),
+                                ("계정 삭제", "Delete account"), ("부정적", "Negative"),
+                                ("나의 하루 흐름", "My daily rhythm")] {
+            XCTAssertEqual(bundle.localizedString(forKey: key, value: nil, table: nil), expected)
+        }
+    }
+
+    func testCustomTopicScoreMeaningsArePreserved() {
+        XCTAssertEqual(WorldTopic.localizedScoreMeaning("새로운 사용자 기준"), "새로운 사용자 기준")
+        XCTAssertEqual(WorldTopic.localizedScoreMeaning("부정적"), String(localized: "부정적"))
+        XCTAssertEqual(WorldTopic.localizedScoreMeaning("찬성"), String(localized: "찬성"))
+    }
+
     func testTranslatedDocumentsAreBoundToTheCurrentOriginals() throws {
         let translations = try XCTUnwrap(LegalPolicy.translations)
         XCTAssertEqual(translations.version, LegalPolicy.version)

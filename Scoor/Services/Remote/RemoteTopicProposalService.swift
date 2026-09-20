@@ -100,9 +100,9 @@ extension RemoteWorldService {
     func searchTopics(_ query: String) async throws -> [WorldTopic] {
         let clean = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !clean.isEmpty else { return [] }
-        // Escape LIKE wildcard input; query values are URL encoded by the HTTP client.
-        let escaped = clean.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "%", with: "\\%").replacingOccurrences(of: "_", with: "\\_").replacingOccurrences(of: "*", with: "")
-        let rows = try await client.send(.select("topics_feed", filters: ["title": "ilike.%\(escaped)%"], order: "created_at.desc,id.desc", limit: 20), as: [TopicRow].self)
+        let body = ["p_query": clean, "p_language": TopicTranslation.languageKey(TopicTranslation.appLanguage)]
+        let rows = try await client.send(SupabaseRequest(method: .post, path: "rpc/search_localized_topics",
+            body: try SupabaseHTTPClient.encoder.encode(body)), as: [TopicRow].self)
         return rows.compactMap { $0.toDomain() }
     }
 }

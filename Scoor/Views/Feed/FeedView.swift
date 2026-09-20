@@ -56,7 +56,7 @@ struct FeedView: View {
                     topHeader
                     // 시드 경로에서만 남는 두 가지: "예시 콘텐츠" 배너와, 수치가
                     // 전부 가짜인 펄스 티커. 서버 피드에서는 둘 다 거짓말이 된다.
-                    if !vm.isLive {
+                    if vm.usesPreviewData {
                         PreviewContentBanner()
                             .padding(.top, 4)
                     }
@@ -183,7 +183,7 @@ struct FeedView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
-                        Button(editingInterests ? "취소" : "편집") {
+                        Button(editingInterests ? String(localized: "취소") : String(localized: "편집")) {
                             draftInterest = interestMood
                             editingInterests.toggle()
                         }
@@ -298,10 +298,10 @@ struct FeedView: View {
 
     private var emptyState: some View {
         VStack(spacing: 8) {
-            Text(repostsOnly ? "아직 리포스트한 글이 없어요" : "아직 나눠진 하루가 없어요")
+            Text(repostsOnly ? String(localized: "아직 리포스트한 글이 없어요") : String(localized: "아직 나눠진 하루가 없어요"))
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(ScoorPalette.inkSecondary)
-            Text(repostsOnly ? "홈에서 마음에 드는 글을 리포스트해보세요" : "오늘의 점수와 한 줄로 이야기를 시작해보세요")
+            Text(repostsOnly ? String(localized: "홈에서 마음에 드는 글을 리포스트해보세요") : String(localized: "오늘의 점수와 한 줄로 이야기를 시작해보세요"))
                 .font(.system(size: 12))
                 .foregroundStyle(ScoorPalette.inkTertiary)
         }

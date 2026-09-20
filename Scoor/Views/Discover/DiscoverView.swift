@@ -25,8 +25,10 @@ struct DiscoverView: View {
 
             VStack(spacing: 0) {
                 header
-                PreviewContentBanner()
-                    .padding(.bottom, 8)
+                if vm.usesPreviewData {
+                    PreviewContentBanner()
+                        .padding(.bottom, 8)
+                }
                 searchBar
                 Divider().background(ScoorPalette.hairline)
                 content
@@ -245,7 +247,7 @@ struct DiscoverView: View {
 
     private func followButton(_ user: DiscoverUser) -> some View {
         Button { vm.toggleFollow(user) } label: {
-            Text(user.isFollowing ? "팔로잉" : "팔로우")
+            Text(user.isFollowing ? String(localized: "팔로잉") : String(localized: "팔로우"))
                 .font(.system(size: 12.5, weight: .bold))
                 .foregroundStyle(user.isFollowing ? ScoorPalette.inkSecondary : .white)
                 .padding(.horizontal, 14)

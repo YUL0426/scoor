@@ -535,8 +535,8 @@
       "localizations": {
         "en": {
           "stringUnit": {
-            "state": "new",
-            "value": "%1$@, Scoor 점수 %2$lld"
+            "state": "translated",
+            "value": "%1$@, Scoor score %2$lld"
           }
         },
         "ja": {
@@ -555,6 +555,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@, nota no Scoor: %2$lld"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, Scoor 점수 %lld"
           }
         }
       }
@@ -857,8 +863,8 @@
       "localizations": {
         "en": {
           "stringUnit": {
-            "state": "new",
-            "value": "%1$lld / %2$lld일"
+            "state": "translated",
+            "value": "%1$lld / %2$lld days"
           }
         },
         "ja": {
@@ -877,6 +883,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$lld / %2$lld dias"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld / %lld일"
           }
         }
       }
@@ -1394,6 +1406,18 @@
               }
             }
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld/80 characters"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld/80자"
+          }
         }
       }
     },
@@ -1464,6 +1488,18 @@
             "state": "translated",
             "value": "Participantes: %lld"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld participants"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld명 참여"
+          }
         }
       }
     },
@@ -1511,6 +1547,18 @@
                 }
               }
             }
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld days"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld일"
           }
         }
       }
@@ -1832,6 +1880,18 @@
             "state": "translated",
             "value": "O que significa 0"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What 0 means"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0점의 의미"
+          }
         }
       }
     },
@@ -2018,6 +2078,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "O que significa 100"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What 100 means"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100점의 의미"
           }
         }
       }
@@ -6344,6 +6416,18 @@
             "state": "translated",
             "value": "Publicação oficial do Scoor"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Official Scoor post"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scoor 공식 글"
+          }
         }
       }
     },
@@ -6420,6 +6504,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nota no Scoor: %lld"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scoor score %lld"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scoor 점수 %lld"
           }
         }
       }
@@ -9500,6 +9596,18 @@
             "state": "translated",
             "value": "Buscar"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "검색"
+          }
         }
       }
     },
@@ -9521,6 +9629,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nenhum resultado. Que tal sugerir um novo assunto?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No results. Try suggesting a new topic."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "검색 결과가 없어요. 새 토픽을 제안해 보세요."
           }
         }
       }
@@ -9544,6 +9664,18 @@
             "state": "translated",
             "value": "O resultado estará nas notificações de Minhas sugestões."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check review updates in My topic proposals."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "검토 결과는 내 토픽 제안의 심사 알림에서 확인할 수 있어요."
+          }
         }
       }
     },
@@ -9565,6 +9697,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Enviar para análise"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit for review"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "검토 요청 보내기"
           }
         }
       }
@@ -9588,6 +9732,18 @@
             "state": "translated",
             "value": "A publicação em Mundo acontece após análise. Limite de 2 sugestões em 24 horas e 3 aguardando análise."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topics appear in World after review. You can submit up to 2 proposals per 24 hours, with up to 3 awaiting review."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "검토 후 월드에 게시돼요. 최근 24시간 2건, 검토 대기 3건까지 제안할 수 있어요."
+          }
         }
       }
     },
@@ -9609,6 +9765,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não foi possível publicar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not publish"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "게시하지 못했어요"
           }
         }
       }
@@ -9685,6 +9853,18 @@
             "state": "translated",
             "value": "Excluir conta e dados"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account and data"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 및 데이터 삭제"
+          }
         }
       }
     },
@@ -9706,6 +9886,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Excluir conta"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 삭제"
           }
         }
       }
@@ -9729,6 +9921,18 @@
             "state": "translated",
             "value": "Excluir sua conta?"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete your account?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정을 삭제하시겠어요?"
+          }
         }
       }
     },
@@ -9750,6 +9954,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não foi possível excluir a conta"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not delete your account"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정을 삭제하지 못했습니다"
           }
         }
       }
@@ -9773,6 +9989,18 @@
             "state": "translated",
             "value": "Oficial"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Official"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "공식"
+          }
         }
       }
     },
@@ -9794,6 +10022,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Interesses"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interest"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "관심"
           }
         }
       }
@@ -10011,6 +10251,18 @@
             "state": "translated",
             "value": "Calendário de registros"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Journal calendar"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기록 달력"
+          }
         }
       }
     },
@@ -10032,6 +10284,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seus registros são salvos primeiro no aparelho e copiados para sua conta quando houver conexão. Você também pode usar sem internet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entries are saved on your device first and backed up to your account when connected. You can keep recording offline."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기록은 기기에 먼저 저장되고, 연결되면 계정으로 백업됩니다. 오프라인에서도 그대로 사용할 수 있어요."
           }
         }
       }
@@ -10055,6 +10319,18 @@
             "state": "translated",
             "value": "Dias sem registro não entram na média"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Days without entries are not included in your average"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기록하지 않은 날은 평균에 포함하지 않아요"
+          }
         }
       }
     },
@@ -10076,6 +10352,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dias registrados"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Days recorded"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기록한 날"
           }
         }
       }
@@ -10099,6 +10387,18 @@
             "state": "translated",
             "value": "Com base nos dias registrados"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Based on recorded days"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기록한 날 기준"
+          }
         }
       }
     },
@@ -10120,6 +10420,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seus dias ao longo dos registros"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your rhythm, reflected in the days you record"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기록한 날들이 보여주는 나의 리듬"
           }
         }
       }
@@ -10196,6 +10508,18 @@
             "state": "translated",
             "value": "Continue no seu ritmo"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep going at your own pace"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "나만의 속도로 이어가세요"
+          }
         }
       }
     },
@@ -10271,6 +10595,18 @@
             "state": "translated",
             "value": "Meus dias ao longo do tempo"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My daily rhythm"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "나의 하루 흐름"
+          }
         }
       }
     },
@@ -10293,6 +10629,18 @@
             "state": "translated",
             "value": "Data"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "날짜"
+          }
         }
       }
     },
@@ -10314,6 +10662,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Veja e edite seus registros por data"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View and edit your entries by date"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "날짜별 기록을 확인하고 수정하세요"
           }
         }
       }
@@ -10443,6 +10803,18 @@
             "state": "translated",
             "value": "Minhas sugestões"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My proposals"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 제안"
+          }
         }
       }
     },
@@ -10464,6 +10836,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ver minhas sugestões"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View my proposals"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 제안 확인"
           }
         }
       }
@@ -10487,6 +10871,18 @@
             "state": "translated",
             "value": "Minhas sugestões de assuntos"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My topic proposals"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 토픽 제안"
+          }
         }
       }
     },
@@ -10508,6 +10904,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Meu perfil"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My profile"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 프로필"
           }
         }
       }
@@ -10531,6 +10939,18 @@
             "state": "translated",
             "value": "Ao bloquear alguém, as publicações e os comentários dessa pessoa deixam de aparecer."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocking someone hides their posts and comments."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "누군가를 차단하면 그 사람의 글과 댓글이 보이지 않습니다."
+          }
         }
       }
     },
@@ -10553,6 +10973,18 @@
             "state": "translated",
             "value": "Notícias e acontecimentos"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "News and events"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "뉴스·사건"
+          }
         }
       }
     },
@@ -10574,6 +11006,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Publicar com meu apelido"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Post with my username"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "닉네임으로 남기기"
           }
         }
       }
@@ -11021,6 +11465,18 @@
             "state": "translated",
             "value": "Em caso de perigo imediato, ligue para o serviço de emergência local. Na Coreia do Sul: 119."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you are in immediate danger in South Korea, call 119."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "당장 위험한 상황이라면 119에 연락해 주세요."
+          }
         }
       }
     },
@@ -11255,6 +11711,18 @@
             "state": "translated",
             "value": "Mais"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "더보기"
+          }
         }
       }
     },
@@ -11276,6 +11744,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Você pode buscar ajuda"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support is available"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "도움을 받을 수 있어요"
           }
         }
       }
@@ -11299,6 +11779,18 @@
             "state": "translated",
             "value": "Voltar"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go back"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "돌아가기"
+          }
         }
       }
     },
@@ -11320,6 +11812,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sincronização"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동기화"
           }
         }
       }
@@ -11343,6 +11847,18 @@
             "state": "translated",
             "value": "Esta ação não pode ser desfeita. Todos os registros deste aparelho (notas, recados e atividades sociais) e os dados de login serão excluídos permanentemente."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This cannot be undone. All entries on this device (scores, guestbook messages, and social activity) and sign-in information will be permanently deleted."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "되돌릴 수 없습니다. 이 기기에 저장된 모든 기록(점수, 방명록, 소셜 활동)과 로그인 정보가 영구 삭제됩니다."
+          }
         }
       }
     },
@@ -11364,6 +11880,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Voltar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "뒤로가기"
           }
         }
       }
@@ -11493,6 +12021,18 @@
             "state": "translated",
             "value": "Você voltará para a tela de cadastro. Os registros no aparelho serão mantidos e restaurados ao entrar de novo na mesma conta."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signing out returns you to the welcome screen. Entries on this device are kept and restored when you sign in with the same account."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로그아웃하면 가입 화면으로 돌아갑니다. 기기에 저장된 기록은 유지되며, 같은 계정으로 다시 로그인하면 복원됩니다."
+          }
         }
       }
     },
@@ -11570,6 +12110,18 @@
             "state": "translated",
             "value": "Não foi possível entrar"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in failed"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로그인 실패"
+          }
         }
       }
     },
@@ -11627,6 +12179,18 @@
             "state": "translated",
             "value": "Este assunto foi encerrado"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic is closed"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "마감된 토픽이에요"
+          }
         }
       }
     },
@@ -11648,6 +12212,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Última sincronização"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last synced"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "마지막 동기화"
           }
         }
       }
@@ -11671,6 +12247,18 @@
             "state": "translated",
             "value": "Novos assuntos todos os dias."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New topics arrive every day."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "매일 새 토픽이 올라옵니다."
+          }
         }
       }
     },
@@ -11693,6 +12281,18 @@
             "state": "translated",
             "value": "Prévia"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "미리보기"
+          }
         }
       }
     },
@@ -11714,6 +12314,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Prévia com conteúdo de exemplo. A comunidade será aberta com o lançamento do serviço online."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview — sample content. The community opens when the online service launches."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "미리보기 — 예시 콘텐츠입니다. 실제 커뮤니티는 온라인 서비스 출시와 함께 열려요."
           }
         }
       }
@@ -11824,6 +12436,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Contexto (10 a 200 caracteres)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Background (10–200 characters)"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "배경 설명 (10~200자)"
           }
         }
       }
@@ -11952,6 +12576,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Participe de um assunto parecido"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join a similar existing topic"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "비슷한 기존 토픽에 참여해 보세요"
           }
         }
       }
@@ -12381,6 +13017,18 @@
             "state": "translated",
             "value": "Nova sugestão"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New proposal"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 제안"
+          }
         }
       }
     },
@@ -12402,6 +13050,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "As novidades vão aparecer aqui"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check here for new updates"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새로운 소식이 생기면 여기에서 확인하세요"
           }
         }
       }
@@ -12813,6 +13473,18 @@
             "state": "translated",
             "value": "Motivo da denúncia"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reason for reporting"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "신고 사유"
+          }
         }
       }
     },
@@ -12834,6 +13506,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "As denúncias são analisadas em até 24 horas. Seus dados não são mostrados à pessoa denunciada."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reports are reviewed within 24 hours. Your identity is not shared with the person you report."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "신고는 24시간 안에 검토됩니다. 신고자 정보는 상대에게 공개되지 않습니다."
           }
         }
       }
@@ -12857,6 +13541,18 @@
             "state": "translated",
             "value": "Denunciar"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "신고하기"
+          }
         }
       }
     },
@@ -12878,6 +13574,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Resultado da análise"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review updates"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "심사 알림"
           }
         }
       }
@@ -12901,6 +13609,18 @@
             "state": "translated",
             "value": "Nenhuma notificação de “%@”"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No %@ notifications yet"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아직 %@ 알림이 없어요"
+          }
         }
       }
     },
@@ -12922,6 +13642,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nenhum dia compartilhado ainda"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No shared days yet"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아직 나눠진 하루가 없어요"
           }
         }
       }
@@ -13139,6 +13871,18 @@
             "state": "translated",
             "value": "Nenhuma notificação ainda"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No notifications yet"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아직 알림이 없어요"
+          }
         }
       }
     },
@@ -13214,6 +13958,18 @@
             "state": "translated",
             "value": "Nenhum registro neste período"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No entries for this period yet"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아직 이 기간의 기록이 없어요"
+          }
         }
       }
     },
@@ -13235,6 +13991,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ninguém comentou sobre este assunto ainda"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No reactions to this topic yet"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아직 이 토픽에 대한 이야기가 없어요"
           }
         }
       }
@@ -13575,6 +14343,18 @@
             "state": "translated",
             "value": "Ex.: você é a favor de quatro dias de trabalho remoto por semana?"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For example: Do you support working from home four days a week?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "예: 주 4일 재택근무 도입에 찬성하나요?"
+          }
         }
       }
     },
@@ -13649,6 +14429,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Registrar hoje"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record today"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 기록하기"
           }
         }
       }
@@ -13848,6 +14640,18 @@
             "state": "translated",
             "value": "Comece com uma nota e algumas palavras"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start with today’s score and a few words"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘의 점수와 한 줄로 이야기를 시작해보세요"
+          }
         }
       }
     },
@@ -13869,6 +14673,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Concluir"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "완료"
           }
         }
       }
@@ -13945,6 +14761,18 @@
             "state": "translated",
             "value": "Opiniões e debates"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opinions and discussion"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "의견·논의"
+          }
         }
       }
     },
@@ -13966,6 +14794,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Melhor dia do período · %lld pts"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your highest day this period · %lld points"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 기간의 가장 높은 하루 · %lld점"
           }
         }
       }
@@ -14042,6 +14882,18 @@
             "state": "translated",
             "value": "Ocultar publicações desta pessoa"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop seeing posts from this user"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 사용자의 글 더 이상 보지 않기"
+          }
         }
       }
     },
@@ -14116,6 +14968,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ainda não há assuntos nesta categoria."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No topics in this category yet."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 카테고리엔 아직 토픽이 없어요."
           }
         }
       }
@@ -14300,6 +15164,18 @@
             "state": "translated",
             "value": "Humor mais frequente do mês"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This month’s main mood"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이번 달 대표 감정"
+          }
         }
       }
     },
@@ -14309,8 +15185,8 @@
       "localizations": {
         "en": {
           "stringUnit": {
-            "state": "new",
-            "value": "이번 달 대표 감정 %1$@, %2$lld일"
+            "state": "translated",
+            "value": "This month’s main mood: %1$@, %2$lld days"
           }
         },
         "ja": {
@@ -14329,6 +15205,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Humor mais frequente: %1$@, em %2$lld dias"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이번 달 대표 감정 %@, %lld일"
           }
         }
       }
@@ -14425,8 +15307,8 @@
       "localizations": {
         "en": {
           "stringUnit": {
-            "state": "new",
-            "value": "이전 %1$lld일 대비 %2$@%3$lld점"
+            "state": "translated",
+            "value": "%2$@%3$lld points compared with the previous %1$lld days"
           }
         },
         "ja": {
@@ -14445,6 +15327,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Em relação aos %1$lld dias anteriores: %2$@%3$lld pontos"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이전 %lld일 대비 %@%lld점"
           }
         }
       }
@@ -14521,6 +15409,18 @@
             "state": "translated",
             "value": "Publicar anonimamente"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Post anonymously"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "익명으로 남기기"
+          }
         }
       }
     },
@@ -14542,6 +15442,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não publique dados pessoais de pessoas comuns, avaliações de aparência, ataques pessoais, discurso de ódio ou propaganda."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do not post private information, judgments about people’s appearance, personal attacks, hate, or advertising."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "일반인 신상·외모 품평·개인 공격·혐오·광고는 올릴 수 없어요."
           }
         }
       }
@@ -14565,6 +15477,18 @@
             "state": "translated",
             "value": "Concluir digitação"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "입력 완료"
+          }
         }
       }
     },
@@ -14587,6 +15511,18 @@
             "state": "translated",
             "value": "Prevenção do suicídio na Coreia do Sul: **109**, gratuito, 24 horas"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "South Korea suicide prevention helpline: **109** — free, 24/7"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "자살예방 상담전화 **109** — 24시간, 무료"
+          }
         }
       }
     },
@@ -14608,6 +15544,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Detalhes (opcional)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Details (optional)"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "자세한 내용 (선택)"
           }
         }
       }
@@ -14825,6 +15773,18 @@
             "state": "translated",
             "value": "Nota: %lld"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Score %lld"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "점수 %lld"
+          }
         }
       }
     },
@@ -14847,6 +15807,18 @@
             "state": "translated",
             "value": "Critérios de pontuação"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Score meanings"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "점수 기준"
+          }
         }
       }
     },
@@ -14868,6 +15840,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ver mais notas"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show more scores"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "점수 더 보기"
           }
         }
       }
@@ -14961,6 +15945,18 @@
             "state": "translated",
             "value": "Apoio em saúde mental na Coreia do Sul: **1577-0199**"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "South Korea mental health helpline: **1577-0199**"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "정신건강 상담전화 **1577-0199**"
+          }
         }
       }
     },
@@ -15018,6 +16014,18 @@
             "state": "translated",
             "value": "Editar sugestão"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit proposal"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "제안 수정"
+          }
         }
       }
     },
@@ -15039,6 +16047,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sugestão enviada"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proposal submitted"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "제안을 보냈어요"
           }
         }
       }
@@ -15062,6 +16082,18 @@
             "state": "translated",
             "value": "Carregando sugestões…"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading proposals…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "제안을 불러오는 중…"
+          }
         }
       }
     },
@@ -15083,6 +16115,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Enviar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "제출"
           }
         }
       }
@@ -15106,6 +16150,18 @@
             "state": "translated",
             "value": "Enviando…"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitting…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "제출 중…"
+          }
         }
       }
     },
@@ -15127,6 +16183,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tipo"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "종류"
           }
         }
       }
@@ -15379,6 +16447,18 @@
             "state": "translated",
             "value": "Tipo de pergunta e fonte"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question type and source"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "질문의 종류와 출처"
+          }
         }
       }
     },
@@ -15400,6 +16480,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "As reações dessa pessoa serão ocultadas imediatamente. Ela não será avisada do bloqueio."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocking immediately hides this user’s reactions. They will not be notified."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "차단하면 이 사용자의 반응이 즉시 보이지 않습니다. 상대에게는 알려지지 않습니다."
           }
         }
       }
@@ -15423,6 +16515,18 @@
             "state": "translated",
             "value": "Pessoas bloqueadas"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocked users"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "차단한 사용자"
+          }
         }
       }
     },
@@ -15444,6 +16548,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nenhuma pessoa bloqueada"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No blocked users"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "차단한 사용자가 없습니다"
           }
         }
       }
@@ -15467,6 +16583,18 @@
             "state": "translated",
             "value": "A pergunta e os critérios não podem ser alterados depois que a participação começar."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once participation starts, the question and score meanings cannot be changed."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "참여가 시작되면 질문과 점수 기준은 바꿀 수 없어요."
+          }
         }
       }
     },
@@ -15488,6 +16616,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Retirar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "철회"
           }
         }
       }
@@ -15563,6 +16703,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dê a primeira nota"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Be the first to score"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "첫 점수를 남겨보세요"
           }
         }
       }
@@ -15745,6 +16897,18 @@
             "state": "translated",
             "value": "URL da fonte (opcional)"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source URL (optional)"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "출처 URL (선택)"
+          }
         }
       }
     },
@@ -15767,6 +16931,18 @@
             "state": "translated",
             "value": "URL da fonte (obrigatório)"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source URL (required)"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "출처 URL (필수)"
+          }
         }
       }
     },
@@ -15788,6 +16964,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ver fonte"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View source"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "출처 보기"
           }
         }
       }
@@ -15864,6 +17052,18 @@
             "state": "translated",
             "value": "Categoria"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Category"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "카테고리"
+          }
         }
       }
     },
@@ -15886,6 +17086,18 @@
             "state": "translated",
             "value": "Sugestão da comunidade"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Community proposal"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "커뮤니티 제안"
+          }
         }
       }
     },
@@ -15907,6 +17119,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sugestão da comunidade · Prévia"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Community proposal · Post preview"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "커뮤니티 제안 · 게시 미리보기"
           }
         }
       }
@@ -16229,6 +17453,18 @@
             "state": "translated",
             "value": "Ver assunto"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View topic"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "토픽 보기"
+          }
         }
       }
     },
@@ -16250,6 +17486,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Denunciar assunto ou bloquear autor"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report topic or block proposer"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "토픽 신고 또는 제안자 차단"
           }
         }
       }
@@ -16343,6 +17591,18 @@
             "state": "translated",
             "value": "As notas e opiniões sobre este assunto vão aparecer aqui"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scores and thoughts on this topic will appear here"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "토픽에 대한 점수와 의견이 이곳에 모여요"
+          }
         }
       }
     },
@@ -16399,6 +17659,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Compartilhar estatísticas"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share statistics"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "통계 공유"
           }
         }
       }
@@ -16687,6 +17959,18 @@
             "state": "translated",
             "value": "Editar"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "편집"
+          }
         }
       }
     },
@@ -16761,6 +18045,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nota média"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Average score"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "평균 점수"
           }
         }
       }
@@ -16996,6 +18292,18 @@
             "state": "translated",
             "value": "A evolução dos seus dias vai aparecer aqui conforme você registrar"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record your days to see your rhythm here"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하루를 남기면 이곳에 흐름이 그려져요"
+          }
         }
       }
     },
@@ -17106,6 +18414,18 @@
             "state": "translated",
             "value": "Pergunta para discutir"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A question to discuss"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "함께 논의할 질문"
+          }
         }
       }
     },
@@ -17127,6 +18447,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sugira um assunto sobre o qual você gostaria de conversar."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggest a topic you would like to discuss."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "함께 이야기하고 싶은 주제를 제안해 보세요."
           }
         }
       }
@@ -17150,6 +18482,18 @@
             "state": "translated",
             "value": "Desbloquear"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unblock"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "해제"
+          }
         }
       }
     },
@@ -17171,6 +18515,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sequência atual"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current streak"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "현재 연속 기록"
           }
         }
       }
@@ -17359,6 +18715,12 @@
             "state": "translated",
             "value": "A nota foi salva, mas não foi possível compartilhar no Início. Tente de novo."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your score was saved, but sharing to Home failed. Please try again."
+          }
         }
       }
     },
@@ -17387,6 +18749,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Digite uma mensagem."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Please enter some text."
           }
         }
       }
@@ -17417,6 +18785,12 @@
             "state": "translated",
             "value": "Item não encontrado."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not find this item."
+          }
         }
       }
     },
@@ -17445,6 +18819,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Negativo"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Negative"
           }
         }
       }
@@ -17475,6 +18855,12 @@
             "state": "translated",
             "value": "Positivo"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Positive"
+          }
         }
       }
     },
@@ -17503,6 +18889,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ao vivo"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest"
           }
         }
       }
@@ -17533,6 +18925,12 @@
             "state": "translated",
             "value": "Em alta"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Popular now"
+          }
         }
       }
     },
@@ -17561,6 +18959,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Crescendo"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trending"
           }
         }
       }
@@ -17591,6 +18995,12 @@
             "state": "translated",
             "value": "Assunto novo. Deixe a primeira reação."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic is new. Be the first to react."
+          }
         }
       }
     },
@@ -17619,6 +19029,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Felicidade"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Happy"
           }
         }
       }
@@ -17649,6 +19065,12 @@
             "state": "translated",
             "value": "Esgotamento"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burnout"
+          }
         }
       }
     },
@@ -17677,6 +19099,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Solidão"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lonely"
           }
         }
       }
@@ -17707,6 +19135,12 @@
             "state": "translated",
             "value": "Tranquilidade"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calm"
+          }
         }
       }
     },
@@ -17735,6 +19169,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Recuperação"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Healing"
           }
         }
       }
@@ -17765,6 +19205,12 @@
             "state": "translated",
             "value": "Trabalho"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Work"
+          }
         }
       }
     },
@@ -17794,6 +19240,12 @@
             "state": "translated",
             "value": "Amor"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Love"
+          }
         }
       }
     },
@@ -17819,6 +19271,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Popular"
+          }
+        },
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Popular"
@@ -17852,6 +19310,12 @@
             "state": "translated",
             "value": "Humor parecido"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Similar moods"
+          }
         }
       }
     },
@@ -17881,6 +19345,12 @@
             "state": "translated",
             "value": "Contra"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disagree"
+          }
         }
       }
     },
@@ -17909,6 +19379,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "A favor"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agree"
           }
         }
       }
@@ -18009,6 +19485,12 @@
             "state": "translated",
             "value": "Login cancelado."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in was cancelled."
+          }
         }
       }
     },
@@ -18037,6 +19519,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Resposta de login inválida."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The sign-in response was invalid."
           }
         }
       }
@@ -18067,6 +19555,12 @@
             "state": "translated",
             "value": "Este e-mail já está cadastrado. A senha não confere."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This email is already registered, but the password does not match."
+          }
         }
       }
     },
@@ -18095,6 +19589,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não foi possível gerar os dados de segurança."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not generate a secure random value."
           }
         }
       }
@@ -18125,6 +19625,12 @@
             "state": "translated",
             "value": "Não foi possível salvar as credenciais."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save your credentials."
+          }
         }
       }
     },
@@ -18153,6 +19659,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Use a tela de login por e-mail."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Please use the email sign-in option."
           }
         }
       }
@@ -18183,6 +19695,12 @@
             "state": "translated",
             "value": "Senha incorreta."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The password is incorrect."
+          }
         }
       }
     },
@@ -18211,6 +19729,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "A verificação de segurança falhou."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in security verification failed (state mismatch)."
           }
         }
       }
@@ -18241,6 +19765,12 @@
             "state": "translated",
             "value": "Não foi possível abrir a sessão do navegador."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not start the browser session."
+          }
         }
       }
     },
@@ -18269,6 +19799,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "A troca de tokens falhou."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token exchange failed"
           }
         }
       }
@@ -18299,6 +19835,12 @@
             "state": "translated",
             "value": "Um login com a Apple já está em andamento."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple sign-in is already in progress."
+          }
         }
       }
     },
@@ -18327,6 +19869,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sem conexão com a internet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are offline."
           }
         }
       }
@@ -18357,6 +19905,12 @@
             "state": "translated",
             "value": "O servidor não está configurado."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server is not configured."
+          }
         }
       }
     },
@@ -18385,6 +19939,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "É necessário entrar na conta."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Please sign in."
           }
         }
       }
@@ -18415,6 +19975,12 @@
             "state": "translated",
             "value": "Muitas tentativas. Aguarde um pouco e tente de novo."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many attempts. Please try again in a moment."
+          }
         }
       }
     },
@@ -18443,6 +20009,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Atualize o app para a versão mais recente."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Please update to the latest version of the app."
           }
         }
       }
@@ -18473,6 +20045,12 @@
             "state": "translated",
             "value": "Não foi possível processar a resposta do servidor."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not process the server response."
+          }
         }
       }
     },
@@ -18501,6 +20079,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Este e-mail já está cadastrado."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This email is already registered."
           }
         }
       }
@@ -18531,6 +20115,12 @@
             "state": "translated",
             "value": "Este endereço de e-mail não pode ser usado."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This email address cannot be used."
+          }
         }
       }
     },
@@ -18559,6 +20149,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Escolha uma senha com pelo menos 6 caracteres."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The password is too weak. Use at least 6 characters."
           }
         }
       }
@@ -18589,6 +20185,12 @@
             "state": "translated",
             "value": "Em análise"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Under review"
+          }
         }
       }
     },
@@ -18617,6 +20219,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alterações solicitadas"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes requested"
           }
         }
       }
@@ -18647,6 +20255,12 @@
             "state": "translated",
             "value": "Publicado"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published"
+          }
         }
       }
     },
@@ -18675,6 +20289,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não aprovado"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Declined"
           }
         }
       }
@@ -18705,6 +20325,12 @@
             "state": "translated",
             "value": "Vinculado a um assunto existente"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linked to an existing topic"
+          }
         }
       }
     },
@@ -18733,6 +20359,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Retirado"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawn"
           }
         }
       }
@@ -18763,6 +20395,12 @@
             "state": "translated",
             "value": "Verificando status"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking status"
+          }
         }
       }
     },
@@ -18791,6 +20429,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "A pergunta deve ter de 5 a 80 caracteres."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a question of 5–80 characters."
           }
         }
       }
@@ -18821,6 +20465,12 @@
             "state": "translated",
             "value": "O contexto deve ter de 10 a 200 caracteres."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a background of 10–200 characters."
+          }
         }
       }
     },
@@ -18849,6 +20499,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Digite dois critérios diferentes com até 20 caracteres cada."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter distinct score meanings, up to 20 characters each."
           }
         }
       }
@@ -18879,6 +20535,12 @@
             "state": "translated",
             "value": "Notícias precisam de uma fonte."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "News and events require a source."
+          }
         }
       }
     },
@@ -18907,6 +20569,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "O endereço da fonte deve começar com https://."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a source URL starting with https://."
           }
         }
       }
@@ -18937,6 +20605,12 @@
             "state": "translated",
             "value": "Você não tem permissão."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You do not have permission."
+          }
         }
       }
     },
@@ -18965,6 +20639,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Esses dados já existem."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This data already exists."
           }
         }
       }
@@ -18995,6 +20675,12 @@
             "state": "translated",
             "value": "Spam ou propaganda"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spam or advertising"
+          }
         }
       }
     },
@@ -19023,6 +20709,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Assédio ou discurso de ódio"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Harassment or hate"
           }
         }
       }
@@ -19053,6 +20745,12 @@
             "state": "translated",
             "value": "Risco de automutilação ou suicídio"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Risk of self-harm or suicide"
+          }
         }
       }
     },
@@ -19081,6 +20779,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Outro"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other"
           }
         }
       }
@@ -19111,6 +20815,12 @@
             "state": "translated",
             "value": "Você não pode bloquear a si mesmo."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You cannot block yourself."
+          }
         }
       }
     },
@@ -19139,6 +20849,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Usuário desconhecido"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown user"
           }
         }
       }
@@ -19169,6 +20885,12 @@
             "state": "translated",
             "value": "Adicione uma anotação sobre hoje para compartilhar no Início."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a reason for today’s score to share it to Home."
+          }
         }
       }
     },
@@ -19197,6 +20919,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sem nome"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unnamed"
           }
         }
       }
@@ -19227,6 +20955,12 @@
             "state": "translated",
             "value": "Por dia"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily"
+          }
         }
       }
     },
@@ -19256,6 +20990,12 @@
             "state": "translated",
             "value": "Por semana"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekly"
+          }
         }
       }
     },
@@ -19284,6 +21024,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Por mês"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monthly"
           }
         }
       }
@@ -19349,6 +21095,12 @@
             "state": "translated",
             "value": "\n\nOs registros no aparelho foram mantidos. Tente de novo em alguns instantes."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\n\nYour entries are still on this device. Please try again in a moment."
+          }
         }
       }
     },
@@ -19377,6 +21129,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Login necessário"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in required"
           }
         }
       }
@@ -19407,6 +21165,12 @@
             "state": "translated",
             "value": "Aguardando"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending"
+          }
         }
       }
     },
@@ -19435,6 +21199,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sessão de visitante"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guest session"
           }
         }
       }
@@ -19465,6 +21235,12 @@
             "state": "translated",
             "value": "Não foi possível carregar a lista."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load the list."
+          }
         }
       }
     },
@@ -19493,6 +21269,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não foi possível desbloquear. Tente de novo."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not unblock this user. Please try again."
           }
         }
       }
@@ -19523,6 +21305,12 @@
             "state": "translated",
             "value": "Perfis populares"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Popular users"
+          }
         }
       }
     },
@@ -19551,6 +21339,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Perfis sugeridos"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggested users"
           }
         }
       }
@@ -19581,6 +21375,12 @@
             "state": "translated",
             "value": "Conteúdo sugerido"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggested content"
+          }
         }
       }
     },
@@ -19609,6 +21409,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Me"
           }
         }
       }
@@ -19639,6 +21445,12 @@
             "state": "translated",
             "value": "Não foi possível carregar as notas. Tente de novo."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load scores. Please try again."
+          }
         }
       }
     },
@@ -19667,6 +21479,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não foi possível abrir o assunto. Tente de novo."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not open this topic. Please try again."
           }
         }
       }
@@ -19697,6 +21515,12 @@
             "state": "translated",
             "value": "Assuntos ocultos ou bloqueados não podem ser vistos."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hidden or blocked topics are not available."
+          }
         }
       }
     },
@@ -19725,6 +21549,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Registrado. Sua nota entra no resultado mundial."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded. Your score joins the world."
           }
         }
       }
@@ -19755,6 +21585,12 @@
             "state": "translated",
             "value": "Scoor registrado."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scoor recorded."
+          }
         }
       }
     },
@@ -19780,6 +21616,12 @@
           }
         },
         "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bio"
+          }
+        },
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Bio"
@@ -19813,6 +21655,12 @@
             "state": "translated",
             "value": "Conte um pouco sobre você"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe yourself in a few words"
+          }
         }
       }
     },
@@ -19841,6 +21689,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não foi possível carregar os comentários."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load comments."
           }
         }
       }
@@ -19871,6 +21725,12 @@
             "state": "translated",
             "value": "Não foi possível concluir a ação."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not complete the action."
+          }
         }
       }
     },
@@ -19899,6 +21759,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não foi possível excluir."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not delete."
           }
         }
       }
@@ -19929,6 +21795,12 @@
             "state": "translated",
             "value": "Tudo"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
         }
       }
     },
@@ -19957,6 +21829,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Conversas"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversations"
           }
         }
       }
@@ -19987,12 +21865,24 @@
             "state": "translated",
             "value": "Menções"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentions"
+          }
         }
       }
     },
     "리포스트": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reposts"
+          }
+        },
         "ko": {
           "stringUnit": {
             "state": "translated",
@@ -20849,6 +22739,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sem conexão com o servidor."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not connected to the server."
           }
         }
       }
@@ -21929,6 +23825,12 @@
             "state": "translated",
             "value": "Continuar com telefone"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue with phone number"
+          }
         }
       }
     },
@@ -21957,6 +23859,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pular"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip"
           }
         }
       }
@@ -22004,6 +23912,18 @@
             "state": "translated",
             "value": "Configuração necessária: %@"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setup required: %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정이 필요합니다: %@"
+          }
         }
       }
     },
@@ -22026,6 +23946,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não foi possível entrar: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in failed: %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로그인에 실패했습니다: %@"
           }
         }
       }
@@ -22050,6 +23982,18 @@
             "state": "translated",
             "value": "Enviamos um e-mail de confirmação para %@. Abra o link para concluir o cadastro."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We sent a confirmation email to %@. Open the link in the email to finish signing up."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@로 확인 메일을 보냈습니다. 메일의 링크를 눌러 가입을 완료해 주세요."
+          }
         }
       }
     },
@@ -22072,6 +24016,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "scoor · Últimos %1$lld dias\nMédia: %2$@ · Dias registrados: %3$lld\nQue nota você dá para o seu dia? scoor!"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "scoor · Last %1$lld days\nAverage %2$@ points · %3$lld days recorded\nHow's your day? scoor!"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "scoor · 최근 %lld일\n평균 %@점 · %lld일 기록\nHow's your day? scoor!"
           }
         }
       }
@@ -22096,6 +24052,18 @@
             "state": "translated",
             "value": "Você deu uma nota de %lld."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You reacted with a score of %lld."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "당신은 %lld점으로 반응했어요."
+          }
         }
       }
     },
@@ -22118,6 +24086,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ocorreu um problema ao salvar. (%@)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save. (%@)"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장 중 문제가 발생했어요. (%@)"
           }
         }
       }
@@ -22142,6 +24122,18 @@
             "state": "translated",
             "value": "Solicitação recusada: %@"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request rejected: %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "요청이 거부되었습니다: %@"
+          }
         }
       }
     },
@@ -22164,6 +24156,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ocorreu um erro no servidor (%lld)."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A server error occurred (%lld)."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "서버 오류(%lld)가 발생했습니다."
           }
         }
       }
@@ -22302,6 +24306,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nota de hoje: %lld de 100"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today’s score: %lld"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘의 점수 %lld점"
           }
         }
       }
@@ -23016,6 +25032,18 @@
             "state": "translated",
             "value": "Sugestão da comunidade · %@"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Community proposal · %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "커뮤니티 제안 · %@"
+          }
         }
       }
     },
@@ -23038,6 +25066,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Conta excluída"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted user"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "탈퇴한 사용자"
           }
         }
       }
@@ -23769,6 +25809,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bloqueado em %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 차단"
           }
         }
       }

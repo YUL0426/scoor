@@ -44,7 +44,7 @@ final class ScoreHomeSharingTests: XCTestCase {
         let saved = await scores.getTodaysScore(userId: user.id)
         XCTAssertEqual(saved?.value, 43)
         XCTAssertFalse(viewModel.isSubmitted)
-        XCTAssertEqual(viewModel.feedbackMessage, "점수는 저장됐지만 홈 공유에 실패했어요. 다시 시도해주세요.")
+        XCTAssertEqual(viewModel.feedbackMessage, String(localized: "점수는 저장됐지만 홈 공유에 실패했어요. 다시 시도해주세요."))
     }
 
     func testEmptyReasonCannotRemainShared() async {

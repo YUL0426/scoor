@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the complete JA/FR/PT-BR catalog and legal translation provenance.
+"""Check English UI fallbacks, JA/FR/PT-BR, and legal translation provenance.
 Optionally pass Xcode's Objects-normal/arm64 directory to audit extracted keys.
 """
 import hashlib
@@ -28,6 +28,13 @@ def main():
     strings = json.loads(CATALOG.read_text())['strings']
     for key, entry in strings.items():
         localizations = entry.get('localizations', {})
+        english = list(values(localizations.get('en', {}))) or [key]
+        for value in english:
+            assert not re.search('[가-힣]', value), (key, 'en', 'Korean fallback')
+            assert value or not key, (key, 'en', 'empty')
+            # Symbolic keys (e.g. time.short.days) declare formats in their values.
+            if formats(key):
+                assert formats(key) == formats(value), (key, 'en', 'format mismatch')
         source = next(values(localizations.get('en', {})), key)
         for language in LANGUAGES:
             translated = list(values(localizations.get(language, {})))
@@ -50,7 +57,7 @@ def main():
         for path in Path(sys.argv[1]).glob('*.stringsdata'):
             for entry in json.loads(path.read_text()).get('tables', {}).get('Localizable', []):
                 assert entry['key'] in strings, (path.name, entry['key'], 'uncataloged extracted key')
-    print(f'PASS: {len(strings)} keys × 3 languages; placeholders, fallbacks and 60 legal sections verified.')
+    print(f'PASS: {len(strings)} keys; English fallbacks, JA/FR/PT-BR placeholders and 60 legal sections verified.')
 
 if __name__ == '__main__':
     main()

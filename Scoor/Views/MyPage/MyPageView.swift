@@ -238,7 +238,7 @@ struct MyPageView: View {
                     Text("오늘의 기록")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundStyle(ScoorPalette.inkPrimary)
-                    Text(homeModel.hasTodayEntry ? "오늘의 점수와 한 줄 수정" : "점수와 한 줄로 오늘을 남겨보세요")
+                    Text(homeModel.hasTodayEntry ? String(localized: "오늘의 점수와 한 줄 수정") : String(localized: "점수와 한 줄로 오늘을 남겨보세요"))
                         .font(.system(size: 13))
                         .foregroundStyle(ScoorPalette.inkSecondary)
                 }

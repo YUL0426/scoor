@@ -47,7 +47,7 @@ struct ReactionBarView: View {
                            tint: reactions.repostedByMe ? ScoorPalette.accent : ScoorPalette.inkSecondary,
                            count: reactions.reposts, action: onRepostTap)
                     .disabled(repostPending)
-                    .accessibilityLabel(reactions.repostedByMe ? "리포스트 취소" : "리포스트")
+            .accessibilityLabel(reactions.repostedByMe ? String(localized: "리포스트 취소") : String(localized: "리포스트"))
                     .accessibilityIdentifier("feed-repost-\(entryId)")
                     .accessibilityAddTraits(reactions.repostedByMe ? .isSelected : [])
             }

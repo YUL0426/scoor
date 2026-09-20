@@ -130,7 +130,7 @@ struct WorldView: View {
             // 접속자 수·평균 점수를 표시하던 자리. 그 수치는 하드코딩된
             // 가짜였고(P0-1), 실데이터는 /pulse 집계가 붙어야 나온다(C9).
             // 없는 데이터를 지어내느니 자리를 비워둔다.
-            if !vm.topicsAreLive {
+            if vm.usesPreviewData {
                 statusDot.padding(.leading, 2)
             }
 
@@ -148,7 +148,7 @@ struct WorldView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(ScoorPalette.inkTertiary)
                     .monospacedDigit()
-            } else {
+            } else if vm.usesPreviewData {
                 HStack(spacing: 6) {
                     Text("지금")
                         .font(.system(size: 11, weight: .medium))
@@ -323,7 +323,7 @@ struct WorldView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(row.topic.categoryLabel).font(.system(size: 10, weight: .semibold))
                             .foregroundStyle(ScoorPalette.accent)
-                        Text("\(row.topic.coverEmoji ?? "") \(row.topic.title)")
+                        Text("\(row.topic.coverEmoji ?? "") \(row.topic.localizedTitle)")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(ScoorPalette.inkSecondary)
                     }
@@ -369,7 +369,7 @@ struct WorldView: View {
 
                 Divider().background(ScoorPalette.hairline)
 
-                PreviewContentBanner().padding(.vertical, 8)
+                if vm.usesPreviewData { PreviewContentBanner().padding(.vertical, 8) }
                 WorldCategoryFilter(selected: $vm.category)
                     .padding(.vertical, 18)
                     .accessibilityIdentifier("world-category-menu")

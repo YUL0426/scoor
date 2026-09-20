@@ -42,6 +42,7 @@ enum SocialSeed {
     /// 페이지 0은 실제 시드(안정 id), 1+ 페이지는 결정적 합성 클론.
     static func feedPage(page: Int, pageSize: Int) -> [FeedEntry] {
         let base = MockFeed.entries
+        guard !base.isEmpty, page >= 0, pageSize > 0 else { return [] }
         guard page > 0 else { return Array(base.prefix(pageSize)) }
         // 합성: 시드를 반복하되 id/시간/카운트를 페이지별로 변형.
         return (0..<pageSize).map { i in
@@ -67,6 +68,7 @@ enum SocialSeed {
     /// 월드 글 페이지네이션 — 동일 전략.
     static func worldPostsPage(page: Int, pageSize: Int) -> [WorldPost] {
         let base = MockWorld.posts
+        guard !base.isEmpty, page >= 0, pageSize > 0 else { return [] }
         guard page > 0 else { return Array(base.prefix(pageSize)) }
         return (0..<pageSize).map { i in
             let src = base[(page * pageSize + i) % base.count]

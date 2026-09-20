@@ -41,6 +41,7 @@ final class WorldFeedViewModel: ObservableObject {
     /// between the "preview content" banner and a real empty state — labelling
     /// real data as a preview is the same dishonesty P0-1 was about, in reverse.
     @Published private(set) var topicsAreLive = false
+    var usesPreviewData: Bool { world == nil && service.usesPreviewData }
 
     init(service: SocialServiceProtocol,
          world: RemoteWorldService? = nil,
@@ -111,14 +112,11 @@ final class WorldFeedViewModel: ObservableObject {
         phase = page.isEmpty ? .empty : .loaded
     }
 
-    /// Server topics when available, local seed otherwise.
-    ///
-    /// A network failure falls back to the seed rather than emptying the screen —
-    /// but `topicsAreLive` stays false so the UI keeps saying the content is a
-    /// preview. Showing seed data unlabelled is exactly what P0-1 was about.
+    /// Keep previously loaded server topics on failure, without inventing content.
     private func loadTopicList() async -> [WorldTopic] {
         guard let world else {
             topicsAreLive = false
+            canLoadMoreTopics = false
             return await service.loadTopics()
         }
         do {
@@ -126,13 +124,12 @@ final class WorldFeedViewModel: ObservableObject {
             topicsAreLive = true
             topicOffset = remote.count
             canLoadMoreTopics = remote.count == 50
+            transientError = nil
             return remote
         } catch {
-            topicsAreLive = false
-            #if DEBUG
-            print("[Scoor] World topics fell back to seed: \(error.localizedDescription)")
-            #endif
-            return await service.loadTopics()
+            canLoadMoreTopics = false
+            transientError = error.localizedDescription
+            return topics
         }
     }
 

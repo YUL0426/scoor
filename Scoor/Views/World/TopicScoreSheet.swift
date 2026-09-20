@@ -19,6 +19,7 @@ struct TopicScoreSheet: View {
     let topic: WorldTopic
     @Binding var target: ScoorTarget
     let existing: Int?
+    var usesPreviewData = false
     /// 게시 단위 익명 토글. nil이면 서버 미연결 상태라 토글을 감춘다.
     /// 기본값은 닉네임 노출 — 실명은 부담스럽다는 판단으로 닉네임을 택했고(§15-2),
     /// 익명은 매 게시마다 사용자가 고르는 선택지로 남긴다.
@@ -30,7 +31,7 @@ struct TopicScoreSheet: View {
     @FocusState private var commentFocused: Bool
 
     private var detail: TopicDetail {
-        if isAnonymous == nil { return MockWorld.detail(for: topic) }
+        if usesPreviewData { return MockWorld.detail(for: topic) }
         return TopicDetail(source: topic.category.label, summary: topic.subtitle ?? "", coverHue: 0.58,
                            globalParticipants: topic.postsCount, regional: [], sports: nil, recent: [])
     }
@@ -45,7 +46,7 @@ struct TopicScoreSheet: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         if isAnonymous != nil {
-                            Text("0: \(topic.lowLabel) · 100: \(topic.highLabel)").font(.caption).foregroundStyle(ScoorPalette.accent).padding(.horizontal, 22)
+                            Text("0: \(topic.localizedLowLabel) · 100: \(topic.localizedHighLabel)").font(.caption).foregroundStyle(ScoorPalette.accent).padding(.horizontal, 22)
                         }
                         if detail.sports != nil { targetSelector }
 
@@ -223,7 +224,7 @@ struct TopicScoreSheet: View {
             HStack(spacing: 6) {
                 Image(systemName: binding.wrappedValue ? "eye.slash.fill" : "person.fill")
                     .font(.system(size: 12))
-                Text(binding.wrappedValue ? "익명으로 남기기" : "닉네임으로 남기기")
+                Text(binding.wrappedValue ? String(localized: "익명으로 남기기") : String(localized: "닉네임으로 남기기"))
                     .font(.system(size: 13, weight: .medium))
             }
             .foregroundStyle(ScoorPalette.inkSecondary)

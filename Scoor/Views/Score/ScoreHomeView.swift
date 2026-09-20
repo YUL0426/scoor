@@ -46,7 +46,7 @@ struct ScoreHomeView: View {
 
                 // Question + score display
                 VStack(spacing: 0) {
-                    Text(viewModel.isTargetToday ? "How's your day? scoor!" : "그 날은 어땠나요?")
+                    Text(viewModel.isTargetToday ? String(localized: "How's your day? scoor!") : String(localized: "그 날은 어땠나요?"))
                         .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(ScoorPalette.inkSecondary)
                         .padding(.bottom, 4)

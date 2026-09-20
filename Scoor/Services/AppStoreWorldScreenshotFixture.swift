@@ -51,13 +51,14 @@ private final class AppStoreWorldScreenshotProtocol: URLProtocol, @unchecked Sen
         let now = Date()
         let isKorean = Locale.preferredLanguages.first?.hasPrefix("ko") == true
         func time(_ secondsAgo: Double) -> String { formatter.string(from: now.addingTimeInterval(-secondsAgo)) }
-        let topicSpecs: [(String, String, String, String)] = isKorean ? [
+        let topicSpecs: [(String, String, String, String)] = [
             ("work", "주 4일 근무, 어떻게 생각해?", "🌿", "일과 삶의 균형, 여러분이 바라는 일주일은 어떤 모습인가요?"),
             ("tech", "AI와 함께하는 일상", "🤖", "기술이 바꾸는 우리의 일상. 기대와 고민을 나눠보세요."),
             ("entertainment", "자막을 넘어 통하는 이야기", "🎬", "다른 언어의 영화에서 나와 닮은 마음을 발견한 적 있나요?"),
             ("sports", "스포츠가 우리를 연결하는 순간", "⚽️", "응원하는 팀이 달라도, 함께 즐기는 순간에 점수를 남겨보세요."),
             ("society", "멀리 살아도 가까운 사이", "🌏", "서로 다른 곳에 사는 우리가 가까워지는 순간은 언제인가요?")
-        ] : [
+        ]
+        let englishSpecs: [(String, String, String, String)] = [
             ("work", "A four-day workweek?", "🌿", "What would a better balance between work and life look like for you?"),
             ("tech", "Everyday life with AI", "🤖", "Technology is changing our days. Share what excites you, and what gives you pause."),
             ("entertainment", "Stories beyond subtitles", "🎬", "Have you ever found a little of yourself in a film from somewhere else?"),
@@ -97,8 +98,11 @@ private final class AppStoreWorldScreenshotProtocol: URLProtocol, @unchecked Sen
                     "cover_emoji": spec.2, "subtitle": spec.3, "created_at": time(86_400),
                     "last_activity_at": time(180), "posts_count": votes.count, "global_score": average,
                     "score_delta": 0, "status": "live", "origin": "admin",
-                    "score_low_label": isKorean ? "반대" : "Against",
-                    "score_high_label": isKorean ? "찬성" : "In favor"]
+                    // Match the server's built-in anchors. Their presentation is localized by the app.
+                    "score_low_label": "반대",
+                    "score_high_label": "찬성",
+                    "translations": ["en": ["title": englishSpecs[index].1, "subtitle": englishSpecs[index].3,
+                                              "score_low_label": "Disagree", "score_high_label": "Agree"]]]
         }
         let reactions: [[String: Any]] = samples.enumerated().map { index, sample in
             let spec = topicSpecs[sample.0-1]
@@ -106,7 +110,9 @@ private final class AppStoreWorldScreenshotProtocol: URLProtocol, @unchecked Sen
                     "topic_id": topicID(sample.0), "value": sample.3, "comment": sample.4,
                     "is_anonymous": false, "country_code": sample.2, "created_at": time(Double((index+1)*180)),
                     "profiles": ["username": sample.1, "avatar_emoji": ""],
-                    "topics": ["id": topicID(sample.0), "title": spec.1, "category": spec.0, "cover_emoji": spec.2]]
+                    "topics": ["id": topicID(sample.0), "title": spec.1, "category": spec.0, "cover_emoji": spec.2,
+                               "translations": ["en": ["title": englishSpecs[sample.0-1].1, "subtitle": englishSpecs[sample.0-1].3,
+                                                       "score_low_label": "Disagree", "score_high_label": "Agree"]]]]
         }
         var rows: [[String: Any]]
         switch url.lastPathComponent {
@@ -121,7 +127,7 @@ private final class AppStoreWorldScreenshotProtocol: URLProtocol, @unchecked Sen
                 rows = rows.filter { "eq.\(($0["topic_id"] as! String).lowercased())" == value.lowercased() }
             }
             if let value = query["topics.category"] {
-                rows = rows.filter { "eq.\(($0["topics"] as! [String: String])["category"]!)" == value }
+                rows = rows.filter { "eq.\(($0["topics"] as! [String: Any])["category"] as! String)" == value }
             }
         case "topic_submission_notifications": rows = []
         default: throw URLError(.unsupportedURL)

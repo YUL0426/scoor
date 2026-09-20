@@ -53,7 +53,7 @@ final class RemoteWorldService {
         if let category { filters["topics.category"] = SupabaseRequest.eq(category.rawValue) }
         return try await client.send(
             .select("world_scores",
-                    columns: "id,value,comment,is_anonymous,country_code,created_at,profiles(username,avatar_emoji),topics!inner(id,title,category,cover_emoji)",
+                    columns: "id,value,comment,is_anonymous,country_code,created_at,profiles(username,avatar_emoji),topics!inner(id,title,category,cover_emoji,translations)",
                     filters: filters, order: "created_at.desc,id.desc", limit: limit, offset: offset),
             as: [WorldScoreFeedRow].self
         )
@@ -145,9 +145,10 @@ struct TopicRow: Codable {
     var sourceURL: String? = nil
     var lowLabel: String? = nil
     var highLabel: String? = nil
+    var translations: [String: TopicTranslation]? = nil
 
     enum CodingKeys: String, CodingKey {
-        case status, origin
+        case status, origin, translations
         case proposedBy = "proposed_by", proposerName = "proposer_name", sourceURL = "source_url"
         case lowLabel = "score_low_label", highLabel = "score_high_label"
         case id, category, title, subtitle
@@ -159,23 +160,25 @@ struct TopicRow: Codable {
         case lastActivityAt = "last_activity_at"
     }
 
-    func toDomain() -> WorldTopic? {
+    func toDomain(language: String = TopicTranslation.appLanguage) -> WorldTopic? {
         // An unknown category means the server has a topic type this build cannot
         // render. Dropping it beats showing a broken cell.
         guard let category = WorldCategory(rawValue: category) else { return nil }
+        let translated = TopicTranslation.resolve(translations, language: language)
         return WorldTopic(
             id: id,
             category: category,
-            title: title,
+            title: translated?.title ?? title,
             emoji: coverEmoji ?? category.emoji,
             globalScore: globalScore,
             scoreDelta: scoreDelta,
             postsCount: postsCount,
             lastActivityAt: lastActivityAt,
             heat: Self.heat(postsCount: postsCount, delta: scoreDelta, createdAt: createdAt),
-            subtitle: subtitle, status: status ?? "live", origin: origin ?? "admin",
+            subtitle: translated.map { $0.subtitle } ?? subtitle, status: status ?? "live", origin: origin ?? "admin",
             proposedBy: proposedBy, proposerName: proposerName, sourceURL: sourceURL,
-            lowLabel: lowLabel ?? String(localized: "부정적"), highLabel: highLabel ?? String(localized: "긍정적")
+            lowLabel: translated?.lowLabel ?? lowLabel ?? String(localized: "부정적"),
+            highLabel: translated?.highLabel ?? highLabel ?? String(localized: "긍정적")
         )
     }
 
@@ -265,8 +268,13 @@ struct WorldScoreFeedRow: Decodable, Identifiable {
         let title: String
         let category: String
         let coverEmoji: String?
+        var translations: [String: TopicTranslation]? = nil
+        var localizedTitle: String { title(for: TopicTranslation.appLanguage) }
+        func title(for language: String) -> String {
+            TopicTranslation.resolve(translations, language: language)?.title ?? title
+        }
         enum CodingKeys: String, CodingKey {
-            case id, title, category
+            case id, title, category, translations
             case coverEmoji = "cover_emoji"
         }
         var categoryLabel: String { WorldCategory(rawValue: category)?.label ?? category }

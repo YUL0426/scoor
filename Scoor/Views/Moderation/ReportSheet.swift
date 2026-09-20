@@ -88,7 +88,7 @@ struct ReportSheet: View {
                     Button("취소") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(isSubmitting ? "제출 중…" : "제출") { submit() }
+                    Button(isSubmitting ? String(localized: "제출 중…") : String(localized: "제출")) { submit() }
                         .disabled(isSubmitting || didSubmit)
                 }
             }

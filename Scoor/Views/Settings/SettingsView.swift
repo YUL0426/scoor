@@ -196,7 +196,7 @@ struct SettingsView: View {
                     .foregroundStyle(Color.scoorRed)
                     .frame(width: 28)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(accountEmail ?? "비공개")
+                    Text(accountEmail ?? String(localized: "비공개"))
                         .font(.system(size: 15, weight: .semibold))
                         .accessibilityIdentifier("settings-account-email")
                     Text(providerLabel)

@@ -99,7 +99,7 @@ struct SignupLoginOptionsView: View {
                                 Image(systemName: "arrow.right")
                                     .font(.system(size: 15, weight: .bold))
                             }
-                            Text(isLoading ? "Creating..." : "Continue")
+                            Text(isLoading ? String(localized: "Creating...") : String(localized: "Continue"))
                                 .font(.system(size: 16, weight: .bold))
                         }
                         .foregroundStyle(.white)

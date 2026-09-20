@@ -35,7 +35,7 @@ struct BlockedUsersView: View {
 
             case .failed:
                 VStack(spacing: 12) {
-                    Text(errorMessage ?? "목록을 불러올 수 없어요.")
+                    Text(errorMessage ?? String(localized: "목록을 불러올 수 없어요."))
                         .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)

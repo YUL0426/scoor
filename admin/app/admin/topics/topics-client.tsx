@@ -9,6 +9,8 @@ import {
   ListTodo,
   ArrowUpRight,
 } from "lucide-react";
+import { TopicTranslationFields, EditTopicTranslations } from "./topic-translations";
+import { parseTopicTranslations, type TopicTranslations } from "@/lib/topic-translations";
 import { CreateDialog, ListToolbar } from "@/components/admin/content-tools";
 import {
   TOPIC_CATEGORIES,
@@ -215,6 +217,7 @@ export function TopicsClient() {
                     {topic.subtitle ? ` · ${topic.subtitle}` : ""}
                   </p>
                 </div>
+                <EditTopicTranslations topic={topic} onSaved={load} />
                 <span className="hidden w-20 text-right text-xs tabular-nums text-text-secondary sm:block">
                   {topic.postsCount.toLocaleString()}명 참여
                 </span>
@@ -286,6 +289,7 @@ function CreateTopicForm({ onCreated }: { onCreated: () => Promise<void> }) {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [coverEmoji, setCoverEmoji] = useState("");
+  const [translations, setTranslations] = useState<TopicTranslations>({});
   const [publishNow, setPublishNow] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -302,6 +306,7 @@ function CreateTopicForm({ onCreated }: { onCreated: () => Promise<void> }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          translations: parseTopicTranslations(translations, publishNow),
           category,
           title,
           subtitle,
@@ -386,6 +391,8 @@ function CreateTopicForm({ onCreated }: { onCreated: () => Promise<void> }) {
           />
         </label>
       </div>
+
+      <TopicTranslationFields value={translations} onChange={setTranslations} />
 
       {error && <p className="text-xs text-red-300">{error}</p>}
 
