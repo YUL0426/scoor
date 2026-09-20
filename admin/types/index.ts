@@ -1,3 +1,4 @@
+import type { TopicTranslations } from "@/lib/topic-translations";
 // ─────────────────────────────────────────────
 // Core Domain Types — Scoor Admin
 // ─────────────────────────────────────────────
@@ -54,6 +55,10 @@ export const TOPIC_STATUSES = ["draft", "live", "closed", "hidden"] as const;
 export type TopicStatus = (typeof TOPIC_STATUSES)[number];
 
 export interface AdminTopic {
+  translations: TopicTranslations;
+  origin: string;
+  lowLabel: string;
+  highLabel: string;
   id: string;
   category: string;
   title: string;

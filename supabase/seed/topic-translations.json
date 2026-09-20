@@ -1,0 +1,320 @@
+[
+  {
+    "id": "79fa6cb6-adbe-4127-850a-fb95bd094107",
+    "origin": "admin",
+    "score_high_label": "긍정적",
+    "score_low_label": "부정적",
+    "status": "live",
+    "subtitle": "설렘부터 권태까지",
+    "title": "지금 내 연애 온도",
+    "translations": {
+      "en": {
+        "title": "My love life right now",
+        "subtitle": "From butterflies to feeling stuck",
+        "score_low_label": "Negative",
+        "score_high_label": "Positive"
+      },
+      "ja": {
+        "title": "今の恋愛の温度",
+        "subtitle": "ときめきからマンネリまで",
+        "score_low_label": "ネガティブ",
+        "score_high_label": "ポジティブ"
+      },
+      "zh-Hans": {
+        "title": "此刻我的恋爱温度",
+        "subtitle": "从心动到倦怠",
+        "score_low_label": "负面",
+        "score_high_label": "正面"
+      },
+      "de": {
+        "title": "Wie sich mein Liebesleben gerade anfühlt",
+        "subtitle": "Von Schmetterlingen im Bauch bis zur Routine",
+        "score_low_label": "Negativ",
+        "score_high_label": "Positiv"
+      },
+      "fr": {
+        "title": "Ma vie amoureuse en ce moment",
+        "subtitle": "Des premiers frissons à la routine",
+        "score_low_label": "Négatif",
+        "score_high_label": "Positif"
+      },
+      "pt-BR": {
+        "title": "Minha vida amorosa agora",
+        "subtitle": "Do frio na barriga à rotina",
+        "score_low_label": "Negativo",
+        "score_high_label": "Positivo"
+      },
+      "es": {
+        "title": "Mi vida amorosa ahora",
+        "subtitle": "De las mariposas a la rutina",
+        "score_low_label": "Negativo",
+        "score_high_label": "Positivo"
+      }
+    }
+  },
+  {
+    "id": "16a61c4f-b665-45b6-afa4-bc7791922adc",
+    "origin": "admin",
+    "score_high_label": "긍정적",
+    "score_low_label": "부정적",
+    "status": "live",
+    "subtitle": "공부하는 사람들의 실시간 감정",
+    "title": "시험 기간 멘탈",
+    "translations": {
+      "en": {
+        "title": "Exam-season mindset",
+        "subtitle": "How people studying are feeling right now",
+        "score_low_label": "Negative",
+        "score_high_label": "Positive"
+      },
+      "ja": {
+        "title": "試験期間中のメンタル",
+        "subtitle": "勉強している人たちの今の気持ち",
+        "score_low_label": "ネガティブ",
+        "score_high_label": "ポジティブ"
+      },
+      "zh-Hans": {
+        "title": "考试季的心态",
+        "subtitle": "正在学习的人们此刻的心情",
+        "score_low_label": "负面",
+        "score_high_label": "正面"
+      },
+      "de": {
+        "title": "Stimmung in der Prüfungszeit",
+        "subtitle": "Wie sich Lernende gerade fühlen",
+        "score_low_label": "Negativ",
+        "score_high_label": "Positiv"
+      },
+      "fr": {
+        "title": "Le moral pendant les examens",
+        "subtitle": "Le ressenti du moment de ceux qui étudient",
+        "score_low_label": "Négatif",
+        "score_high_label": "Positif"
+      },
+      "pt-BR": {
+        "title": "O ânimo na época de provas",
+        "subtitle": "Como quem está estudando se sente agora",
+        "score_low_label": "Negativo",
+        "score_high_label": "Positivo"
+      },
+      "es": {
+        "title": "El ánimo en época de exámenes",
+        "subtitle": "Cómo se sienten ahora quienes están estudiando",
+        "score_low_label": "Negativo",
+        "score_high_label": "Positivo"
+      }
+    }
+  },
+  {
+    "id": "350296d1-a780-457d-b8d4-14fd8ea706ea",
+    "origin": "admin",
+    "score_high_label": "긍정적",
+    "score_low_label": "부정적",
+    "status": "live",
+    "subtitle": "새벽에 깨어 있는 사람들의 점수",
+    "title": "오늘 밤, 잠이 안 오는 이유",
+    "translations": {
+      "en": {
+        "title": "What's keeping you up tonight?",
+        "subtitle": "Scores from people still awake late at night",
+        "score_low_label": "Negative",
+        "score_high_label": "Positive"
+      },
+      "ja": {
+        "title": "今夜、眠れない理由",
+        "subtitle": "夜更けに起きている人たちのスコア",
+        "score_low_label": "ネガティブ",
+        "score_high_label": "ポジティブ"
+      },
+      "zh-Hans": {
+        "title": "今晚睡不着的理由",
+        "subtitle": "深夜还醒着的人们的评分",
+        "score_low_label": "负面",
+        "score_high_label": "正面"
+      },
+      "de": {
+        "title": "Was hält dich heute Nacht wach?",
+        "subtitle": "Scores von Menschen, die nachts noch wach sind",
+        "score_low_label": "Negativ",
+        "score_high_label": "Positiv"
+      },
+      "fr": {
+        "title": "Qu’est-ce qui vous tient éveillé ce soir ?",
+        "subtitle": "Les scores de ceux qui veillent tard dans la nuit",
+        "score_low_label": "Négatif",
+        "score_high_label": "Positif"
+      },
+      "pt-BR": {
+        "title": "O que não deixa você dormir esta noite?",
+        "subtitle": "Notas de quem ainda está acordado de madrugada",
+        "score_low_label": "Negativo",
+        "score_high_label": "Positivo"
+      },
+      "es": {
+        "title": "¿Qué no te deja dormir esta noche?",
+        "subtitle": "Puntuaciones de quienes siguen despiertos de madrugada",
+        "score_low_label": "Negativo",
+        "score_high_label": "Positivo"
+      }
+    }
+  },
+  {
+    "id": "f71f02ed-efa1-435a-a6c6-35936f1ee100",
+    "origin": "admin",
+    "score_high_label": "긍정적",
+    "score_low_label": "부정적",
+    "status": "live",
+    "subtitle": "월요일부터 지금까지, 몇 점인가요",
+    "title": "이번 주 직장 컨디션",
+    "translations": {
+      "en": {
+        "title": "How work feels this week",
+        "subtitle": "From Monday until now, what score would you give it?",
+        "score_low_label": "Negative",
+        "score_high_label": "Positive"
+      },
+      "ja": {
+        "title": "今週の仕事の調子",
+        "subtitle": "月曜日から今まで、何点ですか？",
+        "score_low_label": "ネガティブ",
+        "score_high_label": "ポジティブ"
+      },
+      "zh-Hans": {
+        "title": "这周的工作状态",
+        "subtitle": "从周一到现在，你会打几分？",
+        "score_low_label": "负面",
+        "score_high_label": "正面"
+      },
+      "de": {
+        "title": "Wie sich die Arbeit diese Woche anfühlt",
+        "subtitle": "Von Montag bis jetzt: Wie viele Punkte gibst du?",
+        "score_low_label": "Negativ",
+        "score_high_label": "Positiv"
+      },
+      "fr": {
+        "title": "Le travail cette semaine",
+        "subtitle": "De lundi à maintenant, quelle note donneriez-vous ?",
+        "score_low_label": "Négatif",
+        "score_high_label": "Positif"
+      },
+      "pt-BR": {
+        "title": "Como está o trabalho nesta semana",
+        "subtitle": "De segunda-feira até agora, que nota você daria?",
+        "score_low_label": "Negativo",
+        "score_high_label": "Positivo"
+      },
+      "es": {
+        "title": "Cómo va el trabajo esta semana",
+        "subtitle": "Desde el lunes hasta ahora, ¿qué puntuación le darías?",
+        "score_low_label": "Negativo",
+        "score_high_label": "Positivo"
+      }
+    }
+  },
+  {
+    "id": "5146e9ff-af38-4e5a-9adc-188c09d922db",
+    "origin": "admin",
+    "score_high_label": "긍정적",
+    "score_low_label": "부정적",
+    "status": "live",
+    "subtitle": "세상 돌아가는 걸 점수로",
+    "title": "요즘 뉴스 보면 드는 기분",
+    "translations": {
+      "en": {
+        "title": "How the news makes me feel",
+        "subtitle": "Score how you feel about what is happening in the world",
+        "score_low_label": "Negative",
+        "score_high_label": "Positive"
+      },
+      "ja": {
+        "title": "最近のニュースを見て感じること",
+        "subtitle": "世の中の動きをスコアで表そう",
+        "score_low_label": "ネガティブ",
+        "score_high_label": "ポジティブ"
+      },
+      "zh-Hans": {
+        "title": "最近看新闻时的心情",
+        "subtitle": "为世界上发生的事打个分",
+        "score_low_label": "负面",
+        "score_high_label": "正面"
+      },
+      "de": {
+        "title": "Was die Nachrichten bei mir auslösen",
+        "subtitle": "Bewerte, wie du das Weltgeschehen empfindest",
+        "score_low_label": "Negativ",
+        "score_high_label": "Positiv"
+      },
+      "fr": {
+        "title": "Ce que les nouvelles me font ressentir",
+        "subtitle": "Exprimez votre ressenti sur le monde avec un score",
+        "score_low_label": "Négatif",
+        "score_high_label": "Positif"
+      },
+      "pt-BR": {
+        "title": "Como as notícias me fazem sentir",
+        "subtitle": "Dê uma nota ao que você sente sobre os acontecimentos no mundo",
+        "score_low_label": "Negativo",
+        "score_high_label": "Positivo"
+      },
+      "es": {
+        "title": "Cómo me hacen sentir las noticias",
+        "subtitle": "Puntúa lo que sientes sobre lo que pasa en el mundo",
+        "score_low_label": "Negativo",
+        "score_high_label": "Positivo"
+      }
+    }
+  },
+  {
+    "id": "6cf706a4-0ec0-4342-9ab1-42397b3e1866",
+    "origin": "admin",
+    "score_high_label": "긍정적",
+    "score_low_label": "부정적",
+    "status": "draft",
+    "subtitle": "지수 보고 드는 기분",
+    "title": "코스피 요새 상황",
+    "translations": {
+      "en": {
+        "title": "The KOSPI lately",
+        "subtitle": "How the index makes you feel",
+        "score_low_label": "Negative",
+        "score_high_label": "Positive"
+      },
+      "ja": {
+        "title": "最近のKOSPIの動き",
+        "subtitle": "指数を見て感じること",
+        "score_low_label": "ネガティブ",
+        "score_high_label": "ポジティブ"
+      },
+      "zh-Hans": {
+        "title": "韩国综合股价指数近况",
+        "subtitle": "看到指数时的心情",
+        "score_low_label": "负面",
+        "score_high_label": "正面"
+      },
+      "de": {
+        "title": "Der KOSPI in letzter Zeit",
+        "subtitle": "Wie du dich beim Blick auf den Index fühlst",
+        "score_low_label": "Negativ",
+        "score_high_label": "Positiv"
+      },
+      "fr": {
+        "title": "Le KOSPI ces derniers temps",
+        "subtitle": "Ce que cet indice vous fait ressentir",
+        "score_low_label": "Négatif",
+        "score_high_label": "Positif"
+      },
+      "pt-BR": {
+        "title": "O KOSPI ultimamente",
+        "subtitle": "Como você se sente ao olhar o índice",
+        "score_low_label": "Negativo",
+        "score_high_label": "Positivo"
+      },
+      "es": {
+        "title": "El KOSPI últimamente",
+        "subtitle": "Cómo te sientes al ver el índice",
+        "score_low_label": "Negativo",
+        "score_high_label": "Positivo"
+      }
+    }
+  }
+]

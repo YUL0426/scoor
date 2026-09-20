@@ -1,3 +1,4 @@
+import { parseTopicTranslations, type TopicTranslations } from "@/lib/topic-translations";
 /**
  * World topic curation (spec-13 §12 Phase 1, decision §15-4: 3–5 topics/day).
  *
@@ -24,6 +25,10 @@ import {
 
 /** Mirrors `public.topics` plus the aggregate columns of `topics_feed`. */
 interface TopicRow {
+  translations?: TopicTranslations;
+  origin: string;
+  score_low_label: string;
+  score_high_label: string;
   id: string;
   category: string;
   title: string;
@@ -72,6 +77,10 @@ export async function GET() {
 
     const topics: AdminTopic[] = rows.map((row) => ({
       id: row.id,
+      translations: row.translations ?? {},
+      origin: row.origin,
+      lowLabel: row.score_low_label,
+      highLabel: row.score_high_label,
       category: row.category,
       title: row.title,
       subtitle: row.subtitle,
@@ -135,6 +144,7 @@ export async function POST(request: NextRequest) {
 // MARK: - Validation
 
 interface CreatePayload {
+  translations: TopicTranslations;
   category: string;
   title: string;
   subtitle: string | null;
@@ -181,8 +191,13 @@ function parseCreate(
   const emojiRaw =
     typeof body.coverEmoji === "string" ? body.coverEmoji.trim() : "";
 
+  let translations: TopicTranslations;
+  try { translations = parseTopicTranslations(body.translations, status === "live" || status === "closed"); }
+  catch (error) { return { error: error instanceof Error ? error.message : "번역 형식이 올바르지 않습니다." }; }
+
   return {
     value: {
+      translations,
       category,
       title,
       subtitle: subtitleRaw || null,

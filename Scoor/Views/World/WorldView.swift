@@ -323,7 +323,7 @@ struct WorldView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(row.topic.categoryLabel).font(.system(size: 10, weight: .semibold))
                             .foregroundStyle(ScoorPalette.accent)
-                        Text("\(row.topic.coverEmoji ?? "") \(row.topic.title)")
+                        Text("\(row.topic.coverEmoji ?? "") \(row.topic.localizedTitle)")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(ScoorPalette.inkSecondary)
                     }

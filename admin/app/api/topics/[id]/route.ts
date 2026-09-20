@@ -1,12 +1,5 @@
-/**
- * Publish / close a single topic.
- *
- * Status is the only mutable field on purpose: editing the title of a topic
- * people have already scored would change what their score meant. Closing keeps
- * it readable and stops new submissions (`topics_write` policy), which is the
- * right end-of-life for a match or an event that finished.
- */
-
+/** Update publication state or editorial translations; canonical questions stay immutable. */
+import { parseTopicTranslations, type TopicTranslations } from "@/lib/topic-translations";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/server/guard";
@@ -55,15 +48,23 @@ export async function PATCH(
     );
   }
 
-  const status = (body as { status?: unknown })?.status;
-  if (
-    typeof status !== "string" ||
-    !TOPIC_STATUSES.includes(status as TopicStatus)
-  ) {
-    return NextResponse.json(
-      { error: `Status must be one of: ${TOPIC_STATUSES.join(", ")}.` },
-      { status: 400 },
-    );
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "요청 본문은 객체여야 합니다." }, { status: 400 });
+  }
+  const input = body as Record<string, unknown>;
+  if (!Object.keys(input).length || Object.keys(input).some(key => !["status", "translations"].includes(key))) {
+    return NextResponse.json({ error: "상태 또는 번역만 변경할 수 있습니다." }, { status: 400 });
+  }
+  const patch: { status?: TopicStatus; translations?: TopicTranslations } = {};
+  if ("status" in input) {
+    if (typeof input.status !== "string" || !TOPIC_STATUSES.includes(input.status as TopicStatus)) {
+      return NextResponse.json({ error: "상태 값이 올바르지 않습니다." }, { status: 400 });
+    }
+    patch.status = input.status as TopicStatus;
+  }
+  if ("translations" in input) {
+    try { patch.translations = parseTopicTranslations(input.translations); }
+    catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "번역 형식이 올바르지 않습니다." }, { status: 400 }); }
   }
 
   try {
@@ -73,7 +74,7 @@ export async function PATCH(
       {
         method: "PATCH",
         query: `id=eq.${id}`,
-        body: { status },
+        body: patch,
         returning: true,
       },
     );
