@@ -97,8 +97,9 @@ private final class AppStoreWorldScreenshotProtocol: URLProtocol, @unchecked Sen
                     "cover_emoji": spec.2, "subtitle": spec.3, "created_at": time(86_400),
                     "last_activity_at": time(180), "posts_count": votes.count, "global_score": average,
                     "score_delta": 0, "status": "live", "origin": "admin",
-                    "score_low_label": isKorean ? "반대" : "Against",
-                    "score_high_label": isKorean ? "찬성" : "In favor"]
+                    // Match the server's built-in anchors. Their presentation is localized by the app.
+                    "score_low_label": "반대",
+                    "score_high_label": "찬성"]
         }
         let reactions: [[String: Any]] = samples.enumerated().map { index, sample in
             let spec = topicSpecs[sample.0-1]

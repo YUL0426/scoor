@@ -138,7 +138,7 @@ struct TopicProposalComposer: View {
                 }
                 Section("질문의 종류와 출처") {
                     Picker("종류", selection: $draft.kind) { Text("의견·논의").tag("discussion"); Text("뉴스·사건").tag("news") }
-                    TextField(draft.kind == "news" ? "출처 URL (필수)" : "출처 URL (선택)", text: $draft.sourceURL)
+                    TextField(draft.kind == "news" ? String(localized: "출처 URL (필수)") : String(localized: "출처 URL (선택)"), text: $draft.sourceURL)
                         .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                 }
                 Section("점수 기준") {
@@ -151,7 +151,7 @@ struct TopicProposalComposer: View {
                 if let message = draft.validationMessage { Text(message).font(.caption).foregroundStyle(.secondary) }
             }
             .disabled(busy)
-            .navigationTitle(draft.revision == nil ? "토픽 제안" : "제안 수정")
+            .navigationTitle(draft.revision == nil ? String(localized: "토픽 제안") : String(localized: "제안 수정"))
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("닫기") { dismiss() }.disabled(busy) } }
             .task(id: draft.title) {
                 guard draft.title.count >= 2 else { similar = []; return }

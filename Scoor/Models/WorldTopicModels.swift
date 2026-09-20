@@ -95,6 +95,20 @@ struct WorldTopic: Identifiable, Hashable {
     var sourceURL: String? = nil
     var lowLabel: String = "부정적"
     var highLabel: String = "긍정적"
+
+    var localizedLowLabel: String { Self.localizedScoreMeaning(lowLabel) }
+    var localizedHighLabel: String { Self.localizedScoreMeaning(highLabel) }
+
+    /// Translate built-in score anchors, keeping custom author content verbatim.
+    static func localizedScoreMeaning(_ value: String) -> String {
+        switch value {
+        case "부정적": return String(localized: "부정적")
+        case "긍정적": return String(localized: "긍정적")
+        case "반대": return String(localized: "반대")
+        case "찬성": return String(localized: "찬성")
+        default: return value
+        }
+    }
 }
 
 // MARK: - WorldPost (개인 반응)

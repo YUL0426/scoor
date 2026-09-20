@@ -46,7 +46,7 @@ struct TopicScoreSheet: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         if isAnonymous != nil {
-                            Text("0: \(topic.lowLabel) · 100: \(topic.highLabel)").font(.caption).foregroundStyle(ScoorPalette.accent).padding(.horizontal, 22)
+                            Text("0: \(topic.localizedLowLabel) · 100: \(topic.localizedHighLabel)").font(.caption).foregroundStyle(ScoorPalette.accent).padding(.horizontal, 22)
                         }
                         if detail.sports != nil { targetSelector }
 
@@ -224,7 +224,7 @@ struct TopicScoreSheet: View {
             HStack(spacing: 6) {
                 Image(systemName: binding.wrappedValue ? "eye.slash.fill" : "person.fill")
                     .font(.system(size: 12))
-                Text(binding.wrappedValue ? "익명으로 남기기" : "닉네임으로 남기기")
+                Text(binding.wrappedValue ? String(localized: "익명으로 남기기") : String(localized: "닉네임으로 남기기"))
                     .font(.system(size: 13, weight: .medium))
             }
             .foregroundStyle(ScoorPalette.inkSecondary)

@@ -281,7 +281,7 @@ struct TopicDetailView: View {
                     .foregroundStyle(ScoorPalette.inkTertiary)
             }
             if worldService != nil {
-                Text("0: \(topic.lowLabel) · 100: \(topic.highLabel)").font(.subheadline).foregroundStyle(ScoorPalette.accent)
+                Text("0: \(topic.localizedLowLabel) · 100: \(topic.localizedHighLabel)").font(.subheadline).foregroundStyle(ScoorPalette.accent)
                 if let raw = topic.sourceURL, let url = URL(string: raw), url.scheme == "https" {
                     Link("출처 보기", destination: url).font(.subheadline)
                 }
@@ -713,7 +713,7 @@ struct TopicDetailView: View {
                             String(r.identity.name.prefix(1)).uppercased())
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {
-                    Text(r.identity.isAnonymous ? "익명" : r.identity.name)
+                    Text(r.identity.isAnonymous ? String(localized: "익명") : r.identity.name)
                         .font(ScoorType.name)
                         .foregroundStyle(ScoorPalette.inkPrimary)
                     Text("·").font(ScoorType.meta).foregroundStyle(ScoorPalette.inkTertiary)
@@ -836,8 +836,8 @@ struct TopicDetailView: View {
                 } label: {
                     HStack(spacing: 8) {
                         Text(mySubmissions[.match] == nil
-                             ? "What's your Scoor?"
-                             : "다시 매기기")
+                             ? String(localized: "What's your Scoor?")
+                             : String(localized: "다시 매기기"))
                             .font(.system(size: 15, weight: .bold))
                         Image(systemName: "arrow.up.right")
                             .font(.system(size: 13, weight: .bold))

@@ -7,7 +7,7 @@
 - 서명된 Release 아카이브: [Scoor-2026-09-16-iPhone-red-entry.xcarchive](/Users/yul/Desktop/scoor-workspace/release/Scoor-2026-09-16-iPhone-red-entry.xcarchive).
 - 최종 앱의 `UIDeviceFamily = [1]`, iOS 17.0 이상, 서버 및 Google 로그인 설정 포함을 확인했다. 코드 서명 검증도 통과했다.
 - 업로드 및 심사 제출은 실행하지 않았다. Xcode Organizer에서 이 아카이브를 선택해 Distribute App → App Store Connect로 진행하고 새 빌드를 제출 버전에 연결한다. 이전 iPad 지원 아카이브 대신 이 빌드를 사용한다.
-- Apple의 [스크린샷 규격](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications)은 iPad 실행을 지원하는 앱에 iPad 스크린샷을 요구한다. 이번 번들은 iPhone 기기군만 포함한다.
+- 이번 번들은 iPhone 기기군만 포함한다. iPad 네이티브 지원에 따른 [스크린샷 요구](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications)와 iPad의 iPhone 호환 모드 실행은 별개다. iPhone 전용 앱도 iPad에서 실행·심사될 수 있다. [2026-09-20 심사 검토](../reports/app-review-localization-2026-09-20.md)를 참고한다.
 
 ## 시작 화면
 
